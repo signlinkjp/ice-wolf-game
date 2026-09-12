@@ -1,0 +1,64 @@
+name: Apply v0.3.4 Guaranteed Red Visual
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v034-guaranteed-red-visual.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v0.3-action-clarity
+
+      - name: Apply v0.3.4 visual fix
+        run: python3 scripts/apply_v034_guaranteed_red_visual.py
+
+      - name: Validate JSON and protected invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          d=json.load(open('game.json',encoding='utf-8'))
+          f=next(x for x in d['layouts'] if x.get('name')=='FROST LAB')
+          p=next(i for i in f['instances'] if i.get('name')=='Player')
+          aa=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(aa)==5
+          assert (p['width'],p['height'],p['depth'])==(17,17,32)
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in aa)
+          build=next(o for o in f['objects'] if o.get('name')=='BuildText')
+          assert build.get('string')=='DEV v0.3.4'
+          assert build.get('content',{}).get('text')=='DEV v0.3.4'
+          groups=[e for e in f.get('events',[]) if e.get('name')=='v0.3.4 guaranteed solid-state visuals']
+          assert len(groups)==1
+          js=groups[0]['events'][0]
+          assert js.get('type')=='BuiltinCommonInstructions::JsCode'
+          code='\n'.join(js.get('inlineCode',[]))
+          assert 'new THREE.MeshBasicMaterial({ color: 0xffffff })' in code
+          assert "state === 'Frozen' || state === 'FrozenWolfCandidate'" in code
+          assert '0xff0000' in code
+          assert '0x8b0000' in code
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          assert '\"Scale\",\"=\",\"1.15\"' not in raw
+          # Protected core mechanics must still exist.
+          for token in ['WOLF MODE ON!','HUMAN FROZEN!','INFECTED - HIDDEN','TRAP! YOU ARE FROZEN','freeze_crack.wav','MatchDuration','WolfModeDuration','WolfCooldown']:
+              assert token in raw, token
+          print('v0.3.4 static validation PASS')
+          PY
+
+      - name: Commit tuned game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'fix: v0.3.4 guarantee bright red frozen visuals'
+          git push origin HEAD:feature/v0.3-action-clarity
