@@ -110,16 +110,17 @@ jobs:
             assert objs[name]['string']==text, (name,objs[name]['string'])
             assert objs[name]['content']['text']==text, (name,objs[name]['content']['text'])
 
-          # Core internal values and AI/state tokens must remain English and present.
+          # Structural recursive diff above is the proof that every non-UI leaf,
+          # every number/boolean, every internal Role/State value, and every AI/gameplay
+          # expression remained byte-for-byte equivalent after JSON decoding.
           raw=json.dumps(after,ensure_ascii=False,separators=(',',':'))
           for token in [
             'FrozenWolfCandidate','AIWolfModeLeft','AIWolfCooldownLeft',
-            '"Role"','"State"','"Wolf"','"Human"','"Active"','"Frozen"',
             'InfectionUsed','WolfModeLeft','CooldownLeft','MatchDuration',
             'rescueSearchRadius = 520','aiWolfTriggerRadius = 420',
-            'targetVars.get(\'Role\').setString(\'Wolf\')',
-            'targetVars.get(\'State\').setString(\'Active\')',
-            'actorVars.get(\'State\').setString(\'Frozen\')',
+            "targetVars.get('Role').setString('Wolf')",
+            "targetVars.get('State').setString('Active')",
+            "actorVars.get('State').setString('Frozen')",
           ]:
             assert token in raw, token
 
