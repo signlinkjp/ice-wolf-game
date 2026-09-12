@@ -1,0 +1,49 @@
+name: Materialize GDevelop project
+
+on:
+  push:
+    paths:
+      - '.github/workflows/materialize-game.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild game.json
+        shell: bash
+        run: |
+          cat seed/part01.b64 seed/part02.b64 seed/part03.b64 seed/part04.b64 \
+            | base64 --decode \
+            | gunzip > game.json
+
+      - name: Validate exact project bytes and JSON
+        shell: bash
+        run: |
+          echo '8b39cba2795c6966306106f119a4a0247f9ebcd0c80aa61f3021bd5c5c7ec6be  game.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          with open('game.json', encoding='utf-8') as f:
+              data = json.load(f)
+          assert data['properties']['name'].strip() == 'ICE WOLF'
+          assert any(layout.get('name') == 'FROST LAB' for layout in data.get('layouts', []))
+          print('ICE WOLF game.json validation PASS')
+          PY
+
+      - name: Commit canonical game.json
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          if git diff --cached --quiet; then
+            echo 'game.json already up to date'
+            exit 0
+          fi
+          git commit -m 'chore: materialize GDevelop game.json'
+          git push
