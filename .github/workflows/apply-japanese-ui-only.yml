@@ -1,0 +1,138 @@
+name: Apply Japanese UI Only
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-japanese-ui-only.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Japanese UI branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/japanese-ui-only
+
+      - name: Snapshot exact pre-change game
+        run: cp game.json /tmp/game-before.json
+
+      - name: Apply visible Japanese strings only
+        run: python3 scripts/apply_japanese_ui_only.py
+
+      - name: Validate JSON and prove UI-only diff
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+
+          before=json.load(open('/tmp/game-before.json',encoding='utf-8'))
+          after=json.load(open('game.json',encoding='utf-8'))
+
+          allowed_pairs={
+            ('YOU: WOLF','あなた：人狼'),
+            ('[ WOLF MODE ]','[ 人狼モード ]'),
+            ('[ RESCUE ]','[ 救助 ]'),
+            ('[ INFECT ]','[ 感染 ]'),
+            ('TEST ROLE','役割切替'),
+            ('TEST RESET','リセット'),
+            ('WOLF MODE READY','人狼モード 準備OK'),
+            ('DEV v0.5.1','開発版 v0.5.1'),
+            ('"YOU: WOLF"','"あなた：人狼"'),
+            ('"YOU: HUMAN"','"あなた：人間"'),
+            ('"YOU: HUMAN | FROZEN"','"あなた：人間｜凍結"'),
+            ('"YOU: WOLF | FROZEN"','"あなた：人狼｜凍結"'),
+            ('"YOU ARE FROZEN"','"あなたは凍結中"'),
+            ('"WOLF MODE ACTIVE"','"人狼モード 発動中"'),
+            ('"WOLF COOLDOWN: " + ToString(ceil(CooldownLeft))','"人狼モード 待機：" + ToString(ceil(CooldownLeft))'),
+            ('"WOLF MODE READY"','"人狼モード 準備OK"'),
+            ('"HUMAN: RESCUE FROZEN ALLIES"','"人間：凍った仲間を救助"'),
+            ('"WOLF MODE ON!"','"人狼モード！"'),
+            ('"HUMAN FROZEN!"','"人間を凍らせた！"'),
+            ('"TRAP! YOU ARE FROZEN"','"罠だ！あなたは凍結！"'),
+            ('"RESCUED!"','"救助成功！"'),
+            ('"INFECTED - HIDDEN"','"感染させた"'),
+            ('"WOLF WIN"','"人狼の勝利！"'),
+            ('"HUMAN WIN"','"人間の勝利！"'),
+          }
+          test_subs=[
+            ("=== 'YOU: WOLF'", "=== 'あなた：人狼'"),
+            ("=== 'WOLF WIN'", "=== '人狼の勝利！'"),
+            ("=== 'HUMAN WIN'", "=== '人間の勝利！'"),
+            ("=== '[ WOLF MODE ]'", "=== '[ 人狼モード ]'"),
+            ("=== '[ RESCUE ]'", "=== '[ 救助 ]'"),
+            ("=== '[ INFECT ]'", "=== '[ 感染 ]'"),
+            ("=== 'WOLF MODE READY'", "=== '人狼モード 準備OK'"),
+          ]
+
+          diffs=[]
+          def walk(a,b,path=''):
+            if type(a) is not type(b):
+              diffs.append((path,a,b)); return
+            if isinstance(a,dict):
+              if list(a.keys()) != list(b.keys()):
+                diffs.append((path+'<keys>',list(a.keys()),list(b.keys()))); return
+              for k in a: walk(a[k],b[k],f'{path}/{k}')
+            elif isinstance(a,list):
+              if len(a)!=len(b): diffs.append((path+'<len>',len(a),len(b))); return
+              for i,(x,y) in enumerate(zip(a,b)): walk(x,y,f'{path}/{i}')
+            elif a!=b:
+              diffs.append((path,a,b))
+          walk(before,after)
+
+          if not diffs:
+            raise AssertionError('expected Japanese UI changes, found none')
+
+          for path,old,new in diffs:
+            if isinstance(old,str) and isinstance(new,str) and (old,new) in allowed_pairs:
+              continue
+            if '/tests/' in path and isinstance(old,str) and isinstance(new,str):
+              if any(o in old and new == old.replace(o,n) for o,n in test_subs):
+                continue
+            raise AssertionError(f'NON-UI CHANGE DETECTED at {path}: {old!r} -> {new!r}')
+
+          f=next(x for x in after['layouts'] if x.get('name')=='FROST LAB')
+          objs={o['name']:o for o in f['objects']}
+          expected={
+            'RoleText':'あなた：人狼',
+            'WolfButton':'[ 人狼モード ]',
+            'RescueButton':'[ 救助 ]',
+            'InfectButton':'[ 感染 ]',
+            'TestRoleButton':'役割切替',
+            'TestResetButton':'リセット',
+            'StatusText':'人狼モード 準備OK',
+            'BuildText':'開発版 v0.5.1',
+          }
+          for name,text in expected.items():
+            assert objs[name]['string']==text, (name,objs[name]['string'])
+            assert objs[name]['content']['text']==text, (name,objs[name]['content']['text'])
+
+          # Core internal values and AI/state tokens must remain English and present.
+          raw=json.dumps(after,ensure_ascii=False,separators=(',',':'))
+          for token in [
+            'FrozenWolfCandidate','AIWolfModeLeft','AIWolfCooldownLeft',
+            '"Role"','"State"','"Wolf"','"Human"','"Active"','"Frozen"',
+            'InfectionUsed','WolfModeLeft','CooldownLeft','MatchDuration',
+            'rescueSearchRadius = 520','aiWolfTriggerRadius = 420',
+            'targetVars.get(\'Role\').setString(\'Wolf\')',
+            'targetVars.get(\'State\').setString(\'Active\')',
+            'actorVars.get(\'State\').setString(\'Frozen\')',
+          ]:
+            assert token in raw, token
+
+          print(f'Japanese UI-only audit PASS: {len(diffs)} leaf string changes; 0 gameplay/data-structure changes')
+          PY
+
+      - name: Commit game.json only
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'feat: Japanese visible UI strings only'
+          git push origin HEAD:feature/japanese-ui-only
