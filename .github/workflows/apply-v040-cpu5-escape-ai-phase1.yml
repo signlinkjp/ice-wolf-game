@@ -36,25 +36,26 @@ jobs:
           assert build.get('string')=='DEV v0.4.0'
           groups=[e for e in f.get('events',[]) if e.get('name')=='v0.4.0 CPU5 Escape AI Phase 1']
           assert len(groups)==1
-          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          group=groups[0]
+          js=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          code='\n'.join(js.get('inlineCode',[]))
           for token in [
-            "fleeRadius = 360",
-            "fleeSpeed = 155",
-            "wanderSpeed = 65",
+            'fleeRadius = 360',
+            'fleeSpeed = 155',
+            'wanderSpeed = 65',
             "state !== 'Active'",
             "role !== 'Human'",
-            "wolfModeLeft > 0",
-            '"SeparateFromObjects","parameters":["Actor","Wall"',
-            '"SeparateFromObjects","parameters":["Actor","Barrier"',
-            'FrozenWolfCandidate',
-            '255;0;0',
-            'freeze_crack.wav',
-            'WOLF MODE ON!',
-            'TRAP! YOU ARE FROZEN',
-            'MatchDuration',
-            '300',
-            'v0.3.4 guaranteed solid-state visuals',
+            'wolfModeLeft > 0',
+            "getCenterXInScene()",
+            "getCenterYInScene()",
           ]:
+            assert token in code, token
+          fe=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::ForEach' and e.get('object')=='Actor')
+          sep=[(a.get('type',{}).get('value'), tuple(a.get('parameters',[]))) for a in fe.get('actions',[])]
+          assert ('SeparateFromObjects', ('Actor','Wall','')) in sep
+          assert ('SeparateFromObjects', ('Actor','Barrier','')) in sep
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          for token in ['FrozenWolfCandidate','255;0;0','freeze_crack.wav','WOLF MODE ON!','TRAP! YOU ARE FROZEN','MatchDuration','v0.3.4 guaranteed solid-state visuals']:
             assert token in raw, token
           assert '"Actor","Scale","=","1.0"' not in raw
           assert '"Actor","Scale","=","1.15"' not in raw
