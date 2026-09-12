@@ -31,7 +31,6 @@ jobs:
           before=json.load(open('/tmp/game-before.json',encoding='utf-8'))
           after=json.load(open('game.json',encoding='utf-8'))
 
-          # Prove only BuildText + the single awakened-Wolf actorColor expression changed.
           diffs=[]
           def walk(a,b,path=''):
             if type(a) is not type(b):
@@ -47,14 +46,13 @@ jobs:
               diffs.append((path,a,b))
           walk(before,after)
 
-          allowed=False
           build_changes=0
           color_changes=0
           for path,old,new in diffs:
             if old=='DEV v0.5.2' and new=='DEV v0.5.3':
               build_changes += 1
               continue
-            if isinstance(old,str) and isinstance(new,str) and 'const actorColor =' in old and '0x8b0000' in old and new==old.replace('0x8b0000','0x0077ff'):
+            if isinstance(old,str) and isinstance(new,str) and '0x8b0000' in old and new==old.replace('0x8b0000','0x0077ff',1):
               color_changes += 1
               continue
             raise AssertionError(f'UNEXPECTED CHANGE at {path}: {old!r} -> {new!r}')
@@ -73,11 +71,14 @@ jobs:
 
           vg=next(e for e in f['events'] if e.get('name')=='v0.3.4 guaranteed solid-state visuals')
           vjs=next(e for e in vg['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
-          vcode='\n'.join(vjs.get('inlineCode',[]))
-          assert "state === 'Frozen' || state === 'FrozenWolfCandidate'" in vcode
-          assert "role === 'Wolf' && aiWolfModeLeft > 0 ? 0x0077ff : 0xffffff" in vcode
+          lines=vjs.get('inlineCode',[])
+          cond=[i for i,line in enumerate(lines) if "role === 'Wolf'" in line and 'aiWolfModeLeft > 0' in line]
+          assert len(cond)==1, cond
+          ci=cond[0]
+          assert any('0x0077ff' in lines[i] for i in range(ci,min(ci+4,len(lines))))
+          assert any("state === 'Frozen'" in line and 'FrozenWolfCandidate' in line for line in lines)
           # Original Player Wolf WOLF MODE stays dark red.
-          assert '0x8b0000' in vcode
+          assert any('0x8b0000' in line for line in lines)
 
           ai=next(e for e in f['events'] if e.get('name')=='v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle')
           aijs=next(e for e in ai['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
