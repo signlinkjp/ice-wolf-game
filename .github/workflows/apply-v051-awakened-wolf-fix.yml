@@ -1,0 +1,96 @@
+name: Apply v0.5.1 Awakened Wolf Fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v051-awakened-wolf-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Rescue AI branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/cpu5-rescue-ai-phase2
+
+      - name: Apply awakened Wolf fix
+        run: python3 scripts/apply_v051_awakened_wolf_fix.py
+
+      - name: Validate JSON and protected invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          d=json.load(open('game.json',encoding='utf-8'))
+          f=next(x for x in d['layouts'] if x.get('name')=='FROST LAB')
+          p=next(i for i in f['instances'] if i.get('name')=='Player')
+          aa=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(aa)==5
+          assert (p['width'],p['height'],p['depth'])==(17,17,32)
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in aa)
+          build=next(o for o in f['objects'] if o.get('name')=='BuildText')
+          assert build.get('string')=='DEV v0.5.1'
+          actor_obj=next(o for o in f['objects'] if o.get('name')=='Actor')
+          av={v['name']:v for v in actor_obj.get('variables',[])}
+          assert av['AIWolfModeLeft']['type']=='number' and av['AIWolfModeLeft']['value']==0
+          assert av['AIWolfCooldownLeft']['type']=='number' and av['AIWolfCooldownLeft']['value']==0
+          groups=[e for e in f.get('events',[]) if e.get('name')=='v0.5.1 CPU5 Rescue AI + Awakened Wolf Fix']
+          assert len(groups)==1
+          assert not any(e.get('name')=='v0.5.0 CPU5 Rescue AI Phase 2' for e in f.get('events',[]))
+          group=groups[0]
+          js=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          code='\n'.join(js.get('inlineCode',[]))
+          for token in [
+            'rescueSearchRadius = 520',
+            'rescueSpeed = 95',
+            'aiWolfTriggerRadius = 420',
+            'aiWolfModeDuration = 5',
+            'aiWolfCooldownDuration = 5',
+            'aiWolfChaseSpeed = 175',
+            'aiWolfFreezeDistance = 30',
+            "wv.get('Role').getAsString() !== 'Wolf'",
+            "target.getVariables().get('State').setString('Frozen')",
+            "cv.get('AIWolfModeLeft').getAsNumber() <= 0",
+            "targetState === 'FrozenWolfCandidate'",
+            "targetVars.get('Role').setString('Wolf')",
+            "targetVars.get('State').setString('Active')",
+            "targetVars.get('AIWolfModeLeft').setNumber(0)",
+            "targetVars.get('AIWolfCooldownLeft').setNumber(1.5)",
+            "actorVars.get('State').setString('Frozen')",
+          ]:
+            assert token in code, token
+          assert 'InfectionUsed' not in code, 'awakened Wolf must not gain INFECT'
+          fe=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::ForEach' and e.get('object')=='Actor')
+          conds=[(c.get('type',{}).get('value'),tuple(c.get('parameters',[]))) for c in fe.get('conditions',[])]
+          assert ('StringObjectVariable',('Actor','State','=','\"Active\"')) in conds
+          assert not any(c[0]=='StringObjectVariable' and c[1][:2]==('Actor','Role') for c in conds)
+          sep=[(a.get('type',{}).get('value'),tuple(a.get('parameters',[]))) for a in fe.get('actions',[])]
+          assert ('SeparateFromObjects',('Actor','Wall','')) in sep
+          assert ('SeparateFromObjects',('Actor','Barrier','')) in sep
+          vg=next(e for e in f['events'] if e.get('name')=='v0.3.4 guaranteed solid-state visuals')
+          vjs=next(e for e in vg['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          vcode='\n'.join(vjs.get('inlineCode',[]))
+          for token in ["const role = av.get('Role').getAsString()","const aiWolfModeLeft = av.get('AIWolfModeLeft').getAsNumber()","role === 'Wolf' && aiWolfModeLeft > 0","0x8b0000"]:
+            assert token in vcode, token
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          for token in ['FrozenWolfCandidate','255;0;0','freeze_crack.wav','WOLF MODE ON!','TRAP! YOU ARE FROZEN','MatchDuration']:
+            assert token in raw, token
+          assert '"Actor","Scale","=","1.0"' not in raw
+          assert '"Actor","Scale","=","1.15"' not in raw
+          print('v0.5.1 static validation PASS')
+          PY
+
+      - name: Commit game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'fix: v0.5.1 activate rescued candidate as CPU Wolf'
+          git push origin HEAD:feature/cpu5-rescue-ai-phase2
