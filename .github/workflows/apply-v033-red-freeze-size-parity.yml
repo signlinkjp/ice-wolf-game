@@ -1,0 +1,48 @@
+name: Apply v0.3.3 Red Freeze + Size Parity
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v033-red-freeze-size-parity.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v0.3-action-clarity
+      - name: Apply v0.3.3 tuning
+        run: python3 scripts/apply_v033_red_freeze_size_parity.py
+      - name: Validate JSON and invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          d=json.load(open('game.json',encoding='utf-8'))
+          f=next(x for x in d['layouts'] if x.get('name')=='FROST LAB')
+          p=next(i for i in f['instances'] if i.get('name')=='Player')
+          aa=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(aa)==5
+          assert all((a['width'],a['height'],a['depth'])==(p['width'],p['height'],p['depth']) for a in aa)
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          assert 'DEV v0.3.3' in raw
+          assert '\"255;0;0\"' in raw
+          assert '\"0;255;255\"' not in raw
+          assert '\"Scale\",\"=\",\"1.15\"' not in raw
+          print('v0.3.3 static validation PASS')
+          PY
+      - name: Commit tuned game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'fix: v0.3.3 red frozen state and actor size parity'
+          git push origin HEAD:feature/v0.3-action-clarity
