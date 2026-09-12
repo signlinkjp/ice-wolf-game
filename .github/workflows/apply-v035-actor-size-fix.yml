@@ -1,0 +1,59 @@
+name: Apply v0.3.5 Actor Size Parity Fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v035-actor-size-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v0.3-action-clarity
+
+      - name: Apply v0.3.5 actor size parity fix
+        run: python3 scripts/apply_v035_actor_size_fix.py
+
+      - name: Validate JSON and invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          d=json.load(open('game.json',encoding='utf-8'))
+          f=next(x for x in d['layouts'] if x.get('name')=='FROST LAB')
+          p=next(i for i in f['instances'] if i.get('name')=='Player')
+          aa=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(aa)==5
+          assert (p['width'],p['height'],p['depth'])==(17,17,32)
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in aa)
+          build=next(o for o in f['objects'] if o.get('name')=='BuildText')
+          assert build.get('string')=='DEV v0.3.5'
+          assert build.get('content',{}).get('text')=='DEV v0.3.5'
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          assert '"Actor","Scale","=","1.0"' not in raw
+          assert '"Actor","Scale","=","1.15"' not in raw
+          assert '255;0;0' in raw
+          assert 'FrozenWolfCandidate' in raw
+          assert 'freeze_crack.wav' in raw
+          assert 'WOLF MODE ON!' in raw
+          assert 'TRAP! YOU ARE FROZEN' in raw
+          assert 'v0.3.4 guaranteed solid-state visuals' in raw
+          print('v0.3.5 static validation PASS')
+          PY
+
+      - name: Commit game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'fix: v0.3.5 keep human and frozen actors at player visual size'
+          git push origin HEAD:feature/v0.3-action-clarity
