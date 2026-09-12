@@ -1,0 +1,117 @@
+name: Apply v0.5.4 Japanese UI Overlay
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v054-japanese-ui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Japanese UI branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v054-japanese-ui
+
+      - name: Snapshot exact v0.5.4 game
+        run: cp game.json /tmp/game-before.json
+
+      - name: Apply Japanese UI strings only
+        run: python3 scripts/apply_v054_japanese_ui.py
+
+      - name: Validate zero gameplay changes
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+
+          before=json.load(open('/tmp/game-before.json',encoding='utf-8'))
+          after=json.load(open('game.json',encoding='utf-8'))
+
+          replacements=[
+            ('YOU: HUMAN | FROZEN','あなた：人間｜凍結'),
+            ('YOU: WOLF | FROZEN','あなた：人狼｜凍結'),
+            ('HUMAN: RESCUE FROZEN ALLIES','人間：凍った仲間を救助しよう'),
+            ('TRAP! YOU ARE FROZEN','罠だ！あなたは凍結！'),
+            ('INFECTED - HIDDEN','感染させた（正体は秘密）'),
+            ('WOLF COOLDOWN: ','人狼モード再使用まで：'),
+            ('WOLF MODE ACTIVE','人狼モード発動中'),
+            ('WOLF MODE READY','人狼モード使用可能'),
+            ('WOLF MODE ON!','人狼モード発動！'),
+            ('HUMAN FROZEN!','人間を凍らせた！'),
+            ('YOU ARE FROZEN','あなたは凍結中'),
+            ('[ WOLF MODE ]','[ 人狼モード ]'),
+            ('[ RESCUE ]','[ 救助 ]'),
+            ('[ INFECT ]','[ 感染 ]'),
+            ('YOU: WOLF','あなた：人狼'),
+            ('YOU: HUMAN','あなた：人間'),
+            ('WOLF WIN','人狼の勝利'),
+            ('HUMAN WIN','人間の勝利'),
+            ('RESCUED!','救助成功！'),
+            ('TEST ROLE','役割切替'),
+            ('TEST RESET','リセット'),
+            ('DEV v0.5.4','開発版 v0.5.4'),
+          ]
+          def tr(s):
+            for old,new in replacements: s=s.replace(old,new)
+            return s
+          changes=[]
+          def verify(a,b,p=''):
+            assert type(a) is type(b), p
+            if isinstance(a,dict):
+              assert list(a.keys())==list(b.keys()), p
+              for k in a: verify(a[k],b[k],p+'/'+k)
+            elif isinstance(a,list):
+              assert len(a)==len(b), p
+              for i,(x,y) in enumerate(zip(a,b)): verify(x,y,f'{p}/{i}')
+            elif a!=b:
+              assert isinstance(a,str) and b==tr(a), (p,a,b)
+              changes.append((p,a,b))
+          verify(before,after)
+          assert changes, 'no text changes'
+
+          f=next(x for x in after['layouts'] if x.get('name')=='FROST LAB')
+          actors=[i for i in f['instances'] if i.get('name')=='Actor']
+          players=[i for i in f['instances'] if i.get('name')=='Player']
+          assert len(actors)==6 and len(players)==1
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in actors)
+          assert (players[0]['width'],players[0]['height'],players[0]['depth'])==(17,17,32)
+          sv={v['name']:v for v in f.get('variables',[])}
+          assert sv['MatchDuration']['value']==210 and sv['MatchTimeLeft']['value']==210
+          assert sv['WolfModeDuration']['value']==5 and sv['WolfCooldown']['value']==5
+
+          vg=next(e for e in f['events'] if e.get('name')=='v0.3.4 guaranteed solid-state visuals')
+          vjs=next(e for e in vg['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          vcode='\n'.join(vjs['inlineCode'])
+          assert '0x0077ff' in vcode and '0x8b0000' in vcode
+          assert "state === 'Frozen' || state === 'FrozenWolfCandidate'" in vcode
+
+          ai=next(e for e in f['events'] if e.get('name')=='v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle')
+          aijs=next(e for e in ai['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          aicode='\n'.join(aijs['inlineCode'])
+          for token in ['aiWolfChaseSpeed = 205','aiWolfStalkSpeed = 90','aiWolfBlockedRatio = 0.28','aiWolfBlockedTrigger = 0.14','aiWolfDetourDuration = 0.75',"targetVars.get('Role').setString('Wolf')", "actorVars.get('State').setString('Frozen')"]:
+            assert token in aicode, token
+          assert 'InfectionUsed' not in aicode
+
+          raw=json.dumps(after,ensure_ascii=False,separators=(',',':'))
+          for token in ['FrozenWolfCandidate','InfectionUsed','AIWolfModeLeft','AIWolfCooldownLeft','freeze_crack.wav','255;0;0']:
+            assert token in raw, token
+          for text in ['あなた：人狼','[ 人狼モード ]','[ 救助 ]','[ 感染 ]','人狼の勝利','人間の勝利','人狼モード使用可能','感染させた（正体は秘密）','開発版 v0.5.4']:
+            assert text in raw, text
+          print(f'Japanese UI static validation PASS: {len(changes)} approved text leaves only; gameplay unchanged')
+          PY
+
+      - name: Commit Japanese UI game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'ui: overlay Japanese text on v0.5.4'
+          git push origin HEAD:feature/v054-japanese-ui
