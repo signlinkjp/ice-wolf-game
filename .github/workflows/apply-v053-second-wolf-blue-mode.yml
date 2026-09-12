@@ -1,0 +1,104 @@
+name: Apply v0.5.3 Second Wolf Blue Mode
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v053-second-wolf-blue-mode.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v0.5.2 gameplay branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v052-seven-player-repeat-wolf
+
+      - name: Snapshot pre-change game
+        run: cp game.json /tmp/game-before.json
+
+      - name: Apply v0.5.3 blue second-Wolf mode
+        run: python3 scripts/apply_v053_second_wolf_blue_mode.py
+
+      - name: Validate visual-only diff and protected invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          before=json.load(open('/tmp/game-before.json',encoding='utf-8'))
+          after=json.load(open('game.json',encoding='utf-8'))
+
+          # Prove only BuildText + the single awakened-Wolf actorColor expression changed.
+          diffs=[]
+          def walk(a,b,path=''):
+            if type(a) is not type(b):
+              diffs.append((path,a,b)); return
+            if isinstance(a,dict):
+              if list(a.keys()) != list(b.keys()):
+                diffs.append((path+'<keys>',list(a.keys()),list(b.keys()))); return
+              for k in a: walk(a[k],b[k],f'{path}/{k}')
+            elif isinstance(a,list):
+              if len(a)!=len(b): diffs.append((path+'<len>',len(a),len(b))); return
+              for i,(x,y) in enumerate(zip(a,b)): walk(x,y,f'{path}/{i}')
+            elif a!=b:
+              diffs.append((path,a,b))
+          walk(before,after)
+
+          allowed=False
+          build_changes=0
+          color_changes=0
+          for path,old,new in diffs:
+            if old=='DEV v0.5.2' and new=='DEV v0.5.3':
+              build_changes += 1
+              continue
+            if isinstance(old,str) and isinstance(new,str) and 'const actorColor =' in old and '0x8b0000' in old and new==old.replace('0x8b0000','0x0077ff'):
+              color_changes += 1
+              continue
+            raise AssertionError(f'UNEXPECTED CHANGE at {path}: {old!r} -> {new!r}')
+          assert build_changes==2, build_changes
+          assert color_changes==1, color_changes
+
+          f=next(x for x in after['layouts'] if x.get('name')=='FROST LAB')
+          players=[i for i in f['instances'] if i.get('name')=='Player']
+          actors=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(players)==1 and len(actors)==6
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in actors)
+          assert (players[0]['width'],players[0]['height'],players[0]['depth'])==(17,17,32)
+          sv={v['name']:v for v in f.get('variables',[])}
+          assert sv['MatchDuration']['value']==210 and sv['MatchTimeLeft']['value']==210
+          assert sv['WolfModeDuration']['value']==5 and sv['WolfCooldown']['value']==5
+
+          vg=next(e for e in f['events'] if e.get('name')=='v0.3.4 guaranteed solid-state visuals')
+          vjs=next(e for e in vg['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          vcode='\n'.join(vjs.get('inlineCode',[]))
+          assert "state === 'Frozen' || state === 'FrozenWolfCandidate'" in vcode
+          assert "role === 'Wolf' && aiWolfModeLeft > 0 ? 0x0077ff : 0xffffff" in vcode
+          # Original Player Wolf WOLF MODE stays dark red.
+          assert '0x8b0000' in vcode
+
+          ai=next(e for e in f['events'] if e.get('name')=='v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle')
+          aijs=next(e for e in ai['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          aicode='\n'.join(aijs.get('inlineCode',[]))
+          for token in ['aiWolfChaseSpeed = 205','aiWolfStalkSpeed = 90','aiWolfCooldownDuration = 5',"targetVars.get('Role').setString('Wolf')", "actorVars.get('State').setString('Frozen')"]:
+            assert token in aicode, token
+          assert 'InfectionUsed' not in aicode
+
+          raw=json.dumps(after,ensure_ascii=False,separators=(',',':'))
+          for token in ['FrozenWolfCandidate','InfectionUsed','freeze_crack.wav','TRAP! YOU ARE FROZEN','255;0;0']:
+            assert token in raw, token
+          print('v0.5.3 static validation PASS: second Wolf blue WOLF MODE; gameplay unchanged')
+          PY
+
+      - name: Commit game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'fix: v0.5.3 show awakened Wolf mode in blue'
+          git push origin HEAD:feature/v052-seven-player-repeat-wolf
