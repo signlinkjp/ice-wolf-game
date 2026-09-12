@@ -1,0 +1,129 @@
+name: Apply v0.5.2 Seven Player Repeat Wolf
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v052-seven-player-repeat-wolf.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v0.5.2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v052-seven-player-repeat-wolf
+
+      - name: Apply v0.5.2
+        run: python3 scripts/apply_v052_seven_player_repeat_wolf.py
+
+      - name: Validate JSON and gameplay invariants
+        run: |
+          python3 -m json.tool game.json >/dev/null
+          python3 - <<'PY'
+          import json
+          d=json.load(open('game.json',encoding='utf-8'))
+          f=next(x for x in d['layouts'] if x.get('name')=='FROST LAB')
+
+          players=[i for i in f['instances'] if i.get('name')=='Player']
+          actors=[i for i in f['instances'] if i.get('name')=='Actor']
+          assert len(players)==1, len(players)
+          assert len(actors)==6, len(actors)
+          assert len(players)+len(actors)==7
+          p=players[0]
+          assert (p['width'],p['height'],p['depth'])==(17,17,32)
+          assert all((a['width'],a['height'],a['depth'])==(17,17,32) for a in actors)
+          uuids=[a.get('persistentUuid') for a in actors]
+          assert len(set(uuids))==6
+
+          sv={v['name']:v for v in f.get('variables',[])}
+          assert sv['MatchDuration']['value']==210
+          assert sv['MatchTimeLeft']['value']==210
+          assert sv['WolfModeDuration']['value']==5
+          assert sv['WolfCooldown']['value']==5
+
+          build=next(o for o in f['objects'] if o.get('name')=='BuildText')
+          assert build.get('string')=='DEV v0.5.2'
+          assert build.get('content',{}).get('text')=='DEV v0.5.2'
+
+          # Japanese UI PR must remain separate from this gameplay branch.
+          objs={o['name']:o for o in f['objects']}
+          assert objs['RoleText']['string']=='YOU: WOLF'
+          assert objs['WolfButton']['string']=='[ WOLF MODE ]'
+          assert objs['RescueButton']['string']=='[ RESCUE ]'
+          assert objs['InfectButton']['string']=='[ INFECT ]'
+
+          groups=[e for e in f.get('events',[]) if e.get('name')=='v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle']
+          assert len(groups)==1
+          assert not any(e.get('name')=='v0.5.1 CPU5 Rescue AI + Awakened Wolf Fix' for e in f.get('events',[]))
+          group=groups[0]
+          js=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::JsCode')
+          code='\n'.join(js.get('inlineCode',[]))
+          for token in [
+            'rescueSearchRadius = 520',
+            'rescueSpeed = 95',
+            'aiWolfTriggerRadius = 420',
+            'aiWolfModeDuration = 5',
+            'aiWolfCooldownDuration = 5',
+            'aiWolfChaseSpeed = 205',
+            'aiWolfStalkSpeed = 90',
+            'aiWolfFreezeDistance = 30',
+            "wv.get('Role').getAsString() !== 'Wolf'",
+            "target.getVariables().get('State').setString('Frozen')",
+            "targetState === 'FrozenWolfCandidate'",
+            "targetVars.get('Role').setString('Wolf')",
+            "targetVars.get('State').setString('Active')",
+            "targetVars.get('AIWolfCooldownLeft').setNumber(1.5)",
+            "actorVars.get('State').setString('Frozen')",
+            '} else if (target) {',
+            'speed = aiWolfStalkSpeed',
+          ]:
+            assert token in code, token
+          assert 'InfectionUsed' not in code, 'awakened Wolf must never gain INFECT'
+
+          # Wall/barrier separation still applies to every Active Actor including Actor Wolf.
+          fe=next(e for e in group['events'] if e.get('type')=='BuiltinCommonInstructions::ForEach' and e.get('object')=='Actor')
+          conds=[(c.get('type',{}).get('value'),tuple(c.get('parameters',[]))) for c in fe.get('conditions',[])]
+          assert ('StringObjectVariable',('Actor','State','=','\"Active\"')) in conds
+          sep=[(a.get('type',{}).get('value'),tuple(a.get('parameters',[]))) for a in fe.get('actions',[])]
+          assert ('SeparateFromObjects',('Actor','Wall','')) in sep
+          assert ('SeparateFromObjects',('Actor','Barrier','')) in sep
+
+          # No stale literal 300 may reset the match timer.
+          stale=[]
+          def scan(node,path=''):
+            if isinstance(node,dict):
+              params=node.get('parameters')
+              if isinstance(params,list) and any(p in ('MatchTimeLeft','MatchDuration') for p in params) and '300' in params:
+                stale.append((path,params))
+              for k,v in node.items(): scan(v,path+'/'+str(k))
+            elif isinstance(node,list):
+              for i,v in enumerate(node): scan(v,path+'/'+str(i))
+          scan(f.get('events',[]))
+          assert not stale, stale
+
+          raw=json.dumps(d,ensure_ascii=False,separators=(',',':'))
+          for token in [
+            'FrozenWolfCandidate','InfectionUsed','AIWolfModeLeft','AIWolfCooldownLeft',
+            '255;0;0','freeze_crack.wav','WOLF MODE ON!','TRAP! YOU ARE FROZEN',
+            'MatchDuration','HumanActive'
+          ]:
+            assert token in raw, token
+          assert '"Actor","Scale","=","1.0"' not in raw
+          assert '"Actor","Scale","=","1.15"' not in raw
+          print('v0.5.2 static validation PASS: 7 players / 210 sec / repeat awakened Wolf cycle')
+          PY
+
+      - name: Commit game.json
+        run: |
+          if git diff --quiet -- game.json; then
+            echo 'No game.json changes detected'; exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git commit -m 'feat: v0.5.2 seven players and repeat awakened Wolf cycle'
+          git push origin HEAD:feature/v052-seven-player-repeat-wolf
