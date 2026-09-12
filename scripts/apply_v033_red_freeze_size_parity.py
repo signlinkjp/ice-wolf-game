@@ -19,8 +19,7 @@ for actor in actor_instances:
 def walk_events(events):
     for ev in events:
         yield ev
-        for child in walk_events(ev.get("events", [])):
-            yield child
+        yield from walk_events(ev.get("events", []))
 
 # 2) Frozen feedback: use red instead of cyan, and stop enlarging frozen actors.
 for ev in walk_events(frost.get("events", [])):
@@ -30,9 +29,9 @@ for ev in walk_events(frost.get("events", [])):
         # Red for any existing frozen-state cyan color hook (Actor freeze or Player trap).
         if t == "ChangeColor" and len(p) >= 2 and p[0] in {"Actor", "Player"} and p[1] == '"0;255;255"':
             p[1] = '"255;0;0"'
-        # Frozen actors should remain the same physical/visual size as active actors.
-        if t == "ScalableCapability::ScalableBehavior::SetValue" and len(p) >= 5 and p[0] == "Actor" and p[1] == "Scale" and p[4] == "1.15":
-            p[4] = "1.0"
+        # Frozen actors should remain the same visual size as active actors.
+        if t == "ScalableCapability::ScalableBehavior::SetValue" and len(p) >= 4 and p[0] == "Actor" and p[1] == "Scale" and p[3] == "1.15":
+            p[3] = "1.0"
 
 # 3) Update DEV label.
 for obj in frost.get("objects", []):
