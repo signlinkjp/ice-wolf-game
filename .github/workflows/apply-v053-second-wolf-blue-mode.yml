@@ -77,7 +77,6 @@ jobs:
           ci=cond[0]
           assert any('0x0077ff' in lines[i] for i in range(ci,min(ci+4,len(lines))))
           assert any("state === 'Frozen'" in line and 'FrozenWolfCandidate' in line for line in lines)
-          # Original Player Wolf WOLF MODE stays dark red.
           assert any('0x8b0000' in line for line in lines)
 
           ai=next(e for e in f['events'] if e.get('name')=='v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle')
