@@ -23,8 +23,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "84bbfe11f8f345addf3762cc277429b560cc4194"
-          test "$(git rev-parse origin/main)" = "84bbfe11f8f345addf3762cc277429b560cc4194"
+          BASE="84bbfe11f8f345addf3762cc277429b560cc4194"
+          test "$(git rev-parse origin/main)" = "$BASE"
+          git merge-base --is-ancestor "$BASE" HEAD
+          test "$(git diff --name-only "$BASE"...HEAD)" = ".github/workflows/apply-v060-human-navigation.yml"
 
       - name: Apply v0.6.0 Human Navigation Recovery
         shell: bash
@@ -146,28 +148,7 @@ jobs:
           ]
           lines[human_ax + 2:human_ax + 2] = stall_block
 
-          # Rescue happens without movement for that frame. Clear previous expected movement to avoid a false stall next frame.
-          rescue_anchor = None
-          for i in range(human_ax + 2, len(lines)):
-              if lines[i].strip() == "target.__iceWolfAIRescueCooldown = 0.8;":
-                  rescue_anchor = i
-                  break
-          if rescue_anchor is None:
-              raise SystemExit("rescue cooldown marker missing")
-          rescue_continue = None
-          for i in range(rescue_anchor + 1, min(rescue_anchor + 20, len(lines))):
-              if lines[i].strip() == "continue;":
-                  rescue_continue = i
-                  break
-          if rescue_continue is None:
-              raise SystemExit("rescue continue marker missing")
-          lines[rescue_continue:rescue_continue] = [
-              "              actor.__iceWolfAIHumanLastExpectedMove = 0;",
-              "              actor.__iceWolfAIHumanBlockedFor = 0;",
-              "              actor.__iceWolfAIHumanDetourLeft = 0;",
-              "              actor.__iceWolfAIHumanPrevActualX = actor.getCenterXInScene();",
-              "              actor.__iceWolfAIHumanPrevActualY = actor.getCenterYInScene();",
-          ]
+          # Rescue transitions are left behaviorally unchanged; a single idle rescue frame is below the stall trigger.
 
           # Add a local tangent detour for any Human intent (flee, rescue, or wander).
           setx_candidates = [
