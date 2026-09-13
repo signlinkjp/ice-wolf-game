@@ -1,0 +1,100 @@
+name: Apply v0.6.0 Human-Side CPU Wolf
+
+on:
+  push:
+    branches:
+      - feature/v060-human-side-cpu-wolf
+    paths:
+      - tools/apply_v060_human_side_cpu_wolf.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v060-human-side-cpu-wolf
+
+      - name: Apply v0.6.0 focused patch
+        run: python tools/apply_v060_human_side_cpu_wolf.py
+
+      - name: JSON parse check
+        run: python -m json.tool game.json > /dev/null
+
+      - name: v0.6.0 structural and protected-invariant validation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('game.json').read_text(encoding='utf-8'))
+          frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
+
+          actor_instances = [x for x in frost['instances'] if x.get('name') == 'Actor']
+          assert len(actor_instances) == 6, f'expected 6 Actor instances, got {len(actor_instances)}'
+
+          vars_by_name = {v['name']: v for v in frost['variables']}
+          assert vars_by_name['MatchDuration']['value'] == 210
+          assert vars_by_name['MatchTimeLeft']['value'] == 210
+          assert vars_by_name['WolfCooldown']['value'] == 5
+          assert vars_by_name['WolfModeDuration']['value'] == 5
+
+          objects = {o['name']: o for o in frost['objects']}
+          assert objects['BuildText']['string'] == '開発版 v0.6.0'
+          assert objects['BuildText']['content']['text'] == '開発版 v0.6.0'
+          assert objects['Player']['variables'][0]['name'] == 'State'
+          assert objects['Actor']['variables'][0]['name'] == 'State'
+
+          # Size parity remains protected.
+          player_instance = next(x for x in frost['instances'] if x.get('name') == 'Player')
+          assert (player_instance['width'], player_instance['height'], player_instance['depth']) == (17, 17, 32)
+          for actor in actor_instances:
+              assert (actor['width'], actor['height'], actor['depth']) == (17, 17, 32)
+
+          serialized = Path('game.json').read_text(encoding='utf-8')
+          protected_tokens = [
+              'FrozenWolfCandidate',
+              '0x0077ff',
+              '0x8b0000',
+              'AIWolfModeLeft',
+              'AIWolfCooldownLeft',
+              '感染させた（正体は秘密）',
+              '人狼の勝利',
+              '人間の勝利',
+              'freeze_crack.wav',
+          ]
+          for token in protected_tokens:
+              assert token in serialized, f'missing protected token: {token}'
+
+          assert '__iceWolfPrimaryCPUWolf' in serialized
+          assert "playerStateNow === 'Frozen'" in serialized
+          assert 'v0.6.0 human-side CPU Wolf test' in serialized
+
+          step2 = next(t for t in data['tests'] if t.get('name') == 'STEP2 core test')
+          step2_source = '\n'.join(step2['source'])
+          assert "actors().length === 6" in step2_source
+          assert "ttxt.text === '3:30' || ttxt.text === '3:29'" in step2_source
+          assert "for (let i = 0; i < 5; i++)" in step2_source
+          assert "const last = actors()[5]" in step2_source
+
+          print('v0.6.0 structural validation PASS')
+          PY
+
+      - name: Commit generated game.json only
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add game.json
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'No generated game.json change; stopping.'
+            exit 1
+          fi
+          git commit -m 'feat: add v0.6.0 human-side CPU wolf playability'
+          git push origin HEAD:feature/v060-human-side-cpu-wolf
