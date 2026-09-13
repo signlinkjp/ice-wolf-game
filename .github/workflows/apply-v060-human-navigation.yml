@@ -1,0 +1,302 @@
+name: ICE WOLF v0.6.0 Human Navigation Recovery Apply
+
+on:
+  push:
+    branches:
+      - feature/v060-human-navigation-recovery
+    paths:
+      - .github/workflows/apply-v060-human-navigation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard exact v0.5.4 baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "84bbfe11f8f345addf3762cc277429b560cc4194"
+          test "$(git rev-parse origin/main)" = "84bbfe11f8f345addf3762cc277429b560cc4194"
+
+      - name: Apply v0.6.0 Human Navigation Recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("game.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+
+          def one(items, pred, label):
+              hits = [x for x in items if pred(x)]
+              if len(hits) != 1:
+                  raise SystemExit(f"{label}: expected 1 match, got {len(hits)}")
+              return hits[0]
+
+          scene = one(data["layouts"], lambda x: x.get("name") == "FROST LAB", "FROST LAB")
+
+          # Version-facing text.
+          build = one(scene["objects"], lambda x: x.get("name") == "BuildText", "BuildText")
+          if build.get("string") != "開発版 v0.5.4":
+              raise SystemExit(f"BuildText precondition mismatch: {build.get('string')!r}")
+          build["string"] = "開発版 v0.6.0"
+          if isinstance(build.get("content"), dict):
+              if build["content"].get("text") != "開発版 v0.5.4":
+                  raise SystemExit("BuildText.content precondition mismatch")
+              build["content"]["text"] = "開発版 v0.6.0"
+
+          timer = one(scene["objects"], lambda x: x.get("name") == "TimerText", "TimerText")
+          if timer.get("string") == "5:00":
+              timer["string"] = "3:30"
+          if isinstance(timer.get("content"), dict) and timer["content"].get("text") == "5:00":
+              timer["content"]["text"] = "3:30"
+
+          # Find all event dictionaries recursively.
+          def walk_events(events):
+              for ev in events:
+                  yield ev
+                  child = ev.get("events")
+                  if isinstance(child, list):
+                      yield from walk_events(child)
+
+          events = list(walk_events(scene["events"]))
+          group = one(
+              events,
+              lambda x: x.get("name") == "v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle",
+              "AI event group",
+          )
+          group["name"] = "v0.6.0 CPU6 Human Navigation Recovery + Repeat Wolf Cycle"
+
+          js_events = [e for e in walk_events(group.get("events", [])) if isinstance(e.get("inlineCode"), list)]
+          if len(js_events) != 1:
+              raise SystemExit(f"AI inline JS: expected 1 event, got {len(js_events)}")
+          js_event = js_events[0]
+          lines = js_event["inlineCode"]
+
+          def exact_indices(needle):
+              return [i for i, line in enumerate(lines) if line.strip() == needle]
+
+          def insert_after_unique(needle, additions):
+              hits = exact_indices(needle)
+              if len(hits) != 1:
+                  raise SystemExit(f"insert marker {needle!r}: expected 1, got {len(hits)}")
+              idx = hits[0]
+              lines[idx + 1:idx + 1] = additions
+
+          insert_after_unique(
+              "const aiWolfDetourDuration = 0.75;",
+              [
+                  "    const humanBlockedRatio = 0.28;",
+                  "    const humanBlockedTrigger = 0.16;",
+                  "    const humanDetourDuration = 0.70;",
+              ],
+          )
+
+          # Human loop only: reset recovery state whenever an Actor is not an active Human.
+          hits = exact_indices("if (role !== 'Human' || state !== 'Active') continue;")
+          if len(hits) != 1:
+              raise SystemExit(f"active-Human guard: expected 1, got {len(hits)}")
+          human_guard = hits[0]
+          lines[human_guard:human_guard + 1] = [
+              "      if (role !== 'Human' || state !== 'Active') {",
+              "        actor.__iceWolfAIHumanLastExpectedMove = 0;",
+              "        actor.__iceWolfAIHumanBlockedFor = 0;",
+              "        actor.__iceWolfAIHumanDetourLeft = 0;",
+              "        actor.__iceWolfAIHumanPrevActualX = undefined;",
+              "        actor.__iceWolfAIHumanPrevActualY = undefined;",
+              "        continue;",
+              "      }",
+          ]
+          human_guard += 7  # account for replacement expansion; points near the end of guard
+
+          # Find Human ax/ay after the guard and insert prior-frame stall observation.
+          ax_candidates = [i for i in range(human_guard + 1, len(lines)) if lines[i].strip() == "const ax = actor.getCenterXInScene();"]
+          if not ax_candidates:
+              raise SystemExit("Human ax marker missing")
+          human_ax = ax_candidates[0]
+          if human_ax + 1 >= len(lines) or lines[human_ax + 1].strip() != "const ay = actor.getCenterYInScene();":
+              raise SystemExit("Human ay marker missing")
+          stall_block = [
+              "",
+              "      const prevHumanX = actor.__iceWolfAIHumanPrevActualX;",
+              "      const prevHumanY = actor.__iceWolfAIHumanPrevActualY;",
+              "      const lastHumanExpectedMove = Number.isFinite(actor.__iceWolfAIHumanLastExpectedMove) ? actor.__iceWolfAIHumanLastExpectedMove : 0;",
+              "      const hasHumanPrev = Number.isFinite(prevHumanX) && Number.isFinite(prevHumanY);",
+              "      if (hasHumanPrev && lastHumanExpectedMove > 0.25) {",
+              "        const humanActualMove = Math.hypot(ax - prevHumanX, ay - prevHumanY);",
+              "        const humanBlockedNow = humanActualMove < Math.max(0.25, lastHumanExpectedMove * humanBlockedRatio);",
+              "        const blockedFor = Number.isFinite(actor.__iceWolfAIHumanBlockedFor) ? actor.__iceWolfAIHumanBlockedFor : 0;",
+              "        actor.__iceWolfAIHumanBlockedFor = humanBlockedNow ? blockedFor + dt : Math.max(0, blockedFor - dt * 2);",
+              "      } else {",
+              "        actor.__iceWolfAIHumanBlockedFor = 0;",
+              "      }",
+              "      actor.__iceWolfAIHumanPrevActualX = ax;",
+              "      actor.__iceWolfAIHumanPrevActualY = ay;",
+              "      actor.__iceWolfAIHumanDetourLeft = Math.max(0, (Number.isFinite(actor.__iceWolfAIHumanDetourLeft) ? actor.__iceWolfAIHumanDetourLeft : 0) - dt);",
+          ]
+          lines[human_ax + 2:human_ax + 2] = stall_block
+
+          # Rescue happens without movement for that frame. Clear previous expected movement to avoid a false stall next frame.
+          rescue_anchor = None
+          for i in range(human_ax + 2, len(lines)):
+              if lines[i].strip() == "target.__iceWolfAIRescueCooldown = 0.8;":
+                  rescue_anchor = i
+                  break
+          if rescue_anchor is None:
+              raise SystemExit("rescue cooldown marker missing")
+          rescue_continue = None
+          for i in range(rescue_anchor + 1, min(rescue_anchor + 20, len(lines))):
+              if lines[i].strip() == "continue;":
+                  rescue_continue = i
+                  break
+          if rescue_continue is None:
+              raise SystemExit("rescue continue marker missing")
+          lines[rescue_continue:rescue_continue] = [
+              "              actor.__iceWolfAIHumanLastExpectedMove = 0;",
+              "              actor.__iceWolfAIHumanBlockedFor = 0;",
+              "              actor.__iceWolfAIHumanDetourLeft = 0;",
+              "              actor.__iceWolfAIHumanPrevActualX = actor.getCenterXInScene();",
+              "              actor.__iceWolfAIHumanPrevActualY = actor.getCenterYInScene();",
+          ]
+
+          # Add a local tangent detour for any Human intent (flee, rescue, or wander).
+          setx_candidates = [
+              i for i in range(human_ax, len(lines))
+              if lines[i].strip() == "actor.setX(actor.getX() + vx * speed * dt);"
+          ]
+          if len(setx_candidates) != 1:
+              raise SystemExit(f"Human movement marker: expected 1 after guard, got {len(setx_candidates)}")
+          human_setx = setx_candidates[0]
+          detour_block = [
+              "      const humanDesiredMag = Math.hypot(vx, vy);",
+              "      if (humanDesiredMag > 0 && actor.__iceWolfAIHumanBlockedFor >= humanBlockedTrigger && actor.__iceWolfAIHumanDetourLeft <= 0) {",
+              "        const previousSign = actor.__iceWolfAIHumanDetourSign === -1 ? -1 : 1;",
+              "        actor.__iceWolfAIHumanDetourSign = -previousSign;",
+              "        actor.__iceWolfAIHumanDetourLeft = humanDetourDuration;",
+              "        actor.__iceWolfAIHumanBlockedFor = 0;",
+              "        actor.__iceWolfAITurnLeft = 0;",
+              "      }",
+              "",
+              "      if (humanDesiredMag > 0 && actor.__iceWolfAIHumanDetourLeft > 0) {",
+              "        const forwardX = vx / humanDesiredMag;",
+              "        const forwardY = vy / humanDesiredMag;",
+              "        const side = actor.__iceWolfAIHumanDetourSign === -1 ? -1 : 1;",
+              "        let detourX = forwardX * 0.35 + (-forwardY * side) * 0.95;",
+              "        let detourY = forwardY * 0.35 + ( forwardX * side) * 0.95;",
+              "        if (ax < -640) detourX += 0.65;",
+              "        if (ax >  640) detourX -= 0.65;",
+              "        if (ay < -640) detourY += 0.65;",
+              "        if (ay >  640) detourY -= 0.65;",
+              "        const detourMag = Math.hypot(detourX, detourY);",
+              "        if (detourMag > 0) {",
+              "          vx = detourX / detourMag;",
+              "          vy = detourY / detourMag;",
+              "        }",
+              "      }",
+              "",
+              "      actor.__iceWolfAIHumanLastExpectedMove = Math.max(0, speed * dt);",
+          ]
+          lines[human_setx:human_setx] = detour_block
+
+          # Refresh stale embedded core-test assumptions from 5 Actors / 5:00 to 6 Actors / 3:30.
+          tests = data.get("tests", [])
+          step2 = one(tests, lambda x: x.get("name") == "STEP2 core test", "STEP2 core test")
+          source = step2.get("source")
+          if isinstance(source, list):
+              test_text = "\n".join(source)
+              source_is_list = True
+          elif isinstance(source, str):
+              test_text = source
+              source_is_list = False
+          else:
+              raise SystemExit("STEP2 test source has unsupported shape")
+
+          replacements = [
+              ("actors().length === 5", "actors().length === 6"),
+              ("5 test actors + player", "6 test actors + player"),
+              ("txt === '5:00' || txt === '4:59'", "txt === '3:30' || txt === '3:29'"),
+              ("for (let i = 0; i < 4; i++)", "for (let i = 0; i < 5; i++)"),
+              ("const last = actors()[4];", "const last = actors()[5];"),
+          ]
+          for old, new in replacements:
+              count = test_text.count(old)
+              if count != 1:
+                  raise SystemExit(f"STEP2 replacement {old!r}: expected 1, got {count}")
+              test_text = test_text.replace(old, new, 1)
+          if "6 actors, Wolf1/Human5" in test_text:
+              test_text = test_text.replace("6 actors, Wolf1/Human5", "7 participants, Wolf1/Human6", 1)
+          step2["source"] = test_text.split("\n") if source_is_list else test_text
+          for key in ("lastRunAt", "lastRunDuration", "lastRunFrameCount"):
+              if key in step2:
+                  step2[key] = 0
+          if "lastRunStatus" in step2:
+              step2["lastRunStatus"] = "not-run"
+
+          # Structural invariants: no accidental gameplay-count/timer drift.
+          actors = [x for x in scene["instances"] if x.get("objectName") == "Actor"]
+          if len(actors) != 6:
+              raise SystemExit(f"Actor instance invariant failed: {len(actors)}")
+          match_duration = one(scene["variables"], lambda x: x.get("name") == "MatchDuration", "MatchDuration")
+          if str(match_duration.get("value")) not in ("210", "210.0"):
+              raise SystemExit(f"MatchDuration invariant failed: {match_duration.get('value')!r}")
+          if build["string"] != "開発版 v0.6.0":
+              raise SystemExit("BuildText postcondition failed")
+          ai_text = "\n".join(lines)
+          for token in (
+              "__iceWolfAIHumanBlockedFor",
+              "__iceWolfAIHumanDetourLeft",
+              "humanBlockedTrigger",
+              "humanDetourDuration",
+          ):
+              if token not in ai_text:
+                  raise SystemExit(f"AI postcondition missing {token}")
+
+          # Preserve compact UTF-8 project shape.
+          path.write_text(
+              json.dumps(data, ensure_ascii=False, separators=(",", ":")),
+              encoding="utf-8",
+          )
+          Path("/tmp/ice-wolf-ai-v060.js").write_text(ai_text, encoding="utf-8")
+          Path("/tmp/ice-wolf-step2-v060.js").write_text(test_text, encoding="utf-8")
+          print("PATCH_OK actors=6 duration=210 build=v0.6.0 human_nav_recovery=enabled")
+          PY
+
+      - name: Static project and JavaScript validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool game.json >/dev/null
+          node --check /tmp/ice-wolf-ai-v060.js
+          node --check /tmp/ice-wolf-step2-v060.js
+          python3 - <<'PY'
+          import json
+          d=json.load(open("game.json", encoding="utf-8"))
+          s=next(x for x in d["layouts"] if x["name"]=="FROST LAB")
+          assert sum(1 for x in s["instances"] if x.get("objectName")=="Actor")==6
+          assert next(x for x in s["variables"] if x["name"]=="MatchDuration")["value"] in (210, "210")
+          b=next(x for x in s["objects"] if x["name"]=="BuildText")
+          assert b["string"]=="開発版 v0.6.0"
+          print("VALIDATION_OK json=valid js=syntax-ok actors=6 duration=210")
+          PY
+
+      - name: Commit implementation and remove one-time helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add game.json
+          git rm .github/workflows/apply-v060-human-navigation.yml
+          git diff --cached --check
+          git commit -m "feat: add v0.6.0 human navigation recovery"
+          git push origin HEAD:feature/v060-human-navigation-recovery
