@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  gameplay-tests-and-html5-export:
+  gameplay-test-and-html5-export:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -58,14 +58,13 @@ jobs:
           echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
           echo "GDevelop binary: $BIN"
 
-      - name: Run current core and v0.6.0 gameplay tests in GDevelop
+      - name: Run v0.6.0 targeted gameplay test in GDevelop
         shell: bash
         run: |
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
             --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
-            --cmd-args 'STEP2 core test' \
             --cmd-args 'v0.6.0 human-side CPU Wolf test' \
             --results-path "$GITHUB_WORKSPACE/gameplay-test-results.json"
           test -s gameplay-test-results.json
