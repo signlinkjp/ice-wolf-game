@@ -78,14 +78,14 @@ jobs:
       - name: Run device diagnostic gameplay test in official GDevelop
         shell: bash
         run: |
+          rm -f gameplay-test-results.json
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
             --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
-            --cmd-args 'v0.6.0 CPU Wolf device diagnostic test' \
-            --results-path "$GITHUB_WORKSPACE/diagnostic-test-results.json"
-          test -s diagnostic-test-results.json
-          cat diagnostic-test-results.json
+            --cmd-args 'v0.6.0 CPU Wolf device diagnostic test'
+          test -s gameplay-test-results.json
+          cat gameplay-test-results.json
 
       - name: Confirm standard HTML5 export
         shell: bash
