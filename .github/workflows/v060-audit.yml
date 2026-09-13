@@ -1,0 +1,48 @@
+name: v0.6.0 CPU Navigation Audit
+
+on:
+  push:
+    branches:
+      - feature/v060-cpu-human-navigation
+    paths:
+      - '.github/workflows/v060-audit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/v060-cpu-human-navigation
+      - name: Inspect current canonical project
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('game.json').read_text(encoding='utf-8'))
+          hits = []
+          needles = ('AIWolf', 'HumanActive', 'Role', 'State', 'wander', 'Wander', 'RESCUE', '救助')
+
+          def walk(v, path='$'):
+              if isinstance(v, dict):
+                  for k, x in v.items(): walk(x, f'{path}.{k}')
+              elif isinstance(v, list):
+                  for i, x in enumerate(v): walk(x, f'{path}[{i}]')
+              elif isinstance(v, str) and any(n in v for n in needles):
+                  hits.append({'path': path, 'value': v[:12000]})
+
+          walk(data)
+          Path('v060-audit.json').write_text(json.dumps(hits, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(f'audit hits: {len(hits)}')
+      - name: Commit audit report
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v060-audit.json
+          git commit -m 'chore(v0.6.0): capture CPU navigation audit' || exit 0
+          git push
