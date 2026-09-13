@@ -62,7 +62,7 @@ jobs:
 
           assert "const candidates = actors.filter" in role_source
           assert "const existingWolf = actors.find" in role_source
-          assert "if (actor.__iceWolfPrimaryCPUWolf)" in role_source
+          assert "if (!actor.__iceWolfPrimaryCPUWolf) continue;" in role_source
           assert "av.get('State').setString('Active')" not in role_source
           assert "wv.get('State').setString('Active')" not in role_source
           assert "av.get('Role').setString('Human')" in role_source
