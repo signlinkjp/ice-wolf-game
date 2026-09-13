@@ -102,21 +102,26 @@ if ai_js is None:
 lines = ai_js.get("inlineCode", [])
 if any("playerStateNow === 'Frozen'" in line for line in lines):
     raise SystemExit("v0.6.0 player rescue patch already present")
-needle = "      let rescueTargetDist = Infinity;"
-try:
-    insert_at = lines.index(needle) + 1
-except ValueError as exc:
-    raise SystemExit("rescue target insertion point not found") from exc
 
+# Match by code token rather than exact indentation: GDevelop preserves nested
+# indentation in inlineCode and older revisions used a different number of spaces.
+needle_index = next(
+    (i for i, line in enumerate(lines) if line.strip() == "let rescueTargetDist = Infinity;"),
+    None,
+)
+if needle_index is None:
+    raise SystemExit("rescue target insertion point not found")
+indent = lines[needle_index][: len(lines[needle_index]) - len(lines[needle_index].lstrip())]
+insert_at = needle_index + 1
 player_rescue_lines = [
-    "      const playerStateNow = pVars.get('State').getAsString();",
-    "      if (pRole === 'Human' && playerStateNow === 'Frozen') {",
-    "        const pd = Math.hypot(px - ax, py - ay);",
-    "        if (pd <= rescueSearchRadius) {",
-    "          rescueTarget = player;",
-    "          rescueTargetDist = pd;",
-    "        }",
-    "      }",
+    f"{indent}const playerStateNow = pVars.get('State').getAsString();",
+    f"{indent}if (pRole === 'Human' && playerStateNow === 'Frozen') {{",
+    f"{indent}  const pd = Math.hypot(px - ax, py - ay);",
+    f"{indent}  if (pd <= rescueSearchRadius) {{",
+    f"{indent}    rescueTarget = player;",
+    f"{indent}    rescueTargetDist = pd;",
+    f"{indent}  }}",
+    f"{indent}}}",
 ]
 lines[insert_at:insert_at] = player_rescue_lines
 
