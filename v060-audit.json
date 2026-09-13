@@ -1,0 +1,1690 @@
+[
+  {
+    "path": "$.layouts[1].variables[2].name",
+    "value": "HumanActive"
+  },
+  {
+    "path": "$.layouts[1].instances[50].name",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].instances[55].name",
+    "value": "TestRoleButton"
+  },
+  {
+    "path": "$.layouts[1].objects[2].variables[0].name",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].objects[2].variables[1].name",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].objects[3].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[4].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[5].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[6].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[7].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[8].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[9].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[10].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[12].variables[0].name",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].objects[12].variables[1].name",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].objects[12].variables[2].name",
+    "value": "AIWolfModeLeft"
+  },
+  {
+    "path": "$.layouts[1].objects[12].variables[3].name",
+    "value": "AIWolfCooldownLeft"
+  },
+  {
+    "path": "$.layouts[1].objects[14].name",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].objects[15].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[16].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[16].string",
+    "value": "[ 救助 ]"
+  },
+  {
+    "path": "$.layouts[1].objects[16].content.text",
+    "value": "[ 救助 ]"
+  },
+  {
+    "path": "$.layouts[1].objects[17].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[19].name",
+    "value": "TestRoleButton"
+  },
+  {
+    "path": "$.layouts[1].objects[19].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objects[20].behaviors[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.layouts[1].objectsFolderStructure.children[14].objectName",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].objectsFolderStructure.children[19].objectName",
+    "value": "TestRoleButton"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[1].conditions[0].subInstructions[2].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[1].conditions[0].subInstructions[3].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[1].conditions[0].subInstructions[4].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[2].conditions[0].subInstructions[2].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[2].conditions[0].subInstructions[3].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[2].conditions[0].subInstructions[4].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[3].conditions[0].subInstructions[2].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[3].conditions[0].subInstructions[3].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[3].conditions[0].subInstructions[4].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[4].conditions[0].subInstructions[2].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[4].conditions[0].subInstructions[3].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[4].conditions[0].subInstructions[4].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.layouts[1].events[0].events[6].conditions[2].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[2].actions[0].parameters[0]",
+    "value": "HumanActive"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[3].conditions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[3].conditions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[3].actions[0].parameters[0]",
+    "value": "HumanActive"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[4].events[0].conditions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[4].events[0].conditions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[4].events[0].actions[0].parameters[0]",
+    "value": "HumanActive"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[0].events[5].conditions[0].parameters[0]",
+    "value": "HumanActive"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[1].events[2].conditions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[1].events[2].actions[0].parameters[0]",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].events[4].events[1].events[3].actions[0].parameters[0]",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[0].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[0].conditions[2].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[2].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsClicked"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[2].conditions[2].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[2].conditions[3].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[3].conditions[2].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[3].conditions[3].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[3].events[0].conditions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[3].events[0].events[0].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[3].events[0].events[0].actions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[4].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[4].conditions[2].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[4].conditions[4].subInstructions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[4].conditions[4].subInstructions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsClicked"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].conditions[2].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].conditions[3].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].conditions[5].subInstructions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].conditions[5].subInstructions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[0].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[0].actions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[0].actions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[0].actions[3].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[1].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[1].actions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[6].events[1].actions[2].parameters[3]",
+    "value": "\"救助成功！\""
+  },
+  {
+    "path": "$.layouts[1].events[5].events[7].conditions[2].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[7].conditions[3].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[7].conditions[5].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[7].conditions[6].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsClicked"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].conditions[3].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].conditions[4].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].conditions[6].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].conditions[7].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[9].actions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsClicked"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].conditions[0].parameters[0]",
+    "value": "TestRoleButton"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].events[0].conditions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].events[0].actions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].events[1].actions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[10].events[2].actions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[11].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsClicked"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[11].actions[6].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[11].actions[7].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[11].events[0].actions[0].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[5].events[11].events[0].actions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[2].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[2].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[2].actions[0].parameters[0]",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[3].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[3].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[3].actions[0].parameters[0]",
+    "value": "RoleText"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[4].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[4].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[5].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[5].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[6].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[6].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[7].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[7].conditions[1].parameters[1]",
+    "value": "Role"
+  },
+  {
+    "path": "$.layouts[1].events[6].events[7].actions[0].parameters[3]",
+    "value": "\"人間：凍った仲間を救助しよう\""
+  },
+  {
+    "path": "$.layouts[1].events[7].events[0].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[7].events[1].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[7].events[2].conditions[0].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].events[8].events[0].inlineCode[2]",
+    "value": "const getState = (obj) => obj.getVariables().get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[8].events[0].inlineCode[21]",
+    "value": "  const state = av.get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[8].events[0].inlineCode[22]",
+    "value": "  const role = av.get('Role').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[8].events[0].inlineCode[23]",
+    "value": "  const aiWolfModeLeft = av.get('AIWolfModeLeft').getAsNumber();"
+  },
+  {
+    "path": "$.layouts[1].events[8].events[0].inlineCode[30]",
+    "value": "  const state = getState(player);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[8]",
+    "value": "    const pRole = pVars.get('Role').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[9]",
+    "value": "    const pState = pVars.get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[16]",
+    "value": "    const wanderSpeed = 65;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[26]",
+    "value": "    const aiWolfWanderSpeed = 65;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[34]",
+    "value": "      if (pRole === 'Human' && pState === 'Active') targets.push(player);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[38]",
+    "value": "        if (cv.get('Role').getAsString() === 'Human' && cv.get('State').getAsString() === 'Active') targets.push(candidate);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[49]",
+    "value": "      if (wv.get('Role').getAsString() !== 'Wolf' || wv.get('State').getAsString() !== 'Active') continue;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[50]",
+    "value": "      let modeLeft = Math.max(0, wv.get('AIWolfModeLeft').getAsNumber() - dt);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[51]",
+    "value": "      let cooldownLeft = Math.max(0, wv.get('AIWolfCooldownLeft').getAsNumber() - dt);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[52]",
+    "value": "      wv.get('AIWolfModeLeft').setNumber(modeLeft);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[53]",
+    "value": "      wv.get('AIWolfCooldownLeft').setNumber(cooldownLeft);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[56]",
+    "value": "      const prevActualX = wolf.__iceWolfAIWolfPrevActualX;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[57]",
+    "value": "      const prevActualY = wolf.__iceWolfAIWolfPrevActualY;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[58]",
+    "value": "      const lastExpectedMove = Number.isFinite(wolf.__iceWolfAIWolfLastExpectedMove) ? wolf.__iceWolfAIWolfLastExpectedMove : 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[63]",
+    "value": "        const blockedFor = Number.isFinite(wolf.__iceWolfAIWolfBlockedFor) ? wolf.__iceWolfAIWolfBlockedFor : 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[64]",
+    "value": "        wolf.__iceWolfAIWolfBlockedFor = blocked ? blockedFor + dt : Math.max(0, blockedFor - dt * 2);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[66]",
+    "value": "        wolf.__iceWolfAIWolfBlockedFor = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[68]",
+    "value": "      wolf.__iceWolfAIWolfPrevActualX = wx;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[69]",
+    "value": "      wolf.__iceWolfAIWolfPrevActualY = wy;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[70]",
+    "value": "      wolf.__iceWolfAIWolfDetourLeft = Math.max(0, (Number.isFinite(wolf.__iceWolfAIWolfDetourLeft) ? wolf.__iceWolfAIWolfDetourLeft : 0) - dt);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[79]",
+    "value": "        wv.get('AIWolfModeLeft').setNumber(modeLeft);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[83]",
+    "value": "      let speed = aiWolfWanderSpeed;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[91]",
+    "value": "        wolf.__iceWolfAIWolfTurnLeft = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[93]",
+    "value": "          target.getVariables().get('State').setString('Frozen');"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[94]",
+    "value": "          wv.get('AIWolfModeLeft').setNumber(0);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[95]",
+    "value": "          wv.get('AIWolfCooldownLeft').setNumber(aiWolfCooldownDuration);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[96]",
+    "value": "          wolf.__iceWolfAIWolfLastExpectedMove = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[97]",
+    "value": "          wolf.__iceWolfAIWolfBlockedFor = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[98]",
+    "value": "          wolf.__iceWolfAIWolfDetourLeft = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[103]",
+    "value": "        // WOLF MODE, but keeps closing the distance instead of wandering away."
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[110]",
+    "value": "        wolf.__iceWolfAIWolfTurnLeft = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[112]",
+    "value": "        if (!Number.isFinite(wolf.__iceWolfAIWolfTurnLeft) || wolf.__iceWolfAIWolfTurnLeft <= 0 || !Number.isFinite(wolf.__iceWolfAIWolfDirX) || !Number.isFinite(wolf.__iceWolfAIWolfDirY)) {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[114]",
+    "value": "          wolf.__iceWolfAIWolfDirX = Math.cos(angle);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[115]",
+    "value": "          wolf.__iceWolfAIWolfDirY = Math.sin(angle);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[116]",
+    "value": "          wolf.__iceWolfAIWolfTurnLeft = 0.65 + Math.random() * 0.9;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[118]",
+    "value": "        wolf.__iceWolfAIWolfTurnLeft -= dt;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[119]",
+    "value": "        vx = wolf.__iceWolfAIWolfDirX;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[120]",
+    "value": "        vy = wolf.__iceWolfAIWolfDirY;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[122]",
+    "value": "      if (target && wolf.__iceWolfAIWolfBlockedFor >= aiWolfBlockedTrigger && wolf.__iceWolfAIWolfDetourLeft <= 0) {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[123]",
+    "value": "        const previousSign = Number.isFinite(wolf.__iceWolfAIWolfDetourSign) ? wolf.__iceWolfAIWolfDetourSign : 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[124]",
+    "value": "        wolf.__iceWolfAIWolfDetourSign = previousSign === 0 ? (Math.random() < 0.5 ? -1 : 1) : -previousSign;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[125]",
+    "value": "        wolf.__iceWolfAIWolfDetourLeft = aiWolfDetourDuration;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[126]",
+    "value": "        wolf.__iceWolfAIWolfBlockedFor = 0;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[128]",
+    "value": "      if (target && wolf.__iceWolfAIWolfDetourLeft > 0) {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[134]",
+    "value": "        const sign = wolf.__iceWolfAIWolfDetourSign || 1;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[146]",
+    "value": "      wolf.__iceWolfAIWolfLastExpectedMove = Math.max(0, speed * dt);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[154]",
+    "value": "      if (pRole === 'Wolf' && pState === 'Active' && playerWolfModeLeft > 0) {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[160]",
+    "value": "        if (cv.get('Role').getAsString() !== 'Wolf' || cv.get('State').getAsString() !== 'Active' || cv.get('AIWolfModeLeft').getAsNumber() <= 0) continue;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[169]",
+    "value": "    // Pass 2: Human wander/flee/rescue AI. Any visible Wolf (Player or awakened"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[173]",
+    "value": "      const role = actorVars.get('Role').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[174]",
+    "value": "      const state = actorVars.get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[176]",
+    "value": "      actorVars.get('AIWolfModeLeft').setNumber(0);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[182]",
+    "value": "      let speed = wanderSpeed;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[197]",
+    "value": "          const targetState = target.getVariables().get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[198]",
+    "value": "          if (targetState !== 'Frozen' && targetState !== 'FrozenWolfCandidate') continue;"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[212]",
+    "value": "              const targetState = targetVars.get('State').getAsString();"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[213]",
+    "value": "              if (targetState === 'FrozenWolfCandidate') {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[214]",
+    "value": "                targetVars.get('Role').setString('Wolf');"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[215]",
+    "value": "                targetVars.get('State').setString('Active');"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[216]",
+    "value": "                targetVars.get('AIWolfModeLeft').setNumber(0);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[217]",
+    "value": "                targetVars.get('AIWolfCooldownLeft').setNumber(1.5);"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[218]",
+    "value": "                actorVars.get('State').setString('Frozen');"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[219]",
+    "value": "              } else if (targetState === 'Frozen') {"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[0].inlineCode[220]",
+    "value": "                targetVars.get('State').setString('Active');"
+  },
+  {
+    "path": "$.layouts[1].events[9].events[1].conditions[1].parameters[1]",
+    "value": "State"
+  },
+  {
+    "path": "$.layouts[1].behaviorsSharedData[0].type",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.tests[0].source[15]",
+    "value": "const cam0 = harness.getCameraState('');"
+  },
+  {
+    "path": "$.tests[0].source[21]",
+    "value": "const cam1 = harness.getCameraState('');"
+  },
+  {
+    "path": "$.tests[0].source[55]",
+    "value": "harness.assert(Math.abs(cam1.zoom - harness.getCameraState('').zoom) < 0.01, 'Camera zoom stable');"
+  },
+  {
+    "path": "$.tests[3].source[21]",
+    "value": "harness.assert(pvar('Role') === 'Wolf' && pvar('State') === 'Active', `C2 player Wolf/Active`);"
+  },
+  {
+    "path": "$.tests[3].source[22]",
+    "value": "harness.assert(actors().every(a => avar(a.id,'Role')==='Human' && avar(a.id,'State')==='Active'), `C2 all actors Human/Active`);"
+  },
+  {
+    "path": "$.tests[3].source[29]",
+    "value": "harness.assert(harness.getObjects('RoleText')[0].text === 'あなた：人狼', `M role label`);"
+  },
+  {
+    "path": "$.tests[3].source[39]",
+    "value": "harness.assert(avar(t0.id,'State') === 'Frozen', `E actor frozen on contact`);"
+  },
+  {
+    "path": "$.tests[3].source[43]",
+    "value": "harness.assert(avar(t1.id,'State') === 'Active', `E no chain freeze`);"
+  },
+  {
+    "path": "$.tests[3].source[46]",
+    "value": "harness.assert(pvar('Role') === 'Human', `N role toggled to Human`);"
+  },
+  {
+    "path": "$.tests[3].source[49]",
+    "value": "harness.assert(harness.getObjects('RescueButton')[0].hidden === false, `G RESCUE shown near frozen`);"
+  },
+  {
+    "path": "$.tests[3].source[51]",
+    "value": "harness.assert(avar(t0.id,'State') === 'Active', `G frozen rescued to Active`);"
+  },
+  {
+    "path": "$.tests[3].source[59]",
+    "value": "harness.assert(avar(t0.id,'State') === 'Frozen', `re-frozen for infect test`);"
+  },
+  {
+    "path": "$.tests[3].source[64]",
+    "value": "harness.assert(avar(t0.id,'State') === 'FrozenWolfCandidate', `H infected to candidate`);"
+  },
+  {
+    "path": "$.tests[3].source[71]",
+    "value": "harness.assert(pvar('State') === 'Frozen', `I rescuer becomes Frozen`);"
+  },
+  {
+    "path": "$.tests[3].source[72]",
+    "value": "harness.assert(avar(t0.id,'Role') === 'Wolf' && avar(t0.id,'State') === 'Active', `I candidate becomes Active Wolf`);"
+  },
+  {
+    "path": "$.tests[3].source[76]",
+    "value": "harness.assert(pvar('Role')==='Wolf' && pvar('State')==='Active', `N reset player`);"
+  },
+  {
+    "path": "$.tests[3].source[77]",
+    "value": "harness.assert(actors().every(a => avar(a.id,'Role')==='Human' && avar(a.id,'State')==='Active'), `N reset actors`);"
+  },
+  {
+    "path": "$.tests[3].source[81]",
+    "value": "for (let i = 0; i < 4; i++) harness.setObjectVariable(list[i].id, 'State', 'Frozen');"
+  },
+  {
+    "path": "$.tests[4].source[5]",
+    "value": "harness.assert(harness.getObjects('RescueButton')[0].text === '[ 救助 ]', 'RESCUE label clear');"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].sceneVariables[0].children[0].children[0].children[0].children[0].name",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[2].events[0].conditions[0].parameters[0]",
+    "value": "Controllers[ControllerIdentifier].Buttons[Button].State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[3].events[0].conditions[0].subInstructions[0].parameters[0]",
+    "value": "Controllers[ControllerIdentifier].Buttons[Button].State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[3].events[0].conditions[0].subInstructions[1].parameters[0]",
+    "value": "Controllers[ControllerIdentifier].Buttons[Button].State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[4].events[0].conditions[0].parameters[0]",
+    "value": "Controllers[ControllerIdentifier].Buttons[Button].State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[5].name",
+    "value": "SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[5].events[0].actions[0].parameters[0]",
+    "value": "Controllers[ControllerIdentifier].Buttons[Button].State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[5].events[0].actions[0].parameters[2]",
+    "value": "ButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctions[5].parameters[2].name",
+    "value": "ButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsFunctionsFolderStructure.children[5].functionName",
+    "value": "SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[0].events[0].actions[1].type.value",
+    "value": "SpriteMultitouchJoystick::MultitouchButton::SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[0].events[1].actions[1].type.value",
+    "value": "SpriteMultitouchJoystick::MultitouchButton::SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[0].events[2].events[0].events[0].actions[1].type.value",
+    "value": "SpriteMultitouchJoystick::MultitouchButton::SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[0].events[3].actions[0].type.value",
+    "value": "SpriteMultitouchJoystick::MultitouchButton::SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[4].name",
+    "value": "SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[4].events[0].actions[0].type.value",
+    "value": "SpriteMultitouchJoystick::SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[4].events[0].actions[0].parameters[3]",
+    "value": "ButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctions[4].parameters[2].name",
+    "value": "ButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[0].eventsBasedBehaviors[1].eventsFunctionsFolderStructure.children[4].functionName",
+    "value": "SetButtonState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].name",
+    "value": "ButtonStates"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].origin.identifier",
+    "value": "ButtonStates"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[1].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[1].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[3].events[0].events[0].events[0].events[0].conditions[0].subInstructions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[3].events[0].events[0].events[0].events[0].conditions[0].subInstructions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[3].events[0].events[0].events[0].events[0].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[0].conditions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[0].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[1].conditions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[1].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[2].conditions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[2].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[3].conditions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[4].events[3].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[5].events[0].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[5].events[0].events[0].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[5].events[0].events[1].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[5].events[0].events[1].conditions[1].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].events[0].events[5].events[0].events[1].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[1].events[0].actions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::ResetState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[2].name",
+    "value": "ResetState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[2].events[0].actions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[3].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[4].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[5].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[6].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[6].events[1].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[7].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[8].events[0].conditions[0].parameters[0]",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[8].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctions[9].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].eventsFunctionsFolderStructure.children[2].functionName",
+    "value": "ResetState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].propertyDescriptors[1].label",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].propertyDescriptors[1].name",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[0].propertiesFolderStructure.children[1].propertyName",
+    "value": "State"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[1].events[0].name",
+    "value": "States"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[1].events[0].events[1].conditions[1].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[1].events[0].events[2].conditions[1].type.value",
+    "value": "ButtonStates::ButtonFSM::IsFocused"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[1].events[0].events[3].conditions[1].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffects"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[1].propertyDescriptors[0].extraInformation[0]",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[1].events[0].events[0].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[1].events[0].events[1].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsFocused"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[1].events[0].events[2].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonAnimationName"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[2].propertyDescriptors[1].extraInformation[0]",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].name",
+    "value": "States"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[0].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[0].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsFocused"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[0].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[1].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[1].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[1].events[1].actions[1].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[2].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[2].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[2].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[0].events[2].actions[1].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[1].events[0].conditions[0].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[1].events[0].actions[0].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::PlayTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[1].events[1].conditions[0].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[1].events[1].actions[0].type.value",
+    "value": "ButtonStates::ButtonObjectEffectTween::PlayTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[2].events[0].events[0].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[2].events[0].events[0].conditions[1].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].events[2].events[0].events[1].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[3].events[0].actions[1].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[4].events[0].actions[1].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[5].events[1].actions[0].parameters[0]",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[8].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[9].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[10].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[11].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[12].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[13].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[14].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[15].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[16].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[17].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[18].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[19].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[20].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[21].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].eventsFunctions[22].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonObjectEffectTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].propertyDescriptors[0].extraInformation[0]",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].propertyDescriptors[12].name",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].propertyDescriptors[16].name",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].propertiesFolderStructure.children[6].propertyName",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[3].propertiesFolderStructure.children[10].propertyName",
+    "value": "TweenState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[0].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[0].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonScaleTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsFocused"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[0].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonScaleTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[1].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[1].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[1].events[1].actions[1].type.value",
+    "value": "ButtonStates::ButtonScaleTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[2].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[2].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[2].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].events[0].events[2].actions[1].type.value",
+    "value": "ButtonStates::ButtonScaleTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[8].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[9].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[10].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[11].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[12].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[13].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[14].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[15].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[16].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].eventsFunctions[17].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonScaleTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].propertyDescriptors[1].extraInformation[0]",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].propertyDescriptors[10].name",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[4].propertiesFolderStructure.children[5].propertyName",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[0].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].name",
+    "value": "States"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[0].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsIdle"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[0].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonColorTintTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsFocused"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[0].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[0].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[0].actions[1].type.value",
+    "value": "ButtonStates::ButtonColorTintTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[1].conditions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[1].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[1].events[1].actions[1].type.value",
+    "value": "ButtonStates::ButtonColorTintTween::FadeOut"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[2].conditions[0].type.value",
+    "value": "ButtonStates::ButtonFSM::IsPressed"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[2].conditions[1].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[2].actions[0].parameters[0]",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].events[0].events[2].actions[1].type.value",
+    "value": "ButtonStates::ButtonColorTintTween::FadeIn"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[1].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[2].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[3].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[4].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[5].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[6].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[7].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[8].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[9].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[10].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[11].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[12].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[13].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[14].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[15].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[16].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].eventsFunctions[17].parameters[1].supplementaryInformation",
+    "value": "ButtonStates::ButtonColorTintTween"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].propertyDescriptors[0].extraInformation[0]",
+    "value": "ButtonStates::ButtonFSM"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].propertyDescriptors[9].name",
+    "value": "PreviousState"
+  },
+  {
+    "path": "$.eventsFunctionsExtensions[3].eventsBasedBehaviors[5].propertiesFolderStructure.children[4].propertyName",
+    "value": "PreviousState"
+  }
+]
