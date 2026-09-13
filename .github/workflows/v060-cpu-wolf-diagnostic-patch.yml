@@ -47,8 +47,9 @@ jobs:
           assert next(o for o in frost['objects'] if o.get('name') == 'CpuWolfTestButton')['string'] == 'CPU人狼テスト'
           assert any(t.get('name') == 'v0.6.0 CPU Wolf device diagnostic test' for t in data['tests'])
           blob = json.dumps(data, ensure_ascii=False)
-          for protected in ['FrozenWolfCandidate', '139;0;0', '0077FF', 'AIWolfModeLeft', 'InfectionUsed']:
+          for protected in ['FrozenWolfCandidate', '139;0;0', 'AIWolfModeLeft', 'InfectionUsed']:
               assert protected in blob, protected
+          assert '0x0077ff' in blob.lower(), 'Actor Wolf blue WOLF MODE color'
           print('Static diagnostic + protected-rule gate PASS')
           PY
 
