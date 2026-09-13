@@ -1,0 +1,3 @@
+source_feature_head=3671e105a1c2a1f0a596fd0140441f22cf7acbaf
+base_main=84bbfe11f8f345addf3762cc277429b560cc4194
+build=ICE WOLF v0.6.0-DIAG

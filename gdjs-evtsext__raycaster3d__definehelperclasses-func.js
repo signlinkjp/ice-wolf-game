@@ -1,0 +1,274 @@
+
+if (typeof gdjs.evtsExt__Raycaster3D__DefineHelperClasses !== "undefined") {
+  gdjs.evtsExt__Raycaster3D__DefineHelperClasses.registeredGdjsCallbacks.forEach(callback =>
+    gdjs._unregisterCallback(callback)
+  );
+}
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses = {};
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.idToCallbackMap = new Map();
+
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.userFunc0x118c248 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
+"use strict";
+if (gdjs.__raycaster3DExtension) {
+    return;
+}
+
+class Raycaster {
+    raycaster = new THREE.Raycaster();
+    pointer = new THREE.Vector2();
+    /** @type {Array<THREE.Intersection>} */
+    raycastResults = [];
+    lastDistance = 0;
+    lastPositionX = 0;
+    lastPositionY = 0;
+    lastPositionZ = 0;
+    lastNormal = new THREE.Vector3();
+
+    /**
+     * @param objectsLists {Hashtable<gdjs.RuntimeObject[]>}
+     * @param objects {gdjs.RuntimeObject[]}
+     * @param pointerX {number}
+     * @param pointerY {number}
+     * @param distanceMax {number}
+     */
+    recastFromCamera(objectsLists, objects, pointerX, pointerY, distanceMax) {
+        if (objects.length === 0) {
+            return false;
+        }
+        const object = objects[0];
+        const layer = object.getInstanceContainer().getLayer(object.getLayer());
+        const camera = layer.getRenderer().getThreeCamera();
+
+        const raycaster = this.raycaster;
+        const pointer = this.pointer;
+        pointer.x = -1 + 2 * pointerX;
+        pointer.y = 1 - 2 * pointerY;
+        raycaster.setFromCamera(pointer, camera);
+
+        const scene = object.getRuntimeScene();
+        const inverseWorldScale = scene.getRenderer3DInverseWorldScale ? scene.getRenderer3DInverseWorldScale() : 1;
+        raycaster.far = distanceMax * inverseWorldScale;
+
+        return this._doRecast(objectsLists, objects);
+    }
+
+    /**
+     * @param objectsLists {Hashtable<gdjs.RuntimeObject[]>}
+     * @param objects {gdjs.RuntimeObject[]}
+     * @param originX {number}
+     * @param originY {number}
+     * @param originZ {number}
+     * @param rotationAngle {number}
+     * @param elevationAngle {number}
+     * @param distanceMax {number}
+     */
+    recastWithAngle(
+        objectsLists,
+        objects,
+        originX,
+        originY,
+        originZ,
+        rotationAngle,
+        elevationAngle,
+        distanceMax
+    ) {
+        if (objects.length === 0) {
+            return false;
+        }
+        const scene = objects[0].getRuntimeScene();
+        const inverseWorldScale = scene.getRenderer3DInverseWorldScale ? scene.getRenderer3DInverseWorldScale() : 1;
+        const raycaster = this.raycaster;
+        raycaster.ray.origin.set(
+            originX * inverseWorldScale,
+            -originY * inverseWorldScale,
+            originZ * inverseWorldScale,
+        );
+        const rotation = rotationAngle * Math.PI / 180;
+        const elevation = elevationAngle * Math.PI / 180;
+        const cosElevation = Math.cos(elevation);
+        raycaster.ray.direction.set(
+            Math.cos(rotation) * cosElevation,
+            -Math.sin(rotation) * cosElevation,
+            Math.sin(elevation),
+        );
+        raycaster.far = distanceMax * inverseWorldScale;
+
+        return this._doRecast(objectsLists, objects);
+    }
+
+    /**
+     * @param objectsLists {Hashtable<gdjs.RuntimeObject[]>}
+     * @param objects {gdjs.RuntimeObject[]}
+     * @param originX {number}
+     * @param originY {number}
+     * @param originZ {number}
+     * @param targetX {number}
+     * @param targetY {number}
+     * @param targetZ {number}
+     */
+    recastBetweenPosition(
+        objectsLists,
+        objects,
+        originX,
+        originY,
+        originZ,
+        targetX,
+        targetY,
+        targetZ
+    ) {
+        if (objects.length === 0) {
+            return false;
+        }
+        const scene = objects[0].getRuntimeScene();
+        const inverseWorldScale = scene.getRenderer3DInverseWorldScale ? scene.getRenderer3DInverseWorldScale() : 1;
+        const raycaster = this.raycaster;
+        raycaster.ray.origin.set(
+            originX * inverseWorldScale,
+            -originY * inverseWorldScale,
+            originZ * inverseWorldScale,
+        );
+        const deltaX = targetX - originX;
+        const deltaY = targetY - originY;
+        const deltaZ = targetZ - originZ;
+        const deltaLength = Math.hypot(deltaX, deltaY, deltaZ);
+        raycaster.ray.direction.set(
+            deltaX / deltaLength,
+            -deltaY / deltaLength,
+            deltaZ / deltaLength,
+        );
+        raycaster.far = deltaLength * inverseWorldScale;
+
+        return this._doRecast(objectsLists, objects);
+    }
+
+    /**
+     * @param objectsLists {Hashtable<gdjs.RuntimeObject[]>}
+     * @param objects {gdjs.RuntimeObject[]}
+     */
+    _doRecast(objectsLists, objects) {
+        const scene = objects[0].getRuntimeScene();
+        const worldScale = scene.getRenderer3DWorldScale ? scene.getRenderer3DWorldScale() : 1;
+        const raycastResults = this.raycastResults;
+        let distanceMin = Number.MAX_VALUE;
+        /** @type {gdjs.RuntimeObject | null} */
+        let nearestObject = null;
+        /** @type {THREE.Object3D | null} */
+        let nearestThreeObject = null;
+        for (const object of objects) {
+            raycastResults.length = 0;
+            const threeObject = object.get3DRendererObject();
+            if (!threeObject) {
+                continue;
+            }
+            this.raycaster.intersectObject(threeObject, true, raycastResults);
+            if (raycastResults.length > 0 && raycastResults[0].distance < distanceMin) {
+                const raycastResult = raycastResults[0];
+                distanceMin = raycastResult.distance;
+                nearestObject = object;
+                this.lastDistance = raycastResult.distance * worldScale;
+                this.lastPositionX = raycastResult.point.x * worldScale;
+                this.lastPositionY = -raycastResult.point.y * worldScale;
+                this.lastPositionZ = raycastResult.point.z * worldScale;
+                this.lastNormal.copy(raycastResult.normal);
+                nearestThreeObject = raycastResult.object;
+            }
+        }
+        if (!nearestObject) {
+            return false;
+        }
+        this.lastNormal.transformDirection(nearestThreeObject.matrixWorld);
+        this.lastNormal.y = -this.lastNormal.y;
+        raycastResults.length = 0;
+        gdjs.evtTools.object.pickOnly(
+            objectsLists,
+            nearestObject
+        );
+        return true;
+    }
+}
+
+gdjs.__raycaster3DExtension = {
+    Raycaster,
+    raycaster: new Raycaster(),
+}
+
+};
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.eventsList0 = function(runtimeScene, eventsFunctionContext) {
+
+{
+
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.userFunc0x118c248(runtimeScene, eventsFunctionContext);
+
+}
+
+
+};
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.func = function(runtimeScene, parentEventsFunctionContext) {
+let scopeInstanceContainer = null;
+var eventsFunctionContext = {
+  _objectsMap: {
+},
+  _objectArraysMap: {
+},
+  _behaviorNamesMap: {
+},
+  globalVariablesForExtension: runtimeScene.getGame().getVariablesForExtension("Raycaster3D"),
+  sceneVariablesForExtension: runtimeScene.getScene().getVariablesForExtension("Raycaster3D"),
+  localVariables: [],
+  getObjects: function(objectName) {
+    return eventsFunctionContext._objectArraysMap[objectName] || [];
+  },
+  getObjectsLists: function(objectName) {
+    return eventsFunctionContext._objectsMap[objectName] || null;
+  },
+  getBehaviorName: function(behaviorName) {
+    return eventsFunctionContext._behaviorNamesMap[behaviorName] || behaviorName;
+  },
+  createObject: function(objectName) {
+    const objectsList = eventsFunctionContext._objectsMap[objectName];
+    if (objectsList) {
+      const object = parentEventsFunctionContext && !(scopeInstanceContainer && scopeInstanceContainer.isObjectRegistered(objectName)) ?
+        parentEventsFunctionContext.createObject(objectsList.firstKey()) :
+        runtimeScene.createObject(objectsList.firstKey());
+      if (object) {
+        objectsList.get(objectsList.firstKey()).push(object);
+        if (!(scopeInstanceContainer && scopeInstanceContainer.isObjectRegistered(objectName))) {
+          eventsFunctionContext._objectArraysMap[objectName].push(object);
+        }
+      }
+      return object;
+    }
+    return null;
+  },
+  getInstancesCountOnScene: function(objectName) {
+    const objectsList = eventsFunctionContext._objectsMap[objectName];
+    let count = 0;
+    if (objectsList) {
+      for(const objectName in objectsList.items)
+        count += parentEventsFunctionContext && !(scopeInstanceContainer && scopeInstanceContainer.isObjectRegistered(objectName)) ?
+parentEventsFunctionContext.getInstancesCountOnScene(objectName) :
+        runtimeScene.getInstancesCountOnScene(objectName);
+    }
+    return count;
+  },
+  getLayer: function(layerName) {
+    return runtimeScene.getLayer(layerName);
+  },
+  getArgument: function(argName) {
+    return "";
+  },
+  getOnceTriggers: function() { return runtimeScene.getOnceTriggers(); }
+};
+
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.eventsList0(runtimeScene, eventsFunctionContext);
+
+
+return;
+}
+
+gdjs.evtsExt__Raycaster3D__DefineHelperClasses.registeredGdjsCallbacks = [];
