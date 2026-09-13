@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+# One-time branch-only transformer. The workflow removes this helper after validation.
 PROJECT = Path('game.json')
 data = json.loads(PROJECT.read_text(encoding='utf-8'))
 frost = next((x for x in data.get('layouts', []) if x.get('name') == 'FROST LAB'), None)
