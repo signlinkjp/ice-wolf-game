@@ -47,7 +47,7 @@ jobs:
 
           scene = one(data["layouts"], lambda x: x.get("name") == "FROST LAB", "FROST LAB")
 
-          # Version-facing text.
+          # Version-facing text. MatchDuration is already 210; align the editor default text.
           build = one(scene["objects"], lambda x: x.get("name") == "BuildText", "BuildText")
           if build.get("string") != "開発版 v0.5.4":
               raise SystemExit(f"BuildText precondition mismatch: {build.get('string')!r}")
@@ -58,12 +58,13 @@ jobs:
               build["content"]["text"] = "開発版 v0.6.0"
 
           timer = one(scene["objects"], lambda x: x.get("name") == "TimerText", "TimerText")
-          if timer.get("string") == "5:00":
-              timer["string"] = "3:30"
-          if isinstance(timer.get("content"), dict) and timer["content"].get("text") == "5:00":
-              timer["content"]["text"] = "3:30"
+          if timer.get("string") != "5:00":
+              raise SystemExit(f"TimerText precondition mismatch: {timer.get('string')!r}")
+          timer["string"] = "3:30"
+          if not isinstance(timer.get("content"), dict) or timer["content"].get("text") != "5:00":
+              raise SystemExit("TimerText.content precondition mismatch")
+          timer["content"]["text"] = "3:30"
 
-          # Find all event dictionaries recursively.
           def walk_events(events):
               for ev in events:
                   yield ev
@@ -82,8 +83,7 @@ jobs:
           js_events = [e for e in walk_events(group.get("events", [])) if isinstance(e.get("inlineCode"), list)]
           if len(js_events) != 1:
               raise SystemExit(f"AI inline JS: expected 1 event, got {len(js_events)}")
-          js_event = js_events[0]
-          lines = js_event["inlineCode"]
+          lines = js_events[0]["inlineCode"]
 
           def exact_indices(needle):
               return [i for i, line in enumerate(lines) if line.strip() == needle]
@@ -95,6 +95,7 @@ jobs:
               idx = hits[0]
               lines[idx + 1:idx + 1] = additions
 
+          # Human recovery uses its own state, leaving v0.5.4 Actor-Wolf recovery intact.
           insert_after_unique(
               "const aiWolfDetourDuration = 0.75;",
               [
@@ -104,7 +105,7 @@ jobs:
               ],
           )
 
-          # Human loop only: reset recovery state whenever an Actor is not an active Human.
+          # Reset Human-only recovery state while this Actor is not an active Human.
           hits = exact_indices("if (role !== 'Human' || state !== 'Active') continue;")
           if len(hits) != 1:
               raise SystemExit(f"active-Human guard: expected 1, got {len(hits)}")
@@ -119,16 +120,19 @@ jobs:
               "        continue;",
               "      }",
           ]
-          human_guard += 7  # account for replacement expansion; points near the end of guard
 
-          # Find Human ax/ay after the guard and insert prior-frame stall observation.
-          ax_candidates = [i for i in range(human_guard + 1, len(lines)) if lines[i].strip() == "const ax = actor.getCenterXInScene();"]
-          if not ax_candidates:
+          # Locate the Human position sample after the guard and observe previous-frame progress.
+          human_ax_candidates = [
+              i for i in range(human_guard + 8, len(lines))
+              if lines[i].strip() == "const ax = actor.getCenterXInScene();"
+          ]
+          if not human_ax_candidates:
               raise SystemExit("Human ax marker missing")
-          human_ax = ax_candidates[0]
+          human_ax = human_ax_candidates[0]
           if human_ax + 1 >= len(lines) or lines[human_ax + 1].strip() != "const ay = actor.getCenterYInScene();":
               raise SystemExit("Human ay marker missing")
-          stall_block = [
+
+          lines[human_ax + 2:human_ax + 2] = [
               "",
               "      const prevHumanX = actor.__iceWolfAIHumanPrevActualX;",
               "      const prevHumanY = actor.__iceWolfAIHumanPrevActualY;",
@@ -146,23 +150,23 @@ jobs:
               "      actor.__iceWolfAIHumanPrevActualY = ay;",
               "      actor.__iceWolfAIHumanDetourLeft = Math.max(0, (Number.isFinite(actor.__iceWolfAIHumanDetourLeft) ? actor.__iceWolfAIHumanDetourLeft : 0) - dt);",
           ]
-          lines[human_ax + 2:human_ax + 2] = stall_block
 
-          # Rescue transitions are left behaviorally unchanged; a single idle rescue frame is below the stall trigger.
-
-          # Add a local tangent detour for any Human intent (flee, rescue, or wander).
+          # Add tangent recovery immediately before the exact clamped Human movement lines.
+          human_setx_needle = "actor.setX(Math.max(-708, Math.min(692, actor.getX() + vx * speed * dt)));"
           setx_candidates = [
-              i for i in range(human_ax, len(lines))
-              if lines[i].strip() == "actor.setX(actor.getX() + vx * speed * dt);"
+              i for i in range(human_ax, len(lines)) if lines[i].strip() == human_setx_needle
           ]
           if len(setx_candidates) != 1:
-              raise SystemExit(f"Human movement marker: expected 1 after guard, got {len(setx_candidates)}")
+              raise SystemExit(f"Human clamped movement marker: expected 1, got {len(setx_candidates)}")
           human_setx = setx_candidates[0]
-          detour_block = [
+          if human_setx + 1 >= len(lines) or lines[human_setx + 1].strip() != "actor.setY(Math.max(-708, Math.min(692, actor.getY() + vy * speed * dt)));":
+              raise SystemExit("Human clamped Y movement marker missing")
+
+          lines[human_setx:human_setx] = [
               "      const humanDesiredMag = Math.hypot(vx, vy);",
               "      if (humanDesiredMag > 0 && actor.__iceWolfAIHumanBlockedFor >= humanBlockedTrigger && actor.__iceWolfAIHumanDetourLeft <= 0) {",
-              "        const previousSign = actor.__iceWolfAIHumanDetourSign === -1 ? -1 : 1;",
-              "        actor.__iceWolfAIHumanDetourSign = -previousSign;",
+              "        const previousSign = Number.isFinite(actor.__iceWolfAIHumanDetourSign) ? actor.__iceWolfAIHumanDetourSign : 0;",
+              "        actor.__iceWolfAIHumanDetourSign = previousSign === 0 ? (Math.random() < 0.5 ? -1 : 1) : -previousSign;",
               "        actor.__iceWolfAIHumanDetourLeft = humanDetourDuration;",
               "        actor.__iceWolfAIHumanBlockedFor = 0;",
               "        actor.__iceWolfAITurnLeft = 0;",
@@ -171,41 +175,34 @@ jobs:
               "      if (humanDesiredMag > 0 && actor.__iceWolfAIHumanDetourLeft > 0) {",
               "        const forwardX = vx / humanDesiredMag;",
               "        const forwardY = vy / humanDesiredMag;",
-              "        const side = actor.__iceWolfAIHumanDetourSign === -1 ? -1 : 1;",
+              "        const side = actor.__iceWolfAIHumanDetourSign || 1;",
               "        let detourX = forwardX * 0.35 + (-forwardY * side) * 0.95;",
               "        let detourY = forwardY * 0.35 + ( forwardX * side) * 0.95;",
               "        if (ax < -640) detourX += 0.65;",
-              "        if (ax >  640) detourX -= 0.65;",
+              "        else if (ax > 640) detourX -= 0.65;",
               "        if (ay < -640) detourY += 0.65;",
-              "        if (ay >  640) detourY -= 0.65;",
-              "        const detourMag = Math.hypot(detourX, detourY);",
-              "        if (detourMag > 0) {",
-              "          vx = detourX / detourMag;",
-              "          vy = detourY / detourMag;",
-              "        }",
+              "        else if (ay > 640) detourY -= 0.65;",
+              "        const detourMag = Math.max(Math.hypot(detourX, detourY), 1);",
+              "        vx = detourX / detourMag;",
+              "        vy = detourY / detourMag;",
               "      }",
-              "",
               "      actor.__iceWolfAIHumanLastExpectedMove = Math.max(0, speed * dt);",
           ]
-          lines[human_setx:human_setx] = detour_block
 
-          # Refresh stale embedded core-test assumptions from 5 Actors / 5:00 to 6 Actors / 3:30.
+          # Refresh stale STEP2 assumptions to current 7-participant / 210s rules.
           tests = data.get("tests", [])
           step2 = one(tests, lambda x: x.get("name") == "STEP2 core test", "STEP2 core test")
           source = step2.get("source")
-          if isinstance(source, list):
-              test_text = "\n".join(source)
-              source_is_list = True
-          elif isinstance(source, str):
-              test_text = source
-              source_is_list = False
-          else:
-              raise SystemExit("STEP2 test source has unsupported shape")
+          if not isinstance(source, list):
+              raise SystemExit("STEP2 source expected list")
+          test_text = "\n".join(source)
 
           replacements = [
+              ("// C1 C2: 6 actors, Wolf1/Human5", "// C1 C2: 7 participants, Wolf1/Human6"),
               ("actors().length === 5", "actors().length === 6"),
               ("5 test actors + player", "6 test actors + player"),
-              ("txt === '5:00' || txt === '4:59'", "txt === '3:30' || txt === '3:29'"),
+              ("ttxt.text === '5:00' || ttxt.text === '4:59'", "ttxt.text === '3:30' || ttxt.text === '3:29'"),
+              ("// L wolf win: freeze 4 via setup, 1 via play", "// L wolf win: freeze 5 via setup, 1 via play"),
               ("for (let i = 0; i < 4; i++)", "for (let i = 0; i < 5; i++)"),
               ("const last = actors()[4];", "const last = actors()[5];"),
           ]
@@ -214,42 +211,54 @@ jobs:
               if count != 1:
                   raise SystemExit(f"STEP2 replacement {old!r}: expected 1, got {count}")
               test_text = test_text.replace(old, new, 1)
-          if "6 actors, Wolf1/Human5" in test_text:
-              test_text = test_text.replace("6 actors, Wolf1/Human5", "7 participants, Wolf1/Human6", 1)
-          step2["source"] = test_text.split("\n") if source_is_list else test_text
-          for key in ("lastRunAt", "lastRunDuration", "lastRunFrameCount"):
-              if key in step2:
-                  step2[key] = 0
-          if "lastRunStatus" in step2:
-              step2["lastRunStatus"] = "not-run"
+          step2["source"] = test_text.split("\n")
+          for key in ("lastRunAt", "lastRunDurationMs", "lastRunFramesExecuted"):
+              if key not in step2:
+                  raise SystemExit(f"STEP2 metadata missing {key}")
+              step2[key] = 0
+          if "lastRunStatus" not in step2:
+              raise SystemExit("STEP2 metadata missing lastRunStatus")
+          step2["lastRunStatus"] = "not-run"
 
-          # Structural invariants: no accidental gameplay-count/timer drift.
-          actors = [x for x in scene["instances"] if x.get("objectName") == "Actor"]
+          # Structural and behavioral postconditions.
+          actors = [x for x in scene["instances"] if x.get("name") == "Actor"]
           if len(actors) != 6:
               raise SystemExit(f"Actor instance invariant failed: {len(actors)}")
           match_duration = one(scene["variables"], lambda x: x.get("name") == "MatchDuration", "MatchDuration")
           if str(match_duration.get("value")) not in ("210", "210.0"):
               raise SystemExit(f"MatchDuration invariant failed: {match_duration.get('value')!r}")
-          if build["string"] != "開発版 v0.6.0":
-              raise SystemExit("BuildText postcondition failed")
+          if build["string"] != "開発版 v0.6.0" or timer["string"] != "3:30":
+              raise SystemExit("version/timer postcondition failed")
+
           ai_text = "\n".join(lines)
-          for token in (
+          required_ai = (
               "__iceWolfAIHumanBlockedFor",
               "__iceWolfAIHumanDetourLeft",
+              "__iceWolfAIHumanDetourSign",
               "humanBlockedTrigger",
               "humanDetourDuration",
-          ):
+              human_setx_needle,
+              "wolf.setX(Math.max(-708, Math.min(692, wolf.getX() + vx * speed * dt)));",
+          )
+          for token in required_ai:
               if token not in ai_text:
                   raise SystemExit(f"AI postcondition missing {token}")
 
-          # Preserve compact UTF-8 project shape.
-          path.write_text(
-              json.dumps(data, ensure_ascii=False, separators=(",", ":")),
-              encoding="utf-8",
+          required_test = (
+              "actors().length === 6",
+              "6 test actors + player",
+              "ttxt.text === '3:30' || ttxt.text === '3:29'",
+              "for (let i = 0; i < 5; i++)",
+              "const last = actors()[5];",
           )
+          for token in required_test:
+              if token not in test_text:
+                  raise SystemExit(f"STEP2 postcondition missing {token}")
+
+          path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
           Path("/tmp/ice-wolf-ai-v060.js").write_text(ai_text, encoding="utf-8")
-          Path("/tmp/ice-wolf-step2-v060.js").write_text(test_text, encoding="utf-8")
-          print("PATCH_OK actors=6 duration=210 build=v0.6.0 human_nav_recovery=enabled")
+          Path("/tmp/ice-wolf-step2-v060.js").write_text("(async () => {\n" + test_text + "\n})();\n", encoding="utf-8")
+          print("PATCH_OK actors=6 duration=210 build=v0.6.0 human_nav_recovery=enabled step2=refreshed")
           PY
 
       - name: Static project and JavaScript validation
@@ -261,13 +270,16 @@ jobs:
           node --check /tmp/ice-wolf-step2-v060.js
           python3 - <<'PY'
           import json
-          d=json.load(open("game.json", encoding="utf-8"))
-          s=next(x for x in d["layouts"] if x["name"]=="FROST LAB")
-          assert sum(1 for x in s["instances"] if x.get("objectName")=="Actor")==6
-          assert next(x for x in s["variables"] if x["name"]=="MatchDuration")["value"] in (210, "210")
-          b=next(x for x in s["objects"] if x["name"]=="BuildText")
-          assert b["string"]=="開発版 v0.6.0"
-          print("VALIDATION_OK json=valid js=syntax-ok actors=6 duration=210")
+          d = json.load(open("game.json", encoding="utf-8"))
+          s = next(x for x in d["layouts"] if x["name"] == "FROST LAB")
+          assert sum(1 for x in s["instances"] if x.get("name") == "Actor") == 6
+          assert next(x for x in s["variables"] if x["name"] == "MatchDuration")["value"] in (210, "210")
+          assert next(x for x in s["objects"] if x["name"] == "BuildText")["string"] == "開発版 v0.6.0"
+          assert next(x for x in s["objects"] if x["name"] == "TimerText")["string"] == "3:30"
+          t = next(x for x in d["tests"] if x["name"] == "STEP2 core test")
+          assert t["lastRunStatus"] == "not-run"
+          assert t["lastRunAt"] == 0 and t["lastRunDurationMs"] == 0 and t["lastRunFramesExecuted"] == 0
+          print("VALIDATION_OK json=valid js=syntax-ok actors=6 duration=210 step2=not-run")
           PY
 
       - name: Commit implementation and remove one-time helper
