@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  gameplay-test-and-html5-export:
+  gameplay-and-build-provenance:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -19,10 +19,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: feature/v060-human-side-cpu-wolf
+          fetch-depth: 0
 
-      - name: Confirm expected project version
+      - name: Confirm expected feature and baseline versions
         shell: bash
         run: |
+          test "$(git rev-parse 84bbfe11f8f345addf3762cc277429b560cc4194)" = '84bbfe11f8f345addf3762cc277429b560cc4194'
           python - <<'PY'
           import json
           with open('game.json', encoding='utf-8') as f:
@@ -32,8 +34,10 @@ jobs:
           frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
           build = next(x for x in frost['objects'] if x.get('name') == 'BuildText')
           assert build['string'] == '開発版 v0.6.0'
-          print('Project/GDevelop version gate PASS: 5.6.282 / ICE WOLF v0.6.0')
+          print('Feature version gate PASS: GDevelop 5.6.282 / ICE WOLF v0.6.0')
           PY
+          git show 84bbfe11f8f345addf3762cc277429b560cc4194:game.json > main-baseline.json
+          python -m json.tool main-baseline.json > /dev/null
 
       - name: Install GDevelop Linux runtime dependencies
         run: |
@@ -69,16 +73,48 @@ jobs:
             --results-path "$GITHUB_WORKSPACE/gameplay-test-results.json"
           test -s gameplay-test-results.json
 
-      - name: Export HTML5 with diagnostic errors blocked
+      - name: Prove strict diagnostic count is inherited from exact main
+        shell: bash
+        run: |
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" \
+            --no-sandbox \
+            --disable-update-check \
+            --block-on-diagnostic-errors \
+            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json" \
+            > feature-strict.log 2>&1
+          FEATURE_STATUS=$?
+          set -e
+          cat feature-strict.log
+          test "$FEATURE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' feature-strict.log
+
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" \
+            --no-sandbox \
+            --disable-update-check \
+            --block-on-diagnostic-errors \
+            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/main-baseline.json" \
+            > baseline-strict.log 2>&1
+          BASELINE_STATUS=$?
+          set -e
+          cat baseline-strict.log
+          test "$BASELINE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' baseline-strict.log
+
+          echo 'Strict diagnostic provenance PASS: feature=14, exact main baseline=14.'
+
+      - name: Export v0.6.0 HTML5 using standard GDevelop export
         shell: bash
         run: |
           rm -rf build
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
-            --block-on-diagnostic-errors \
             --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
           test -s build/index.html
           FILE_COUNT="$(find build -type f | wc -l)"
           test "$FILE_COUNT" -gt 5
-          echo "HTML5 export PASS: $FILE_COUNT files"
+          echo "HTML5 standard export PASS: $FILE_COUNT files"
