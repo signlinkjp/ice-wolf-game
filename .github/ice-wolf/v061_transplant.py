@@ -40,12 +40,18 @@ def walk(node, path=()):
 
 def find_cpu_ai(data, label: str):
     found = []
+    human_code_blocks = 0
     for node, path in walk(data):
         source = inline_text(node.get("inlineCode")) if isinstance(node, dict) else None
-        if source and "const humanActors" in source and "FrozenWolfCandidate" in source and "aiWolfDetourDuration" in source:
+        if source and "humanActors" in source:
+            human_code_blocks += 1
+        if source and "humanActors" in source and "FrozenWolfCandidate" in source and "actor.setX" in source:
             found.append((node, source, path))
     if len(found) != 1:
-        raise AssertionError(f"{label}: expected exactly one CPU AI inlineCode block, got {len(found)}")
+        raise AssertionError(
+            f"{label}: expected exactly one CPU AI inlineCode block, got {len(found)}; "
+            f"inlineCode blocks containing humanActors={human_code_blocks}"
+        )
     return found[0]
 
 
