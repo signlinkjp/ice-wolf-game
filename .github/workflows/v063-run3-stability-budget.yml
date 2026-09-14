@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='45024fa159bd66291a4687c74eb29f5896b35392'
-          PREV='fdac093d26e6659f9881ad234a0bf4c6b126b498'
+          PREV='39b2dcd5e88a9dcbf63b773b420cb0601169392f'
           OLD_WORKFLOW_BLOB='2367cc707baaa3b9515f0ab855a02aa102f38bac'
           git fetch origin main --no-tags
           test "$(git rev-parse origin/main)" = "$BASE"
@@ -91,7 +91,7 @@ jobs:
           assert sum('stepFrames(90)' in line for line in src) == 0
           assert sum('stepFrames(60)' in line for line in src) == 0
           assert src[1] == 'await harness.stepFrames(12);'
-          assert sum('stepFrames(20)' in line for line in src) == 5
+          assert sum('stepFrames(20)' in line for line in src) == 4
 
           with open('game.json', 'w', encoding='utf-8') as f:
               json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
@@ -124,7 +124,7 @@ jobs:
           assert build['string'] == '開発版 v0.6.3-DIAG'
           stability = next(t for t in after['tests'] if t.get('name') == 'Stability self-test')
           assert stability['source'][1] == 'await harness.stepFrames(12);'
-          assert sum('stepFrames(20)' in line for line in stability['source']) == 5
+          assert sum('stepFrames(20)' in line for line in stability['source']) == 4
           print('Run #3 structural protection PASS.')
           PY
 
