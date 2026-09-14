@@ -1,0 +1,4 @@
+ICE WOLF v0.6.2 Color-independent Actor ID Labels preview
+source-main=7697cbd998046bfc6c0e7e027342b164fd1ebd05
+source-feature=1f66672f60b8c9266241bf86ce8c4a002e834fe8
+feature=YOU + fixed A-F labels; role-independent; dark high-contrast tags
