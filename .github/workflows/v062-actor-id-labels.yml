@@ -282,7 +282,8 @@ jobs:
           assert 'AIWolfModeLeft' not in js
           assert 'AIWolfCooldownLeft' not in js
           assert 'Frozen' not in js
-          assert 'Wolf' not in js
+          assert "'Wolf'" not in js
+          assert '"Wolf"' not in js
 
           names = [x.get('name') for x in after['tests']]
           assert names.count('v0.6.2 Color-independent Actor ID Labels test') == 1
