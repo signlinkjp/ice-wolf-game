@@ -274,10 +274,11 @@ jobs:
 
           # Joystick group may differ only by the explicit visual compaction edits/name.
           bj = copy.deepcopy(event(b,'v0.6.3 Mobile Virtual Joystick UI'))
-          aj = copy.deepcopy(event(a,'v0.6.4 Compact Mobile Virtual Joystick UI'))
-          aj['name'] = bj['name']
+          actual = copy.deepcopy(event(a,'v0.6.4 Compact Mobile Virtual Joystick UI'))
+          actual['name'] = bj['name']
+          expected = copy.deepcopy(bj)
           old='\n'.join(bj['events'][0]['inlineCode'])
-          expected=old
+          expected_code=old
           edits={
               "    base.style.left = '10px';":"    base.style.left = '28px';",
               "    base.style.top = '10px';":"    base.style.top = '28px';",
@@ -291,9 +292,9 @@ jobs:
               "      const visualDistance = Math.min(distance, RANGE);":"      const visualDistance = Math.min(distance, VISUAL_RANGE);",
               "      const force = Math.min(distance / RANGE, 1);":"      const force = Math.min(distance / INPUT_RANGE, 1);",
           }
-          for x,y in edits.items(): expected=expected.replace(x,y,1)
-          aj['events'][0]['inlineCode'] = expected.split('\n')
-          assert aj == bj, 'joystick changed outside approved visual-only edits'
+          for x,y in edits.items(): expected_code=expected_code.replace(x,y,1)
+          expected['events'][0]['inlineCode'] = expected_code.split('\n')
+          assert actual == expected, 'joystick changed outside approved visual-only edits'
           compact='\n'.join(event(a,'v0.6.4 Compact Mobile Virtual Joystick UI')['events'][0]['inlineCode'])
           for marker in ("root.style.width = '174px'", "base.style.width = '118px'", "thumb.style.width = '54px'", 'const VISUAL_RANGE = 32', 'const INPUT_RANGE = 48', 'const DEAD_ZONE = 0.18'):
               assert marker in compact, marker
