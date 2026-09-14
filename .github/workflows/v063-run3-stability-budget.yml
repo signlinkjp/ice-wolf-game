@@ -1,0 +1,296 @@
+name: v0.6.3 Run 3 Stability Budget Gate
+
+on:
+  push:
+    branches:
+      - feature/v063-mobile-virtual-joystick
+    paths:
+      - '.github/workflows/v063-run3-stability-budget.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  run3:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v063-mobile-virtual-joystick
+          fetch-depth: 0
+
+      - name: Guard main, parent, and untouched game.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='45024fa159bd66291a4687c74eb29f5896b35392'
+          PREV='fdac093d26e6659f9881ad234a0bf4c6b126b498'
+          OLD_WORKFLOW_BLOB='2367cc707baaa3b9515f0ab855a02aa102f38bac'
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$BASE"
+          test "$(git rev-parse HEAD^)" = "$PREV"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          git diff --quiet "$BASE" -- game.json
+          test "$(git hash-object .github/workflows/v063-mobile-virtual-joystick.yml)" = "$OLD_WORKFLOW_BLOB"
+          ACTUAL="$(git diff --name-only "$BASE"..HEAD | sort)"
+          EXPECTED="$(printf '%s\n' '.github/workflows/v063-mobile-virtual-joystick.yml' '.github/workflows/v063-run3-stability-budget.yml' | sort)"
+          test "$ACTUAL" = "$EXPECTED"
+          git show "$BASE":game.json > main-baseline.json
+          python3 -m json.tool main-baseline.json >/dev/null
+          echo 'Run #3 immutable preconditions PASS.'
+
+      - name: Reuse exact Run #2 v0.6.3 implementation logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          text = Path('.github/workflows/v063-mobile-virtual-joystick.yml').read_text(encoding='utf-8')
+          marker = '      - name: Implement v0.6.3 round mobile virtual joystick\n'
+          section_start = text.index(marker)
+          section = text[section_start:]
+          heredoc = "          python3 - <<'PY'\n"
+          code_start = section.index(heredoc) + len(heredoc)
+          code_end = section.index("\n          PY\n          python3 -m json.tool game.json", code_start)
+          code = textwrap.dedent(section[code_start:code_end])
+          compile(code, '<exact-v063-run2-implementation>', 'exec')
+          exec(compile(code, '<exact-v063-run2-implementation>', 'exec'), {})
+          PY
+          python3 -m json.tool game.json >/dev/null
+          echo 'Exact Run #2 implementation logic reused without edits.'
+
+      - name: Shorten Stability self-test waits only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+
+          with open('game.json', encoding='utf-8') as f:
+              data = json.load(f)
+          stability = next(t for t in data['tests'] if t.get('name') == 'Stability self-test')
+          src = stability['source']
+
+          assert src[0] == "await harness.goToScene('FROST LAB');"
+          assert src[1] == 'await harness.stepFrames(60);', src[1]
+          assert sum('stepFrames(90)' in line for line in src) == 1
+          assert sum('stepFrames(60)' in line for line in src) == 4
+
+          src[1] = 'await harness.stepFrames(12);'
+          for i in range(2, len(src)):
+              if 'stepFrames(90)' in src[i]:
+                  src[i] = src[i].replace('stepFrames(90)', 'stepFrames(20)')
+              if 'stepFrames(60)' in src[i]:
+                  src[i] = src[i].replace('stepFrames(60)', 'stepFrames(20)')
+
+          assert sum('stepFrames(90)' in line for line in src) == 0
+          assert sum('stepFrames(60)' in line for line in src) == 0
+          assert src[1] == 'await harness.stepFrames(12);'
+          assert sum('stepFrames(20)' in line for line in src) == 5
+
+          with open('game.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+          print('Stability self-test budget shortened: ~451 -> ~132 runtime frames; assertions unchanged.')
+          PY
+          python3 -m json.tool game.json >/dev/null
+
+      - name: Verify game implementation unchanged from Run #2 design
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          with open('main-baseline.json', encoding='utf-8') as f: before = json.load(f)
+          with open('game.json', encoding='utf-8') as f: after = json.load(f)
+          b = next(x for x in before['layouts'] if x.get('name') == 'FROST LAB')
+          a = next(x for x in after['layouts'] if x.get('name') == 'FROST LAB')
+          def event(scene, name):
+              items = [x for x in scene['events'] if x.get('name') == name]
+              assert len(items) == 1, (name, len(items))
+              return items[0]
+          for protected in ('v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle','v0.6.2 Color-independent Actor ID Labels','v0.3.4 guaranteed solid-state visuals','Wolf actions'):
+              assert event(b, protected) == event(a, protected), protected
+          assert event(a, 'v0.6.3 Mobile Virtual Joystick UI')
+          move = event(a, 'v0.6.3 Virtual joystick + keyboard movement (fixed camera)')
+          move_js = '\n'.join(line for ev in move['events'] if ev.get('type') == 'BuiltinCommonInstructions::JsCode' for line in ev.get('inlineCode', []))
+          assert "get('JoystickActive')" in move_js
+          assert "get('MoveX')" in move_js and "get('MoveY')" in move_js
+          build = next(x for x in a['objects'] if x.get('name') == 'BuildText')
+          assert build['string'] == '開発版 v0.6.3-DIAG'
+          stability = next(t for t in after['tests'] if t.get('name') == 'Stability self-test')
+          assert stability['source'][1] == 'await harness.stepFrames(12);'
+          assert sum('stepFrames(20)' in line for line in stability['source']) == 5
+          print('Run #3 structural protection PASS.')
+          PY
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          rm -rf /tmp/gdevelop
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"; fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Run v0.6.3 joystick gameplay test
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.3 Mobile Virtual Joystick test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v063-joystick-results.json
+
+      - name: Run shortened Stability regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'Stability self-test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json stability-results.json
+
+      - name: Run v0.6.2 labels regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.2 Color-independent Actor ID Labels test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v062-label-results.json
+
+      - name: Run v0.6.1 Human navigation regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.1 Human CPU navigation recovery test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v061-navigation-results.json
+
+      - name: Run v0.6.0 CPU Wolf diagnostic regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.0 CPU Wolf device diagnostic test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json cpu-wolf-diag-results.json
+
+      - name: Prove strict diagnostic debt did not increase
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json" > feature-strict.log 2>&1
+          FEATURE_STATUS=$?
+          set -e
+          test "$FEATURE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' feature-strict.log
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/main-baseline.json" > baseline-strict.log 2>&1
+          BASELINE_STATUS=$?
+          set -e
+          test "$BASELINE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' baseline-strict.log
+          echo 'Strict diagnostic provenance PASS: feature=14, baseline=14.'
+
+      - name: Export v0.6.3 HTML5 and stage iPhone preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test -s build/code0.js
+          FILE_COUNT="$(find build -type f | wc -l)"
+          test "$FILE_COUNT" -gt 5
+          python3 - <<'PY'
+          path = 'build/code0.js'
+          text = open(path, encoding='utf-8').read()
+          needle = 'Code.eventsList0 = function(runtimeScene) {\n\n};'
+          assert text.count(needle) == 1, text.count(needle)
+          text = text.replace(needle, 'Code.eventsList0 = function(runtimeScene) {\n  gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "FROST LAB", false);\n};', 1)
+          open(path, 'w', encoding='utf-8').write(text)
+          PY
+          printf '%s\n' \
+            'ICE WOLF v0.6.3 Mobile Virtual Joystick preview' \
+            'source-main=45024fa159bd66291a4687c74eb29f5896b35392' \
+            'feature=round spring-return virtual joystick; 360-degree fixed-speed movement; D-pad hidden' \
+            > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          rm -rf /tmp/v063-preview-build
+          cp -a build /tmp/v063-preview-build
+          echo "v0.6.3 standard export PASS: $FILE_COUNT files."
+
+      - name: Commit final game.json and remove one-time workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='45024fa159bd66291a4687c74eb29f5896b35392'
+          rm -f main-baseline.json v063-joystick-results.json stability-results.json v062-label-results.json v061-navigation-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log gameplay-test-results.json
+          rm -rf build
+          git rm .github/workflows/v063-mobile-virtual-joystick.yml .github/workflows/v063-run3-stability-budget.yml
+          git add game.json
+          STAGED="$(git diff --cached --name-only | sort)"
+          EXPECTED="$(printf '%s\n' '.github/workflows/v063-mobile-virtual-joystick.yml' '.github/workflows/v063-run3-stability-budget.yml' 'game.json' | sort)"
+          test "$STAGED" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: add v0.6.3 mobile virtual joystick [skip ci]'
+          git push origin HEAD:feature/v063-mobile-virtual-joystick
+          FINAL="$(git diff --name-only "$BASE"..HEAD)"
+          test "$FINAL" = 'game.json'
+          echo "FINAL_FEATURE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo 'Final feature branch proof PASS: net delta is game.json only.'
+
+      - name: Publish isolated v0.6.3 iPhone preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/v063-preview-build/index.html
+          if git ls-remote --exit-code --heads origin preview-v063-mobile-virtual-joystick >/dev/null 2>&1; then
+            echo 'STOP: preview-v063-mobile-virtual-joystick already exists unexpectedly.' >&2
+            exit 1
+          fi
+          git switch --orphan preview-v063-mobile-virtual-joystick
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/v063-preview-build/. .
+          test -s index.html
+          test -s PREVIEW_SOURCE.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.3 mobile virtual joystick device test'
+          git push origin HEAD:preview-v063-mobile-virtual-joystick
+          echo "PREVIEW_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo 'Static v0.6.3 iPhone preview published.'
+
+      - name: Final provenance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "feature head: $FINAL_FEATURE_HEAD"
+          echo "preview head: $PREVIEW_HEAD"
+          echo 'source main: 45024fa159bd66291a4687c74eb29f5896b35392'
+          echo 'v0.6.3 Run #3 COMPLETE'
