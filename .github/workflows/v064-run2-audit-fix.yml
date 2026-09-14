@@ -1,0 +1,69 @@
+name: v0.6.4 Run 2 Audit Fix
+
+on:
+  push:
+    branches:
+      - feature/v064-compact-joystick-overview-camera
+    paths:
+      - '.github/workflows/v064-run2-audit-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  correct-audit-only:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/v064-compact-joystick-overview-camera
+          fetch-depth: 0
+      - name: Guard immutable game and canonical refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN='45024fa159bd66291a4687c74eb29f5896b35392'
+          PARENT='a08d5301b3fecf98900946354f046841910ff936'
+          PARENT_GAME_BLOB='73dc5913c07813b3858acbbe456f2e5af380282c'
+          git fetch origin main feature/v063-mobile-virtual-joystick --no-tags
+          test "$(git rev-parse origin/main)" = "$MAIN"
+          test "$(git rev-parse origin/feature/v063-mobile-virtual-joystick)" = "$PARENT"
+          test "$(git hash-object game.json)" = "$PARENT_GAME_BLOB"
+          git diff --quiet "$PARENT" -- game.json
+      - name: Correct only the Run 1 comparison direction
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE='.github/workflows/v064-compact-joystick-overview-camera.yml'
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/v064-compact-joystick-overview-camera.yml')
+          s=p.read_text()
+          old="""          aj['events'][0]['inlineCode'] = expected.split('\\n')
+          assert aj == bj, 'joystick changed outside approved visual-only edits'
+"""
+          new="""          expected_obj = copy.deepcopy(bj)
+          expected_obj['events'][0]['inlineCode'] = expected.split('\\n')
+          assert aj == expected_obj, 'joystick changed outside approved visual-only edits'
+"""
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,new,1))
+          PY
+          git diff --check
+          test "$(git diff --name-only)" = "$FILE"
+          git diff --quiet a08d5301b3fecf98900946354f046841910ff936 -- game.json
+      - name: Self-clean helper and push corrected Run 2 gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/v064-run2-audit-fix.yml
+          git add .github/workflows/v064-compact-joystick-overview-camera.yml
+          STAGED="$(git diff --cached --name-only | sort)"
+          EXPECTED="$(printf '%s\n' '.github/workflows/v064-compact-joystick-overview-camera.yml' '.github/workflows/v064-run2-audit-fix.yml' | sort)"
+          test "$STAGED" = "$EXPECTED"
+          test "$(git hash-object game.json)" = '73dc5913c07813b3858acbbe456f2e5af380282c'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'ci: fix v0.6.4 expected joystick audit [skip ci]'
+          git push origin HEAD:feature/v064-compact-joystick-overview-camera
