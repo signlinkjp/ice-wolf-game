@@ -6,6 +6,7 @@ on:
       - feature/v064-compact-joystick-overview-camera
     paths:
       - '.github/workflows/v064-compact-joystick-overview-camera.yml'
+      - '.github/v064-run2-trigger'
 
 permissions:
   contents: write
@@ -32,12 +33,12 @@ jobs:
           git fetch origin main feature/v063-mobile-virtual-joystick --no-tags
           test "$(git rev-parse origin/main)" = "$MAIN"
           test "$(git rev-parse origin/feature/v063-mobile-virtual-joystick)" = "$PARENT"
-          test "$(git rev-parse HEAD^)" = "$PARENT"
           test "$(git merge-base "$MAIN" HEAD)" = "$MAIN"
           test "$(git hash-object game.json)" = "$PARENT_GAME_BLOB"
           git diff --quiet "$PARENT" -- game.json
-          ACTUAL="$(git diff --name-only "$PARENT"..HEAD)"
-          test "$ACTUAL" = '.github/workflows/v064-compact-joystick-overview-camera.yml'
+          ACTUAL="$(git diff --name-only "$PARENT"..HEAD | sort)"
+          EXPECTED="$(printf '%s\n' '.github/v064-run2-trigger' '.github/workflows/v064-compact-joystick-overview-camera.yml' | sort)"
+          test "$ACTUAL" = "$EXPECTED"
           git show "$PARENT":game.json > parent-baseline.json
           test "$(git hash-object parent-baseline.json)" = "$PARENT_GAME_BLOB"
           python3 -m json.tool parent-baseline.json >/dev/null
@@ -469,10 +470,10 @@ jobs:
           PARENT='a08d5301b3fecf98900946354f046841910ff936'
           rm -f parent-baseline.json v064-results.json v063-results.json stability-results.json v062-results.json v061-results.json v060-human-results.json v060-diag-results.json gameplay-test-results.json feature-strict.log parent-strict.log
           rm -rf build
-          git rm .github/workflows/v064-compact-joystick-overview-camera.yml
+          git rm .github/workflows/v064-compact-joystick-overview-camera.yml .github/v064-run2-trigger
           git add game.json
           STAGED="$(git diff --cached --name-only | sort)"
-          EXPECTED="$(printf '%s\n' '.github/workflows/v064-compact-joystick-overview-camera.yml' 'game.json' | sort)"
+          EXPECTED="$(printf '%s\n' '.github/v064-run2-trigger' '.github/workflows/v064-compact-joystick-overview-camera.yml' 'game.json' | sort)"
           test "$STAGED" = "$EXPECTED"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -481,6 +482,7 @@ jobs:
           FINAL="$(git diff --name-only "$PARENT"..HEAD)"
           test "$FINAL" = 'game.json'
           test ! -e .github/workflows/v064-compact-joystick-overview-camera.yml
+          test ! -e .github/v064-run2-trigger
           echo "FINAL_FEATURE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo 'Final v0.6.4 feature proof PASS: net delta vs v0.6.3 is game.json only.'
 
