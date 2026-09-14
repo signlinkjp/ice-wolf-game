@@ -1,0 +1,5 @@
+ICE WOLF v0.6.4 Compact Joystick + Overview Camera preview
+source-main=45024fa159bd66291a4687c74eb29f5896b35392
+source-parent-v063=a08d5301b3fecf98900946354f046841910ff936
+feature=compact visible joystick with unchanged touch/input feel; CAM toggles 650/55 normal and 1050/78 overview
+source-feature=8ac1f27634c7b433e9a4d6ccb0f86e186125c06c
