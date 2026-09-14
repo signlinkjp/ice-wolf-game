@@ -1,0 +1,521 @@
+name: v0.6.4 Compact Joystick + Overview Camera One-Time Gate
+
+on:
+  push:
+    branches:
+      - feature/v064-compact-joystick-overview-camera
+    paths:
+      - '.github/workflows/v064-compact-joystick-overview-camera.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  implement-test-build-preview:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact v0.6.4 feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v064-compact-joystick-overview-camera
+          fetch-depth: 0
+
+      - name: Guard canonical main and exact v0.6.3 parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN='45024fa159bd66291a4687c74eb29f5896b35392'
+          PARENT='a08d5301b3fecf98900946354f046841910ff936'
+          PARENT_GAME_BLOB='73dc5913c07813b3858acbbe456f2e5af380282c'
+          git fetch origin main feature/v063-mobile-virtual-joystick --no-tags
+          test "$(git rev-parse origin/main)" = "$MAIN"
+          test "$(git rev-parse origin/feature/v063-mobile-virtual-joystick)" = "$PARENT"
+          test "$(git rev-parse HEAD^)" = "$PARENT"
+          test "$(git merge-base "$MAIN" HEAD)" = "$MAIN"
+          test "$(git hash-object game.json)" = "$PARENT_GAME_BLOB"
+          git diff --quiet "$PARENT" -- game.json
+          ACTUAL="$(git diff --name-only "$PARENT"..HEAD)"
+          test "$ACTUAL" = '.github/workflows/v064-compact-joystick-overview-camera.yml'
+          git show "$PARENT":game.json > parent-baseline.json
+          test "$(git hash-object parent-baseline.json)" = "$PARENT_GAME_BLOB"
+          python3 -m json.tool parent-baseline.json >/dev/null
+          echo 'Canonical main + exact v0.6.3 parent guard PASS.'
+
+      - name: Implement v0.6.4 compact joystick and overview camera
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import copy, json
+
+          path = 'game.json'
+          with open(path, encoding='utf-8') as f:
+              data = json.load(f)
+          frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
+
+          # Build marker only.
+          build = next(x for x in frost['objects'] if x.get('name') == 'BuildText')
+          assert build['string'] == '開発版 v0.6.3-DIAG', build['string']
+          assert build['content']['text'] == '開発版 v0.6.3-DIAG', build['content']['text']
+          build['string'] = '開発版 v0.6.4-DIAG'
+          build['content']['text'] = '開発版 v0.6.4-DIAG'
+
+          # New camera state variables.
+          existing_vars = {v.get('name') for v in frost.get('variables', [])}
+          for name in ('OverviewCameraEnabled', 'OverviewCameraReady'):
+              assert name not in existing_vars, name
+          frost['variables'].extend([
+              {'name':'OverviewCameraEnabled','type':'boolean','value':False},
+              {'name':'OverviewCameraReady','type':'boolean','value':False},
+          ])
+
+          def group(name):
+              items = [x for x in frost['events'] if x.get('name') == name]
+              assert len(items) == 1, (name, len(items))
+              return items[0]
+
+          # Compact only the visible joystick. Keep 174px hit area and original
+          # physical input response (48px input range / 0.18 dead-zone).
+          joystick = group('v0.6.3 Mobile Virtual Joystick UI')
+          lines = joystick['events'][0]['inlineCode']
+          expected_old = {
+              "    base.style.left = '10px';": "    base.style.left = '28px';",
+              "    base.style.top = '10px';": "    base.style.top = '28px';",
+              "    base.style.width = '154px';": "    base.style.width = '118px';",
+              "    base.style.height = '154px';": "    base.style.height = '118px';",
+              "    thumb.style.left = '51px';": "    thumb.style.left = '60px';",
+              "    thumb.style.top = '51px';": "    thumb.style.top = '60px';",
+              "    thumb.style.width = '72px';": "    thumb.style.width = '54px';",
+              "    thumb.style.height = '72px';": "    thumb.style.height = '54px';",
+              "    const RANGE = 48;": "    const VISUAL_RANGE = 32;\n    const INPUT_RANGE = 48;",
+              "      const visualDistance = Math.min(distance, RANGE);": "      const visualDistance = Math.min(distance, VISUAL_RANGE);",
+              "      const force = Math.min(distance / RANGE, 1);": "      const force = Math.min(distance / INPUT_RANGE, 1);",
+          }
+          joined = '\n'.join(lines)
+          for old in expected_old:
+              assert joined.count(old) == 1, (old, joined.count(old))
+          for old, new in expected_old.items():
+              joined = joined.replace(old, new, 1)
+          lines[:] = joined.split('\n')
+          joystick['name'] = 'v0.6.4 Compact Mobile Virtual Joystick UI'
+
+          # Add a tiny DOM camera toggle. It only reads/writes camera scene vars.
+          camera_ui_code = r'''const vars = runtimeScene.getVariables();
+          if (typeof document === 'undefined') {
+            vars.get('OverviewCameraReady').setBoolean(false);
+          } else {
+            if (!runtimeScene.__iceWolfV064CameraUi) {
+              for (const old of document.querySelectorAll('[data-ice-wolf-v064-camera="1"]')) old.remove();
+              const button = document.createElement('button');
+              button.dataset.iceWolfV064Camera = '1';
+              button.type = 'button';
+              button.setAttribute('aria-label', 'Toggle overview camera');
+              button.style.position = 'fixed';
+              button.style.width = '58px';
+              button.style.height = '34px';
+              button.style.padding = '0';
+              button.style.borderRadius = '12px';
+              button.style.border = '2px solid rgba(255,255,255,0.92)';
+              button.style.background = 'rgba(18,24,32,0.82)';
+              button.style.color = '#ffffff';
+              button.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+              button.style.fontSize = '13px';
+              button.style.fontWeight = '800';
+              button.style.letterSpacing = '0.5px';
+              button.style.boxShadow = '0 3px 10px rgba(0,0,0,0.30)';
+              button.style.zIndex = '2147482800';
+              button.style.touchAction = 'none';
+              button.style.userSelect = 'none';
+              button.style.webkitUserSelect = 'none';
+              button.style.webkitTapHighlightColor = 'transparent';
+              button.addEventListener('pointerdown', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const enabled = vars.get('OverviewCameraEnabled').getAsBoolean();
+                vars.get('OverviewCameraEnabled').setBoolean(!enabled);
+              }, { passive: false });
+              document.body.appendChild(button);
+              runtimeScene.__iceWolfV064CameraUi = { button };
+            }
+            const ui = runtimeScene.__iceWolfV064CameraUi;
+            const canvas = document.querySelector('canvas');
+            if (ui && ui.button && canvas) {
+              const rect = canvas.getBoundingClientRect();
+              ui.button.style.left = `${Math.max(rect.left + 8, rect.right - 72)}px`;
+              ui.button.style.top = `${rect.top + 108}px`;
+              const enabled = vars.get('OverviewCameraEnabled').getAsBoolean();
+              ui.button.textContent = enabled ? 'TOP' : 'CAM';
+              ui.button.style.background = enabled ? 'rgba(40,100,145,0.88)' : 'rgba(18,24,32,0.82)';
+              vars.get('OverviewCameraReady').setBoolean(true);
+            } else {
+              vars.get('OverviewCameraReady').setBoolean(false);
+            }
+          }'''
+          camera_ui = {
+              'colorB': 228, 'colorG': 176, 'colorR': 74, 'creationTime': 0,
+              'name': 'v0.6.4 Overview Camera Toggle UI', 'source': '',
+              'type': 'BuiltinCommonInstructions::Group',
+              'events': [{
+                  'type': 'BuiltinCommonInstructions::JsCode',
+                  'inlineCode': [line.strip() if line.startswith('          ') else line for line in camera_ui_code.splitlines()],
+                  'parameterObjects': '', 'useStrict': True,
+                  'eventsSheetExpanded': False, 'actions': []
+              }],
+              'parameters': [], 'actions': []
+          }
+
+          # Replace only the camera dispatch: normal mode is byte-equivalent action
+          # parameters to v0.6.3; overview uses the same GDevelop action/API.
+          camera = group('Fixed overhead camera')
+          old_camera = copy.deepcopy(camera)
+          assert len(camera['events']) == 1
+          assert len(camera['events'][0].get('actions', [])) == 1
+          old_action = camera['events'][0]['actions'][0]
+          assert old_action['type']['value'] == 'ThirdPersonCamera::LookFromDistanceAtObject3D'
+          assert old_action['parameters'] == ['', 'Player', 'Object3D', '650', '0', '55', '\"\"', ''], old_action['parameters']
+          normal_action = copy.deepcopy(old_action)
+          overview_action = copy.deepcopy(old_action)
+          overview_action['parameters'][3] = '1050'
+          overview_action['parameters'][5] = '78'
+          camera['name'] = 'v0.6.4 Normal + Overview camera'
+          camera['events'] = [
+              {
+                  'type':'BuiltinCommonInstructions::Standard',
+                  'conditions':[{'type':{'value':'BooleanVariable'},'parameters':['OverviewCameraEnabled','False','']}],
+                  'actions':[normal_action]
+              },
+              {
+                  'type':'BuiltinCommonInstructions::Standard',
+                  'conditions':[{'type':{'value':'BooleanVariable'},'parameters':['OverviewCameraEnabled','True','']}],
+                  'actions':[overview_action]
+              }
+          ]
+          camera_index = frost['events'].index(camera)
+          frost['events'].insert(camera_index, camera_ui)
+
+          # Compatibility-only BuildText expectations for inherited tests.
+          for test_name in ('v0.6.2 Color-independent Actor ID Labels test', 'v0.6.3 Mobile Virtual Joystick test'):
+              test = next(t for t in data['tests'] if t.get('name') == test_name)
+              matches = [i for i, line in enumerate(test['source']) if 'BuildText' in line and 'v0.6.3-DIAG' in line]
+              assert len(matches) == 1, (test_name, matches)
+              i = matches[0]
+              test['source'][i] = test['source'][i].replace('v0.6.3-DIAG', 'v0.6.4-DIAG').replace('v0.6.3:', 'v0.6.4:')
+
+          # New short regression focused on mode switching + world-direction movement.
+          test_name = 'v0.6.4 Compact Joystick + Overview Camera test'
+          assert not any(t.get('name') == test_name for t in data['tests'])
+          data['tests'].append({
+              'description':'Compact visual joystick preserves input response; CAM toggles Player-following overview without changing world movement',
+              'lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,
+              'lastRunStatus':'not-run','name':test_name,'type':'gameplay',
+              'source':[
+                  "await harness.goToScene('FROST LAB');",
+                  "await harness.stepFrames(12);",
+                  "harness.assert(harness.getSceneVariable('VirtualJoystickReady')?.value === true, 'virtual joystick ready');",
+                  "harness.assert(harness.getSceneVariable('OverviewCameraReady')?.value === true, 'overview camera UI ready');",
+                  "harness.assert(harness.getSceneVariable('OverviewCameraEnabled')?.value === false, 'normal camera is default');",
+                  "harness.assert(harness.getObjects('BuildText')[0].text === '開発版 v0.6.4-DIAG', 'v0.6.4 build marker');",
+                  "const p0 = harness.getObjects('Player')[0];",
+                  "const normal = harness.getCameraState('');",
+                  "const normalOffsetY = Math.abs(normal.y - p0.centerY);",
+                  "harness.assert(normalOffsetY > 300 && normalOffsetY < 450, `normal camera geometry: ${normalOffsetY}`);",
+                  "harness.setSceneVariable('OverviewCameraEnabled', true);",
+                  "await harness.stepFrames(5);",
+                  "const po = harness.getObjects('Player')[0];",
+                  "const overview = harness.getCameraState('');",
+                  "const overviewOffsetY = Math.abs(overview.y - po.centerY);",
+                  "harness.assert(overviewOffsetY > 150 && overviewOffsetY < 300, `overview camera geometry: ${overviewOffsetY}`);",
+                  "harness.assert(overviewOffsetY < normalOffsetY - 80, `overview is more top-down: normal=${normalOffsetY} overview=${overviewOffsetY}`);",
+                  "harness.setSceneVariable('JoystickX', 1);",
+                  "harness.setSceneVariable('JoystickY', 0);",
+                  "harness.setSceneVariable('JoystickActive', true);",
+                  "const beforeMove = harness.getObjects('Player')[0];",
+                  "await harness.stepFrames(20);",
+                  "const afterMove = harness.getObjects('Player')[0];",
+                  "harness.assert(afterMove.centerX > beforeMove.centerX + 30, `world-right movement preserved in overview: ${beforeMove.centerX}->${afterMove.centerX}`);",
+                  "harness.setSceneVariable('JoystickActive', false);",
+                  "harness.setSceneVariable('JoystickX', 0);",
+                  "harness.setSceneVariable('JoystickY', 0);",
+                  "harness.setSceneVariable('OverviewCameraEnabled', false);",
+                  "await harness.stepFrames(5);",
+                  "const pr = harness.getObjects('Player')[0];",
+                  "const restored = harness.getCameraState('');",
+                  "const restoredOffsetY = Math.abs(restored.y - pr.centerY);",
+                  "harness.assert(Math.abs(restoredOffsetY-normalOffsetY) < 25, `normal camera restored: ${restoredOffsetY}`);",
+                  "harness.assert((pr.z ?? 0) > -50 && (pr.z ?? 0) < 100, `player remains on floor: z=${pr.z}`);",
+                  ""
+              ]
+          })
+
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+          print('v0.6.4 compact joystick + overview camera implemented.')
+          PY
+          python3 -m json.tool game.json >/dev/null
+
+      - name: Verify v0.6.4 structure and protected gameplay logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import copy, json
+          with open('parent-baseline.json', encoding='utf-8') as f: before = json.load(f)
+          with open('game.json', encoding='utf-8') as f: after = json.load(f)
+          b = next(x for x in before['layouts'] if x.get('name') == 'FROST LAB')
+          a = next(x for x in after['layouts'] if x.get('name') == 'FROST LAB')
+          def event(scene, name):
+              items=[x for x in scene['events'] if x.get('name')==name]
+              assert len(items)==1,(name,len(items)); return items[0]
+
+          for protected in ('v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle','v0.6.2 Color-independent Actor ID Labels','v0.3.4 guaranteed solid-state visuals','Wolf actions','v0.6.3 Virtual joystick + keyboard movement (fixed camera)'):
+              assert event(b, protected) == event(a, protected), protected
+
+          # Joystick group may differ only by the explicit visual compaction edits/name.
+          bj = copy.deepcopy(event(b,'v0.6.3 Mobile Virtual Joystick UI'))
+          aj = copy.deepcopy(event(a,'v0.6.4 Compact Mobile Virtual Joystick UI'))
+          aj['name'] = bj['name']
+          old='\n'.join(bj['events'][0]['inlineCode'])
+          expected=old
+          edits={
+              "    base.style.left = '10px';":"    base.style.left = '28px';",
+              "    base.style.top = '10px';":"    base.style.top = '28px';",
+              "    base.style.width = '154px';":"    base.style.width = '118px';",
+              "    base.style.height = '154px';":"    base.style.height = '118px';",
+              "    thumb.style.left = '51px';":"    thumb.style.left = '60px';",
+              "    thumb.style.top = '51px';":"    thumb.style.top = '60px';",
+              "    thumb.style.width = '72px';":"    thumb.style.width = '54px';",
+              "    thumb.style.height = '72px';":"    thumb.style.height = '54px';",
+              "    const RANGE = 48;":"    const VISUAL_RANGE = 32;\n    const INPUT_RANGE = 48;",
+              "      const visualDistance = Math.min(distance, RANGE);":"      const visualDistance = Math.min(distance, VISUAL_RANGE);",
+              "      const force = Math.min(distance / RANGE, 1);":"      const force = Math.min(distance / INPUT_RANGE, 1);",
+          }
+          for x,y in edits.items(): expected=expected.replace(x,y,1)
+          aj['events'][0]['inlineCode'] = expected.split('\n')
+          assert aj == bj, 'joystick changed outside approved visual-only edits'
+          compact='\n'.join(event(a,'v0.6.4 Compact Mobile Virtual Joystick UI')['events'][0]['inlineCode'])
+          for marker in ("root.style.width = '174px'", "base.style.width = '118px'", "thumb.style.width = '54px'", 'const VISUAL_RANGE = 32', 'const INPUT_RANGE = 48', 'const DEAD_ZONE = 0.18'):
+              assert marker in compact, marker
+
+          # Camera mode is exactly two uses of the same GDevelop action.
+          cam=event(a,'v0.6.4 Normal + Overview camera')
+          assert len(cam['events'])==2
+          assert cam['events'][0]['actions'][0]['parameters'] == ['', 'Player', 'Object3D', '650', '0', '55', '\"\"', '']
+          assert cam['events'][1]['actions'][0]['parameters'] == ['', 'Player', 'Object3D', '1050', '0', '78', '\"\"', '']
+          ui=event(a,'v0.6.4 Overview Camera Toggle UI')
+          camjs='\n'.join(ui['events'][0]['inlineCode'])
+          for marker in ('OverviewCameraEnabled','OverviewCameraReady','pointerdown',"button.textContent = enabled ? 'TOP' : 'CAM'"):
+              assert marker in camjs, marker
+          for forbidden in ("get('Role')", "get('State')", "'Wolf'", '"Wolf"'):
+              assert forbidden not in camjs, forbidden
+
+          # Existing test content changes are limited to BuildText version compatibility.
+          btests={t['name']:t for t in before['tests']}; atests={t['name']:t for t in after['tests']}
+          for protected in ('Stability self-test','v0.6.1 Human CPU navigation recovery test','v0.6.0 human-side CPU Wolf test','v0.6.0 CPU Wolf device diagnostic test'):
+              assert btests[protected] == atests[protected], protected
+          for name in ('v0.6.2 Color-independent Actor ID Labels test','v0.6.3 Mobile Virtual Joystick test'):
+              expected=copy.deepcopy(btests[name])
+              matches=[i for i,line in enumerate(expected['source']) if 'BuildText' in line and 'v0.6.3-DIAG' in line]
+              assert len(matches)==1,(name,matches)
+              i=matches[0]
+              expected['source'][i]=expected['source'][i].replace('v0.6.3-DIAG','v0.6.4-DIAG').replace('v0.6.3:','v0.6.4:')
+              assert expected == atests[name], name
+
+          build=next(x for x in a['objects'] if x.get('name')=='BuildText')
+          assert build['string']=='開発版 v0.6.4-DIAG' and build['content']['text']=='開発版 v0.6.4-DIAG'
+          assert sum(t.get('name')=='v0.6.4 Compact Joystick + Overview Camera test' for t in after['tests'])==1
+          print('v0.6.4 structural/protected-logic gate PASS.')
+          PY
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          rm -rf /tmp/gdevelop
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"; fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Run v0.6.4 compact joystick + overview camera test
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.4 Compact Joystick + Overview Camera test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v064-results.json
+
+      - name: Run v0.6.3 joystick regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.3 Mobile Virtual Joystick test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v063-results.json
+
+      - name: Run Stability regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'Stability self-test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json stability-results.json
+
+      - name: Run v0.6.2 labels regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.2 Color-independent Actor ID Labels test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v062-results.json
+
+      - name: Run v0.6.1 Human navigation regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.1 Human CPU navigation recovery test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v061-results.json
+
+      - name: Run v0.6.0 Human-side CPU Wolf regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.0 human-side CPU Wolf test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v060-human-results.json
+
+      - name: Run v0.6.0 CPU Wolf diagnostic regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.0 CPU Wolf device diagnostic test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v060-diag-results.json
+
+      - name: Prove strict diagnostic debt did not increase
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json" > feature-strict.log 2>&1
+          FEATURE_STATUS=$?
+          set -e
+          test "$FEATURE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' feature-strict.log
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/parent-baseline.json" > parent-strict.log 2>&1
+          PARENT_STATUS=$?
+          set -e
+          test "$PARENT_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' parent-strict.log
+          echo 'Strict diagnostic provenance PASS: v0.6.4=14, v0.6.3 parent=14.'
+
+      - name: Export v0.6.4 HTML5 and stage iPhone preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test -s build/code0.js
+          FILE_COUNT="$(find build -type f | wc -l)"
+          test "$FILE_COUNT" -gt 5
+          python3 - <<'PY'
+          path='build/code0.js'
+          text=open(path,encoding='utf-8').read()
+          needle='Code.eventsList0 = function(runtimeScene) {\n\n};'
+          assert text.count(needle)==1, text.count(needle)
+          text=text.replace(needle,'Code.eventsList0 = function(runtimeScene) {\n  gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "FROST LAB", false);\n};',1)
+          open(path,'w',encoding='utf-8').write(text)
+          PY
+          printf '%s\n' \
+            'ICE WOLF v0.6.4 Compact Joystick + Overview Camera preview' \
+            'source-main=45024fa159bd66291a4687c74eb29f5896b35392' \
+            'source-parent-v063=a08d5301b3fecf98900946354f046841910ff936' \
+            'feature=compact visible joystick with unchanged touch/input feel; CAM toggles 650/55 normal and 1050/78 overview' \
+            > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          rm -rf /tmp/v064-preview-build
+          cp -a build /tmp/v064-preview-build
+          echo "v0.6.4 standard export PASS: $FILE_COUNT files."
+
+      - name: Commit final game.json and self-clean one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARENT='a08d5301b3fecf98900946354f046841910ff936'
+          rm -f parent-baseline.json v064-results.json v063-results.json stability-results.json v062-results.json v061-results.json v060-human-results.json v060-diag-results.json gameplay-test-results.json feature-strict.log parent-strict.log
+          rm -rf build
+          git rm .github/workflows/v064-compact-joystick-overview-camera.yml
+          git add game.json
+          STAGED="$(git diff --cached --name-only | sort)"
+          EXPECTED="$(printf '%s\n' '.github/workflows/v064-compact-joystick-overview-camera.yml' 'game.json' | sort)"
+          test "$STAGED" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: add v0.6.4 compact joystick and overview camera [skip ci]'
+          git push origin HEAD:feature/v064-compact-joystick-overview-camera
+          FINAL="$(git diff --name-only "$PARENT"..HEAD)"
+          test "$FINAL" = 'game.json'
+          test ! -e .github/workflows/v064-compact-joystick-overview-camera.yml
+          echo "FINAL_FEATURE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo 'Final v0.6.4 feature proof PASS: net delta vs v0.6.3 is game.json only.'
+
+      - name: Publish isolated v0.6.4 iPhone preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/v064-preview-build/index.html
+          test -s /tmp/v064-preview-build/PREVIEW_SOURCE.txt
+          printf '%s\n' "source-feature=$FINAL_FEATURE_HEAD" >> /tmp/v064-preview-build/PREVIEW_SOURCE.txt
+          if git ls-remote --exit-code --heads origin preview-v064-compact-joystick-overview-camera >/dev/null 2>&1; then
+            echo 'STOP: preview-v064-compact-joystick-overview-camera already exists unexpectedly.' >&2
+            exit 1
+          fi
+          git switch --orphan preview-v064-compact-joystick-overview-camera
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/v064-preview-build/. .
+          test -s index.html
+          test -s PREVIEW_SOURCE.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.4 compact joystick overview camera device test'
+          PREVIEW_HEAD="$(git rev-parse HEAD)"
+          git push origin HEAD:preview-v064-compact-joystick-overview-camera
+          test "$(git ls-remote origin refs/heads/preview-v064-compact-joystick-overview-camera | awk '{print $1}')" = "$PREVIEW_HEAD"
+          echo "PREVIEW_HEAD=$PREVIEW_HEAD" >> "$GITHUB_ENV"
+          echo 'Static v0.6.4 iPhone preview published.'
+
+      - name: Final provenance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "feature head: $FINAL_FEATURE_HEAD"
+          echo "preview head: $PREVIEW_HEAD"
+          echo 'canonical main: 45024fa159bd66291a4687c74eb29f5896b35392'
+          echo 'source v0.6.3: a08d5301b3fecf98900946354f046841910ff936'
+          echo 'v0.6.4 gate COMPLETE'
