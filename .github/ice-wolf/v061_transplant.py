@@ -1,164 +1,192 @@
 #!/usr/bin/env python3
 import json
 import pathlib
-import re
-import subprocess
-import tempfile
 
-BASE_SHA = "84bbfe11f8f345addf3762cc277429b560cc4194"
-CURRENT_MAIN_SHA = "cfd2aae6a48e8ad3d33e176e49ff2ede25dbaefb"
-PR8_SHA = "638bc703df12c40e9e24c39cab703972dca3aacb"
 PROJECT = pathlib.Path("game.json")
+OLD_GROUP = "v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle"
+NEW_GROUP = "v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle"
+OLD_LABEL = "開発版 v0.6.0-DIAG"
+NEW_LABEL = "開発版 v0.6.1-DIAG"
+TEST_NAME = "v0.6.1 Human CPU navigation recovery test"
 
 
-def load_commit(sha: str):
-    raw = subprocess.check_output(["git", "show", f"{sha}:game.json"], text=True)
-    return json.loads(raw)
+def exactly_one(items, label):
+    if len(items) != 1:
+        raise AssertionError(f"{label}: expected exactly one match, got {len(items)}")
+    return items[0]
 
 
-def inline_text(value):
-    if isinstance(value, str):
-        return value
-    if not isinstance(value, list) or not value or not all(isinstance(x, str) for x in value):
-        return None
-    if len(value) == 1:
-        return value[0]
-    if all(x.endswith("\n") for x in value[:-1]):
-        return "".join(value)
-    return "\n".join(value)
+def insert_after(lines, anchor, additions):
+    positions = [i for i, line in enumerate(lines) if line == anchor]
+    idx = exactly_one(positions, f"anchor {anchor!r}")
+    lines[idx + 1:idx + 1] = additions
 
 
-def walk(node, path=()):
-    if isinstance(node, dict):
-        yield node, path
-        for key, value in node.items():
-            yield from walk(value, path + (key,))
-    elif isinstance(node, list):
-        for idx, value in enumerate(node):
-            yield from walk(value, path + (idx,))
-
-
-def find_cpu_ai(data, label: str):
-    found = []
-    human_code_blocks = 0
-    for node, path in walk(data):
-        source = inline_text(node.get("inlineCode")) if isinstance(node, dict) else None
-        if source and "humanActors" in source:
-            human_code_blocks += 1
-        if source and "humanActors" in source and "FrozenWolfCandidate" in source and "actor.setX" in source:
-            found.append((node, source, path))
-    if len(found) != 1:
-        raise AssertionError(
-            f"{label}: expected exactly one CPU AI inlineCode block, got {len(found)}; "
-            f"inlineCode blocks containing humanActors={human_code_blocks}"
-        )
-    return found[0]
-
-
-def replace_exact_string(node, old: str, new: str):
-    count = 0
-    if isinstance(node, dict):
-        for key, value in list(node.items()):
-            if isinstance(value, str) and value == old:
-                node[key] = new
-                count += 1
-            else:
-                count += replace_exact_string(value, old, new)
-    elif isinstance(node, list):
-        for idx, value in enumerate(list(node)):
-            if isinstance(value, str) and value == old:
-                node[idx] = new
-                count += 1
-            else:
-                count += replace_exact_string(value, old, new)
-    return count
+def insert_before(lines, anchor, additions):
+    positions = [i for i, line in enumerate(lines) if line == anchor]
+    idx = exactly_one(positions, f"anchor {anchor!r}")
+    lines[idx:idx] = additions
 
 
 def main():
-    current = json.loads(PROJECT.read_text(encoding="utf-8"))
-    base = load_commit(BASE_SHA)
-    pr8 = load_commit(PR8_SHA)
-
-    gd = current["gdVersion"]
+    data = json.loads(PROJECT.read_text(encoding="utf-8"))
+    gd = data["gdVersion"]
     assert (gd["major"], gd["minor"], gd["build"]) == (5, 6, 282), gd
 
-    current_node, current_src, current_path = find_cpu_ai(current, "current main")
-    _, base_src, _ = find_cpu_ai(base, "v0.5.4 base")
-    _, pr8_src, _ = find_cpu_ai(pr8, "PR #8")
+    frost = exactly_one([x for x in data["layouts"] if x.get("name") == "FROST LAB"], "FROST LAB")
+    group = exactly_one([x for x in frost["events"] if x.get("name") == OLD_GROUP], OLD_GROUP)
+    js_events = [
+        x for x in group.get("events", [])
+        if x.get("type") == "BuiltinCommonInstructions::JsCode"
+        and isinstance(x.get("inlineCode"), list)
+        and "const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);" in x["inlineCode"]
+        and any("activeHumanTargets" in line for line in x["inlineCode"])
+    ]
+    ai_event = exactly_one(js_events, "current CPU/Human AI JsCode")
+    lines = ai_event["inlineCode"]
 
-    with tempfile.TemporaryDirectory() as td:
-        td = pathlib.Path(td)
-        ours = td / "current.js"
-        common = td / "base.js"
-        theirs = td / "pr8.js"
-        ours.write_text(current_src, encoding="utf-8")
-        common.write_text(base_src, encoding="utf-8")
-        theirs.write_text(pr8_src, encoding="utf-8")
-        proc = subprocess.run(
-            ["git", "merge-file", "-p", str(ours), str(common), str(theirs)],
-            text=True,
-            capture_output=True,
-        )
-        if proc.returncode != 0:
-            print(proc.stderr)
-            print(proc.stdout[:12000])
-            raise SystemExit(f"semantic three-way AI transplant conflicted (git merge-file exit {proc.returncode})")
-        merged = proc.stdout
-
-    if "<<<<<<<" in merged or ">>>>>>>" in merged or "=======" in merged:
-        raise AssertionError("merge conflict marker survived")
-
-    base_human_tokens = set(re.findall(r"__iceWolfAIHuman[A-Za-z0-9_]*", base_src))
-    pr8_human_tokens = set(re.findall(r"__iceWolfAIHuman[A-Za-z0-9_]*", pr8_src))
-    recovery_tokens = sorted(pr8_human_tokens - base_human_tokens)
-    if not recovery_tokens:
-        raise AssertionError("PR #8 did not expose any Human navigation recovery runtime markers")
-    missing_recovery = [token for token in recovery_tokens if token not in merged]
-    if missing_recovery:
-        raise AssertionError(f"missing transplanted Human recovery markers: {missing_recovery}")
-
-    protected_markers = [
+    protected = [
         "activeHumanTargets",
         "CpuWolfDiagPhase",
         "AIWolfModeLeft",
         "AIWolfCooldownLeft",
+        "__iceWolfAIWolfBlockedFor",
+        "__iceWolfAIWolfDetourLeft",
     ]
-    for marker in protected_markers:
-        if marker not in current_src:
+    current_source = "\n".join(lines)
+    for marker in protected:
+        if marker not in current_source:
             raise AssertionError(f"current PR #10 AI unexpectedly lacks protected marker: {marker}")
-        if marker not in merged:
-            raise AssertionError(f"transplant lost protected PR #10 marker: {marker}")
+    if "__iceWolfAIHumanBlockedFor" in current_source:
+        raise AssertionError("Human navigation recovery already present; refusing duplicate patch")
 
-    current_inline = current_node.get("inlineCode")
-    current_node["inlineCode"] = merged if isinstance(current_inline, str) else [merged]
+    insert_after(lines, "    const aiWolfDetourDuration = 0.75;", [
+        "    const humanBlockedRatio = 0.28;",
+        "    const humanBlockedTrigger = 0.16;",
+        "    const humanDetourDuration = 1.5;",
+    ])
 
-    label_count = replace_exact_string(current, "開発版 v0.6.0-DIAG", "開発版 v0.6.1-DIAG")
-    if label_count < 1:
-        raise AssertionError("v0.6.0-DIAG BuildText label not found")
+    insert_after(lines, "      const ay = actor.getCenterYInScene();", [
+        "      const humanPrevActualX = actor.__iceWolfAIHumanPrevActualX;",
+        "      const humanPrevActualY = actor.__iceWolfAIHumanPrevActualY;",
+        "      const humanLastExpectedMove = Number.isFinite(actor.__iceWolfAIHumanLastExpectedMove) ? actor.__iceWolfAIHumanLastExpectedMove : 0;",
+        "      const humanHadPreviousActual = Number.isFinite(humanPrevActualX) && Number.isFinite(humanPrevActualY);",
+        "      if (humanHadPreviousActual && humanLastExpectedMove > 0.4) {",
+        "        const humanActualMove = Math.hypot(ax - humanPrevActualX, ay - humanPrevActualY);",
+        "        const humanBlocked = humanActualMove < Math.max(0.35, humanLastExpectedMove * humanBlockedRatio);",
+        "        const humanBlockedFor = Number.isFinite(actor.__iceWolfAIHumanBlockedFor) ? actor.__iceWolfAIHumanBlockedFor : 0;",
+        "        actor.__iceWolfAIHumanBlockedFor = humanBlocked ? humanBlockedFor + dt : Math.max(0, humanBlockedFor - dt * 2);",
+        "      } else {",
+        "        actor.__iceWolfAIHumanBlockedFor = 0;",
+        "      }",
+        "      actor.__iceWolfAIHumanPrevActualX = ax;",
+        "      actor.__iceWolfAIHumanPrevActualY = ay;",
+        "      actor.__iceWolfAIHumanDetourLeft = Math.max(0, (Number.isFinite(actor.__iceWolfAIHumanDetourLeft) ? actor.__iceWolfAIHumanDetourLeft : 0) - dt);",
+    ])
 
-    group_count = replace_exact_string(
-        current,
-        "v0.5.2 CPU5 Rescue AI + Repeat Wolf Cycle",
-        "v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle",
-    )
-    if group_count != 1:
-        raise AssertionError(f"expected one stale AI group name, got {group_count}")
+    insert_before(lines, "      actor.setX(Math.max(-708, Math.min(692, actor.getX() + vx * speed * dt)));", [
+        "      if (actor.__iceWolfAIHumanBlockedFor >= humanBlockedTrigger && actor.__iceWolfAIHumanDetourLeft <= 0) {",
+        "        actor.__iceWolfAIHumanDetourSign = Math.random() < 0.5 ? -1 : 1;",
+        "        actor.__iceWolfAIHumanDetourLeft = humanDetourDuration;",
+        "        actor.__iceWolfAIHumanBlockedFor = 0;",
+        "      }",
+        "      if (actor.__iceWolfAIHumanDetourLeft > 0) {",
+        "        const humanDetourSign = actor.__iceWolfAIHumanDetourSign || 1;",
+        "        let humanDetourX = vx * 0.35 + (-vy * humanDetourSign) * 0.95;",
+        "        let humanDetourY = vy * 0.35 + (vx * humanDetourSign) * 0.95;",
+        "        if (ax < -640) humanDetourX += 0.85;",
+        "        else if (ax > 640) humanDetourX -= 0.85;",
+        "        if (ay < -640) humanDetourY += 0.85;",
+        "        else if (ay > 640) humanDetourY -= 0.85;",
+        "        const humanDetourMagnitude = Math.max(Math.hypot(humanDetourX, humanDetourY), 1);",
+        "        vx = humanDetourX / humanDetourMagnitude;",
+        "        vy = humanDetourY / humanDetourMagnitude;",
+        "      }",
+        "      actor.__iceWolfAIHumanLastExpectedMove = Math.max(0, speed * dt);",
+    ])
 
-    PROJECT.write_text(json.dumps(current, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    pathlib.Path("/tmp/v061-merged-ai.js").write_text(merged, encoding="utf-8")
+    group["name"] = NEW_GROUP
+
+    build = exactly_one([x for x in frost["objects"] if x.get("name") == "BuildText"], "BuildText")
+    if build.get("string") != OLD_LABEL or build.get("content", {}).get("text") != OLD_LABEL:
+        raise AssertionError("BuildText v0.6.0-DIAG baseline did not match exactly")
+    build["string"] = NEW_LABEL
+    build["content"]["text"] = NEW_LABEL
+
+    if any(t.get("name") == TEST_NAME for t in data.get("tests", [])):
+        raise AssertionError("v0.6.1 navigation test already exists")
+    data.setdefault("tests", []).append({
+        "description": "Human CPU detects a wall stall, detours around the obstacle, and completes a frozen Player rescue",
+        "lastRunAt": 0,
+        "lastRunDurationMs": 0,
+        "lastRunFramesExecuted": 0,
+        "lastRunStatus": "not-run",
+        "name": TEST_NAME,
+        "type": "gameplay",
+        "source": [
+            "await harness.goToScene('FROST LAB');",
+            "await harness.stepFrames(30);",
+            "const players = harness.getObjects('Player');",
+            "const actors = harness.getObjects('Actor');",
+            "const walls = harness.getObjects('Wall');",
+            "harness.assert(players.length === 1, `one Player, got ${players.length}`);",
+            "harness.assert(actors.length === 6, `six Actors, got ${actors.length}`);",
+            "const player = players[0];",
+            "const rescuer = actors[0];",
+            "const wall = walls.find(w => w.width <= 40 && w.height >= 150 && w.height <= 170 && w.centerX < 0 && Math.abs(w.centerX) < 300 && w.centerY < 0 && Math.abs(w.centerY) < 300);",
+            "harness.assert(!!wall, 'target central vertical wall exists');",
+            "harness.setSceneVariable('GameOver', false);",
+            "harness.setSceneVariable('CpuWolfDiagPhase', 0);",
+            "harness.setObjectVariable(player.id, 'Role', 'Human');",
+            "harness.setObjectVariable(player.id, 'State', 'Frozen');",
+            "for (const actor of actors) {",
+            "  harness.setObjectVariable(actor.id, 'Role', 'Human');",
+            "  harness.setObjectVariable(actor.id, 'State', 'Disabled');",
+            "}",
+            "harness.setObjectVariable(rescuer.id, 'State', 'Active');",
+            "const laneY = wall.centerY;",
+            "harness.setObjectPosition(rescuer.id, wall.centerX - wall.width / 2 - 72 - rescuer.width / 2, laneY - rescuer.height / 2);",
+            "harness.setObjectPosition(player.id, wall.centerX + wall.width / 2 + 72 - player.width / 2, laneY - player.height / 2);",
+            "await harness.stepFrames(5);",
+            "const startRescuer = harness.getObjects('Actor').find(a => a.id === rescuer.id);",
+            "const startY = startRescuer.centerY;",
+            "let maxLateral = 0;",
+            "for (let i = 0; i < 36 && harness.getObjectVariable('Player', 'State')?.value !== 'Active'; i++) {",
+            "  await harness.stepFrames(10);",
+            "  const current = harness.getObjects('Actor').find(a => a.id === rescuer.id);",
+            "  maxLateral = Math.max(maxLateral, Math.abs(current.centerY - startY));",
+            "}",
+            "harness.assert(maxLateral > 35, `Human CPU visibly detours around wall: lateral=${maxLateral.toFixed(1)}`);",
+            "harness.assert(harness.getObjectVariable('Player', 'State')?.value === 'Active', 'Human CPU completes rescue after wall detour');",
+            ""
+        ]
+    })
+
+    patched_source = "\n".join(lines)
+    for marker in protected:
+        if marker not in patched_source:
+            raise AssertionError(f"patch lost protected PR #10 marker: {marker}")
+    for marker in (
+        "__iceWolfAIHumanBlockedFor",
+        "__iceWolfAIHumanDetourLeft",
+        "humanDetourDuration",
+    ):
+        if marker not in patched_source:
+            raise AssertionError(f"patch missing Human recovery marker: {marker}")
+
+    PROJECT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    pathlib.Path("/tmp/v061-merged-ai.js").write_text(patched_source + "\n", encoding="utf-8")
 
     roundtrip = json.loads(PROJECT.read_text(encoding="utf-8"))
-    _, rt_src, _ = find_cpu_ai(roundtrip, "patched v0.6.1")
-    assert rt_src == merged
-    raw = PROJECT.read_text(encoding="utf-8")
-    assert "開発版 v0.6.1-DIAG" in raw
-    assert "v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle" in raw
+    frost2 = exactly_one([x for x in roundtrip["layouts"] if x.get("name") == "FROST LAB"], "roundtrip FROST LAB")
+    exactly_one([x for x in frost2["events"] if x.get("name") == NEW_GROUP], "roundtrip v0.6.1 group")
+    build2 = exactly_one([x for x in frost2["objects"] if x.get("name") == "BuildText"], "roundtrip BuildText")
+    assert build2["string"] == NEW_LABEL and build2["content"]["text"] == NEW_LABEL
+    exactly_one([x for x in roundtrip.get("tests", []) if x.get("name") == TEST_NAME], "roundtrip v0.6.1 test")
 
-    print("v0.6.1 semantic transplant PASS")
-    print(f"CPU AI path: {current_path}")
-    print(f"Build label replacements: {label_count}")
-    print(f"Recovered Human navigation markers: {', '.join(recovery_tokens)}")
-    print("Protected PR #10 markers preserved: " + ", ".join(protected_markers))
+    print("v0.6.1 Human CPU navigation recovery patch PASS")
+    print("Protected PR #10 markers preserved: " + ", ".join(protected))
+    print("Added runtime regression: " + TEST_NAME)
 
 
 if __name__ == "__main__":
