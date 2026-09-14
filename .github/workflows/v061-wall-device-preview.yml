@@ -211,7 +211,7 @@ jobs:
           git clean -fdx
           git restore --source=HEAD --staged --worktree game.json
           git switch --orphan preview-v061-wall-device
-          git rm -rf .
+          git rm -rf . || true
           cp -a /tmp/ice-wolf-preview-build/. .
           git add -A
           git config user.name 'github-actions[bot]'
