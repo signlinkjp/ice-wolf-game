@@ -1,0 +1,441 @@
+name: v0.6.4 Device Tuning Fix
+
+on:
+  push:
+    branches:
+      - fix/v064-device-tuning
+    paths:
+      - '.github/workflows/v064-device-tuning.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  tune-test-preview:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact tuning branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/v064-device-tuning
+          fetch-depth: 0
+
+      - name: Guard exact v0.6.4 base and untouched main
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN='45024fa159bd66291a4687c74eb29f5896b35392'
+          BASE='8ac1f27634c7b433e9a4d6ccb0f86e186125c06c'
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$MAIN"
+          test "$(git rev-parse HEAD^)" = "$BASE"
+          test "$(git merge-base "$MAIN" "$BASE")" = "$MAIN"
+          test "$(git diff --name-only "$BASE"..HEAD)" = '.github/workflows/v064-device-tuning.yml'
+          git diff --quiet "$BASE" -- game.json
+          git show "$BASE":game.json > base-v064.json
+          python3 -m json.tool base-v064.json >/dev/null
+          echo 'Exact v0.6.4 tuning base guard PASS.'
+
+      - name: Apply joystick size and iPhone input-liveness tuning
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+
+          path='game.json'
+          with open(path, encoding='utf-8') as f:
+              data=json.load(f)
+          frost=next(x for x in data['layouts'] if x.get('name')=='FROST LAB')
+
+          def group(name):
+              found=[x for x in frost['events'] if x.get('name')==name]
+              assert len(found)==1,(name,len(found))
+              return found[0]
+
+          joystick=group('v0.6.4 Compact Mobile Virtual Joystick UI')
+          lines=joystick['events'][0]['inlineCode']
+          src='\n'.join(lines)
+
+          replacements={
+            "    base.style.left = '28px';":"    base.style.left = '39px';",
+            "    base.style.top = '28px';":"    base.style.top = '39px';",
+            "    base.style.width = '118px';":"    base.style.width = '96px';",
+            "    base.style.height = '118px';":"    base.style.height = '96px';",
+            "    thumb.style.left = '60px';":"    thumb.style.left = '65px';",
+            "    thumb.style.top = '60px';":"    thumb.style.top = '65px';",
+            "    thumb.style.width = '54px';":"    thumb.style.width = '44px';",
+            "    thumb.style.height = '54px';":"    thumb.style.height = '44px';",
+            "    const VISUAL_RANGE = 32;":"    const VISUAL_RANGE = 26;",
+          }
+          for old,new in replacements.items():
+              assert src.count(old)==1,(old,src.count(old))
+              src=src.replace(old,new,1)
+
+          for expensive in (
+            "    base.style.backdropFilter = 'blur(3px)';\n",
+            "    base.style.webkitBackdropFilter = 'blur(3px)';\n",
+          ):
+              assert src.count(expensive)==1,(expensive,src.count(expensive))
+              src=src.replace(expensive,'',1)
+
+          old_release="""    const release = (event) => {
+              if (pointerId !== null && event && event.pointerId !== pointerId) return;
+              pointerId = null;
+              thumb.style.transform = 'translate(0px, 0px)';
+              resetInput();
+            };"""
+          new_release="""    const release = (event) => {
+              if (pointerId !== null && event && event.pointerId !== pointerId) return;
+              const capturedId = pointerId;
+              pointerId = null;
+              if (capturedId !== null) {
+                try { if (root.hasPointerCapture(capturedId)) root.releasePointerCapture(capturedId); } catch (_) {}
+              }
+              thumb.style.transform = 'translate(0px, 0px)';
+              resetInput();
+            };"""
+          assert src.count(old_release)==1,src.count(old_release)
+          src=src.replace(old_release,new_release,1)
+
+          old_down="""    root.addEventListener('pointerdown', (event) => {
+              if (pointerId !== null) return;
+              pointerId = event.pointerId;"""
+          new_down="""    root.addEventListener('pointerdown', (event) => {
+              // iOS Safari can occasionally lose the matching pointerup/cancel.
+              // A new touch must recover from a stale captured pointer instead of
+              // leaving movement permanently unresponsive while the game keeps running.
+              if (pointerId !== null && pointerId !== event.pointerId) release(null);
+              if (pointerId !== null) return;
+              pointerId = event.pointerId;"""
+          assert src.count(old_down)==1,src.count(old_down)
+          src=src.replace(old_down,new_down,1)
+
+          old_tail="""    root.addEventListener('pointerup', release, { passive: false });
+              root.addEventListener('pointercancel', release, { passive: false });
+              window.addEventListener('blur', () => release(null));
+              document.addEventListener('visibilitychange', () => { if (document.hidden) release(null); });"""
+          new_tail="""    root.addEventListener('pointerup', release, { passive: false });
+              root.addEventListener('pointercancel', release, { passive: false });
+              root.addEventListener('lostpointercapture', release, { passive: true });
+              window.addEventListener('pointerup', release, { passive: true });
+              window.addEventListener('pointercancel', release, { passive: true });
+              window.addEventListener('blur', () => release(null));
+              window.addEventListener('pagehide', () => release(null));
+              document.addEventListener('visibilitychange', () => { if (document.hidden) release(null); });"""
+          assert src.count(old_tail)==1,src.count(old_tail)
+          src=src.replace(old_tail,new_tail,1)
+          joystick['events'][0]['inlineCode']=src.split('\n')
+          joystick['name']='v0.6.4 Device-Tuned Mobile Virtual Joystick UI'
+
+          camera=group('v0.6.4 Overview Camera Toggle UI')
+          clines=camera['events'][0]['inlineCode']
+          csrc='\n'.join(clines)
+          old_init="""    document.body.appendChild(button);
+              runtimeScene.__iceWolfV064CameraUi = { button };
+            }
+            const ui = runtimeScene.__iceWolfV064CameraUi;
+            const canvas = document.querySelector('canvas');
+            if (ui && ui.button && canvas) {
+              const rect = canvas.getBoundingClientRect();
+              ui.button.style.left = `${Math.max(rect.left + 8, rect.right - 72)}px`;
+              ui.button.style.top = `${rect.top + 108}px`;
+              const enabled = vars.get('OverviewCameraEnabled').getAsBoolean();
+              ui.button.textContent = enabled ? 'TOP' : 'CAM';
+              ui.button.style.background = enabled ? 'rgba(40,100,145,0.88)' : 'rgba(18,24,32,0.82)';
+              vars.get('OverviewCameraReady').setBoolean(true);
+            } else {
+              vars.get('OverviewCameraReady').setBoolean(false);
+            }"""
+          new_init="""    document.body.appendChild(button);
+              runtimeScene.__iceWolfV064CameraUi = { button, positioned: false, lastLayoutAt: -10000, lastEnabled: null };
+            }
+            const ui = runtimeScene.__iceWolfV064CameraUi;
+            if (ui && ui.button) {
+              const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+              if (!ui.positioned || now - ui.lastLayoutAt >= 1000) {
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                  const rect = canvas.getBoundingClientRect();
+                  ui.button.style.left = `${Math.max(rect.left + 8, rect.right - 72)}px`;
+                  ui.button.style.top = `${rect.top + 108}px`;
+                  ui.positioned = true;
+                }
+                ui.lastLayoutAt = now;
+              }
+              const enabled = vars.get('OverviewCameraEnabled').getAsBoolean();
+              if (ui.lastEnabled !== enabled) {
+                ui.button.textContent = enabled ? 'TOP' : 'CAM';
+                ui.button.style.background = enabled ? 'rgba(40,100,145,0.88)' : 'rgba(18,24,32,0.82)';
+                ui.lastEnabled = enabled;
+              }
+              vars.get('OverviewCameraReady').setBoolean(ui.positioned === true);
+            } else {
+              vars.get('OverviewCameraReady').setBoolean(false);
+            }"""
+          assert csrc.count(old_init)==1,csrc.count(old_init)
+          csrc=csrc.replace(old_init,new_init,1)
+          camera['events'][0]['inlineCode']=csrc.split('\n')
+
+          test_name='v0.6.4 Device Tuning soak test'
+          assert not any(t.get('name')==test_name for t in data['tests'])
+          data['tests'].append({
+            'description':'30-second simulated runtime: repeated movement and CAM toggles remain live after device-tuning changes',
+            'lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,'lastRunStatus':'not-run',
+            'name':test_name,'type':'gameplay',
+            'source':[
+              "await harness.goToScene('FROST LAB');",
+              "await harness.stepFrames(12);",
+              "harness.assert(harness.getSceneVariable('VirtualJoystickReady')?.value === true, 'virtual joystick ready');",
+              "harness.assert(harness.getSceneVariable('OverviewCameraReady')?.value === true, 'camera UI ready');",
+              "const startTimer = harness.getSceneVariable('MatchTimeLeft')?.value ?? 0;",
+              "const dirs = [[1,0],[0,1],[-1,0],[0,-1],[0.70710678,0.70710678]];",
+              "for (let i=0;i<30;i++) {",
+              "  const [x,y] = dirs[i % dirs.length];",
+              "  harness.setSceneVariable('JoystickX', x);",
+              "  harness.setSceneVariable('JoystickY', y);",
+              "  harness.setSceneVariable('JoystickActive', true);",
+              "  if (i % 5 === 0) harness.setSceneVariable('OverviewCameraEnabled', !harness.getSceneVariable('OverviewCameraEnabled')?.value);",
+              "  await harness.stepFrames(60);",
+              "  const p = harness.getObjects('Player')[0];",
+              "  harness.assert(Number.isFinite(p.centerX) && Number.isFinite(p.centerY), `finite player position at cycle ${i}`);",
+              "  harness.assert(harness.getSceneVariable('VirtualJoystickReady')?.value === true, `joystick live at cycle ${i}`);",
+              "  harness.assert(harness.getSceneVariable('OverviewCameraReady')?.value === true, `camera UI live at cycle ${i}`);",
+              "}",
+              "harness.setSceneVariable('JoystickActive', false);",
+              "harness.setSceneVariable('JoystickX', 0);",
+              "harness.setSceneVariable('JoystickY', 0);",
+              "const endTimer = harness.getSceneVariable('MatchTimeLeft')?.value ?? startTimer;",
+              "harness.assert(endTimer < startTimer - 20, `game loop remained live: ${startTimer} -> ${endTimer}`);",
+              ""
+            ]
+          })
+
+          with open(path,'w',encoding='utf-8') as f:
+              json.dump(data,f,ensure_ascii=False,separators=(',',':'))
+          print('Device tuning edits applied.')
+          PY
+          python3 -m json.tool game.json >/dev/null
+
+      - name: Verify tuning is visual/input-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import copy,json
+          with open('base-v064.json',encoding='utf-8') as f: before=json.load(f)
+          with open('game.json',encoding='utf-8') as f: after=json.load(f)
+          b=next(x for x in before['layouts'] if x.get('name')=='FROST LAB')
+          a=next(x for x in after['layouts'] if x.get('name')=='FROST LAB')
+          def ev(scene,name):
+              m=[x for x in scene['events'] if x.get('name')==name]; assert len(m)==1,(name,len(m)); return m[0]
+          protected=[
+            'v0.6.3 Virtual joystick + keyboard movement (fixed camera)',
+            'v0.6.4 Normal + Overview camera',
+            'Playable bounds + failsafe','Wolf match flow','Wolf actions',
+            'v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle',
+            'v0.6.2 Color-independent Actor ID Labels'
+          ]
+          for name in protected:
+              assert ev(a,name)==ev(b,name),f'protected event changed: {name}'
+          bj=copy.deepcopy(ev(b,'v0.6.4 Compact Mobile Virtual Joystick UI'))
+          aj=copy.deepcopy(ev(a,'v0.6.4 Device-Tuned Mobile Virtual Joystick UI'))
+          aj['name']=bj['name']
+          bcode='\n'.join(bj['events'][0]['inlineCode'])
+          acode='\n'.join(aj['events'][0]['inlineCode'])
+          for token in ("root.style.width = '174px'","root.style.height = '174px'","const INPUT_RANGE = 48","const DEAD_ZONE = 0.18"):
+              assert token in acode,token
+          assert "base.style.width = '96px'" in acode
+          assert "thumb.style.width = '44px'" in acode
+          assert "const VISUAL_RANGE = 26" in acode
+          assert 'backdropFilter' not in acode
+          assert 'lostpointercapture' in acode and "window.addEventListener('pointerup'" in acode
+          assert 'if (pointerId !== null && pointerId !== event.pointerId) release(null);' in acode
+          cam=ev(a,'v0.6.4 Overview Camera Toggle UI')
+          ccode='\n'.join(cam['events'][0]['inlineCode'])
+          assert 'now - ui.lastLayoutAt >= 1000' in ccode
+          assert "ui.lastEnabled !== enabled" in ccode
+          assert len(after['tests'])==len(before['tests'])+1
+          print('Protected gameplay unchanged; tuning scope PASS.')
+          PY
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          rm -rf /tmp/gdevelop && mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"; fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Run Device Tuning soak test
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.4 Device Tuning soak test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json tuning-results.json
+
+      - name: Run v0.6.4 regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.4 Compact Joystick + Overview Camera test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v064-results.json
+
+      - name: Run v0.6.3 joystick regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.3 Mobile Virtual Joystick test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v063-results.json
+
+      - name: Run Stability regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'Stability self-test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json stability-results.json
+
+      - name: Run v0.6.2 labels regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.2 Color-independent Actor ID Labels test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v062-results.json
+
+      - name: Run v0.6.1 Human navigation regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.1 Human CPU navigation recovery test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v061-results.json
+
+      - name: Run v0.6.0 regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for TEST in 'v0.6.0 human-side CPU Wolf test' 'v0.6.0 CPU Wolf device diagnostic test'; do
+            rm -f gameplay-test-results.json
+            xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args "$TEST"
+            test -s gameplay-test-results.json
+          done
+          rm -f gameplay-test-results.json
+
+      - name: Prove strict diagnostic debt unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json" > tuned-strict.log 2>&1
+          TUNED_STATUS=$?
+          set -e
+          test "$TUNED_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' tuned-strict.log
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/base-v064.json" > base-strict.log 2>&1
+          BASE_STATUS=$?
+          set -e
+          test "$BASE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' base-strict.log
+          echo 'Strict diagnostic debt unchanged: tuned=14, base v0.6.4=14.'
+
+      - name: Export tuned HTML5 preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test -s build/code0.js
+          FILE_COUNT="$(find build -type f | wc -l)"
+          test "$FILE_COUNT" -gt 5
+          printf '%s\n' \
+            'ICE WOLF v0.6.4 Device Tuning preview' \
+            'source-main=45024fa159bd66291a4687c74eb29f5896b35392' \
+            'source-base-v064=8ac1f27634c7b433e9a4d6ccb0f86e186125c06c' \
+            'feature=96px visible joystick / 174px touch area / stale-pointer recovery / no joystick backdrop blur / CAM layout throttled' \
+            > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          rm -rf /tmp/v064-tuning-preview
+          cp -a build /tmp/v064-tuning-preview
+          echo "Tuned export PASS: $FILE_COUNT files."
+
+      - name: Commit only tuned game.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='8ac1f27634c7b433e9a4d6ccb0f86e186125c06c'
+          REMOTE_BEFORE="$(git ls-remote origin refs/heads/fix/v064-device-tuning | awk '{print $1}')"
+          test "$REMOTE_BEFORE" = "$GITHUB_SHA"
+          rm -f base-v064.json tuning-results.json v064-results.json v063-results.json stability-results.json v062-results.json v061-results.json tuned-strict.log base-strict.log gameplay-test-results.json
+          git add game.json
+          test "$(git diff --cached --name-only)" = 'game.json'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: tune v0.6.4 iPhone joystick liveness [skip ci]'
+          FINAL_FEATURE_HEAD="$(git rev-parse HEAD)"
+          git push origin HEAD:fix/v064-device-tuning
+          test "$(git ls-remote origin refs/heads/fix/v064-device-tuning | awk '{print $1}')" = "$FINAL_FEATURE_HEAD"
+          echo "FINAL_FEATURE_HEAD=$FINAL_FEATURE_HEAD" >> "$GITHUB_ENV"
+          echo 'Tuned game.json committed; workflow file intentionally left for connector cleanup.'
+
+      - name: Publish isolated iPhone tuning preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/v064-tuning-preview/index.html
+          printf '%s\n' "source-feature=$FINAL_FEATURE_HEAD" >> /tmp/v064-tuning-preview/PREVIEW_SOURCE.txt
+          if git ls-remote --exit-code --heads origin preview-v064-device-tuning >/dev/null 2>&1; then
+            echo 'STOP: preview-v064-device-tuning already exists unexpectedly.' >&2
+            exit 1
+          fi
+          git switch --orphan preview-v064-device-tuning
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/v064-tuning-preview/. .
+          test -s index.html
+          test -s PREVIEW_SOURCE.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.4 device tuning iPhone test'
+          PREVIEW_HEAD="$(git rev-parse HEAD)"
+          git push origin HEAD:preview-v064-device-tuning
+          test "$(git ls-remote origin refs/heads/preview-v064-device-tuning | awk '{print $1}')" = "$PREVIEW_HEAD"
+          echo "PREVIEW_HEAD=$PREVIEW_HEAD" >> "$GITHUB_ENV"
+
+      - name: Final provenance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Device tuning source base: 8ac1f27634c7b433e9a4d6ccb0f86e186125c06c"
+          echo "Tuned feature: $FINAL_FEATURE_HEAD"
+          echo "Preview: $PREVIEW_HEAD"
+          echo 'All requested tuning tests/export completed.'
