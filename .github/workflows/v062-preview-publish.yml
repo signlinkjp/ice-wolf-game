@@ -1,0 +1,132 @@
+name: v0.6.2 iPhone Preview Publisher
+
+on:
+  push:
+    branches:
+      - temp/v062-preview-publish
+    paths:
+      - '.github/workflows/v062-preview-publish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout isolated preview publisher branch
+        uses: actions/checkout@v4
+        with:
+          ref: temp/v062-preview-publish
+          fetch-depth: 0
+
+      - name: Guard immutable source and main
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='7697cbd998046bfc6c0e7e027342b164fd1ebd05'
+          SOURCE='1f66672f60b8c9266241bf86ce8c4a002e834fe8'
+          git fetch origin main feature/v062-actor-id-labels --no-tags
+          test "$(git rev-parse origin/main)" = "$BASE"
+          test "$(git rev-parse origin/feature/v062-actor-id-labels)" = "$SOURCE"
+          test "$(git rev-parse HEAD^)" = "$SOURCE"
+          CHANGED="$(git diff --name-only "$SOURCE"..HEAD)"
+          test "$CHANGED" = '.github/workflows/v062-preview-publish.yml'
+          git diff --quiet "$SOURCE" HEAD -- game.json
+          python3 -m json.tool game.json >/dev/null
+          echo 'Immutable source/main guard PASS.'
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' \
+            --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then
+            BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"
+          fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Export exact v0.6.2 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" \
+            --no-sandbox \
+            --disable-update-check \
+            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test -s build/code0.js
+          FILE_COUNT="$(find build -type f | wc -l)"
+          test "$FILE_COUNT" -gt 5
+          python3 - <<'PY'
+          path = 'build/code0.js'
+          with open(path, encoding='utf-8') as f:
+              text = f.read()
+          needle = 'Code.eventsList0 = function(runtimeScene) {\n\n};'
+          matches = text.count(needle)
+          assert matches == 1, matches
+          text = text.replace(needle, 'Code.eventsList0 = function(runtimeScene) {\n  gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "FROST LAB", false);\n};', 1)
+          with open(path, 'w', encoding='utf-8') as f:
+              f.write(text)
+          assert 'replaceScene(runtimeScene, "FROST LAB", false)' in text
+          PY
+          printf '%s\n' \
+            'ICE WOLF v0.6.2 Color-independent Actor ID Labels preview' \
+            'source-main=7697cbd998046bfc6c0e7e027342b164fd1ebd05' \
+            'source-feature=1f66672f60b8c9266241bf86ce8c4a002e834fe8' \
+            'feature=YOU + fixed A-F labels; role-independent; dark high-contrast tags' \
+            > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          rm -rf /tmp/v062-preview-build
+          cp -a build /tmp/v062-preview-build
+          echo "HTML5 preview staging PASS: $FILE_COUNT files."
+
+      - name: Publish isolated SHA-auditable preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/v062-preview-build/index.html
+          if git ls-remote --exit-code --heads origin preview-v062-actor-id-labels >/dev/null 2>&1; then
+            echo 'STOP: preview-v062-actor-id-labels already exists unexpectedly.' >&2
+            exit 1
+          fi
+          git switch --orphan preview-v062-actor-id-labels
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/v062-preview-build/. .
+          test -s index.html
+          test -s PREVIEW_SOURCE.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.2 actor ID labels device test'
+          PREVIEW_HEAD="$(git rev-parse HEAD)"
+          git push origin HEAD:preview-v062-actor-id-labels
+          test "$(git ls-remote origin refs/heads/preview-v062-actor-id-labels | awk '{print $1}')" = "$PREVIEW_HEAD"
+          echo "PREVIEW_HEAD=$PREVIEW_HEAD" >> "$GITHUB_ENV"
+          echo 'Static v0.6.2 iPhone preview published.'
+
+      - name: Final provenance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "source main: 7697cbd998046bfc6c0e7e027342b164fd1ebd05"
+          echo "source feature: 1f66672f60b8c9266241bf86ce8c4a002e834fe8"
+          echo "preview head: $PREVIEW_HEAD"
+          echo 'v0.6.2 preview publish COMPLETE'
