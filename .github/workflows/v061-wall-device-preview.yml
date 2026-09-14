@@ -209,6 +209,7 @@ jobs:
           set -euo pipefail
           cp -a build /tmp/ice-wolf-preview-build
           git clean -fdx
+          git restore --source=HEAD --staged --worktree game.json
           git switch --orphan preview-v061-wall-device
           git rm -rf .
           cp -a /tmp/ice-wolf-preview-build/. .
