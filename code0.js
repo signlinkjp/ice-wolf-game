@@ -4,7 +4,7 @@ gdjs._28961_21517_12398_12471_12540_12531Code.idToCallbackMap = new Map();
 
 
 gdjs._28961_21517_12398_12471_12540_12531Code.eventsList0 = function(runtimeScene) {
-
+  gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "FROST LAB", false);
 };
 
 gdjs._28961_21517_12398_12471_12540_12531Code.func = function(runtimeScene) {
