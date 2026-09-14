@@ -1,4 +1,4 @@
-# revision: 3
+# revision: 4
 name: v0.6.1 Human CPU Navigation Recovery One-Time Gate
 
 on:
@@ -37,7 +37,7 @@ jobs:
           python3 -m json.tool main-baseline.json >/dev/null
           echo 'Exact current-main baseline guard PASS.'
 
-      - name: Semantically transplant Human CPU navigation recovery
+      - name: Implement Human CPU navigation recovery from exact current AI
         shell: bash
         run: |
           set -euo pipefail
@@ -58,16 +58,19 @@ jobs:
           frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
           build = next(x for x in frost['objects'] if x.get('name') == 'BuildText')
           assert build['string'] == '開発版 v0.6.1-DIAG', build.get('string')
-          assert len([x for x in frost['instances'] if x.get('objectName') == 'Actor']) == 6
+          assert build['content']['text'] == '開発版 v0.6.1-DIAG', build['content'].get('text')
+          assert len([x for x in frost['instances'] if x.get('name') == 'Actor']) == 6
           raw = json.dumps(data, ensure_ascii=False)
           for marker in (
               'activeHumanTargets', 'CpuWolfDiagPhase', 'AIWolfModeLeft',
-              'AIWolfCooldownLeft', '__iceWolfAIHumanBlocked',
+              'AIWolfCooldownLeft', '__iceWolfAIHumanBlockedFor',
+              '__iceWolfAIHumanDetourLeft',
               'v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle',
               '診断PASS：追跡 → 凍結 → 救助'
           ):
               assert marker in raw, marker
           names = [x.get('name') for x in data.get('tests', [])]
+          assert 'v0.6.1 Human CPU navigation recovery test' in names, names
           assert 'v0.6.0 human-side CPU Wolf test' in names, names
           assert 'v0.6.0 CPU Wolf device diagnostic test' in names, names
           print('v0.6.1 structural/protected-invariant gate PASS')
@@ -97,6 +100,18 @@ jobs:
           chmod +x "$BIN"
           echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
           echo "GDevelop binary: $BIN"
+
+      - name: Run v0.6.1 wall-detour rescue regression in GDevelop
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a "$GDEVELOP_BIN" \
+            --no-sandbox \
+            --disable-update-check \
+            --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
+            --cmd-args 'v0.6.1 Human CPU navigation recovery test' \
+            --results-path "$GITHUB_WORKSPACE/v061-navigation-results.json"
+          test -s v061-navigation-results.json
 
       - name: Run Human-side CPU Wolf regression test in GDevelop
         shell: bash
@@ -174,7 +189,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='cfd2aae6a48e8ad3d33e176e49ff2ede25dbaefb'
-          rm -f main-baseline.json human-side-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log
+          rm -f main-baseline.json v061-navigation-results.json human-side-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log
           rm -rf build
           git rm .github/ice-wolf/v061_transplant.py
           git rm .github/workflows/v061-human-cpu-navigation-recovery.yml
