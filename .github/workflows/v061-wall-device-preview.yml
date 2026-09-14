@@ -1,0 +1,220 @@
+name: v0.6.1 Wall Recovery Device Preview
+
+on:
+  push:
+    branches:
+      - preview-src-v061-wall-device
+    paths:
+      - '.github/workflows/v061-wall-device-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-preview:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact preview source branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview-src-v061-wall-device
+          fetch-depth: 0
+
+      - name: Guard exact v0.6.1 main baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='7697cbd998046bfc6c0e7e027342b164fd1ebd05'
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          git diff --quiet "$BASE" -- game.json
+          ACTUAL="$(git diff --name-only "$BASE"..HEAD | sort)"
+          EXPECTED='.github/workflows/v061-wall-device-preview.yml'
+          test "$ACTUAL" = "$EXPECTED"
+          python3 -m json.tool game.json >/dev/null
+          grep -Fq 'v0.6.1 Human CPU navigation recovery test' game.json
+          grep -Fq '__iceWolfAIHumanDetourLeft' game.json
+          echo 'Exact v0.6.1 main baseline guard PASS.'
+
+      - name: Inject temporary wall-recovery device scenario
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+
+          path = 'game.json'
+          with open(path, encoding='utf-8') as f:
+              data = json.load(f)
+
+          frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
+          build = next(x for x in frost['objects'] if x.get('name') == 'BuildText')
+          status = next(x for x in frost['objects'] if x.get('name') == 'StatusText')
+          build['string'] = '実機テスト v0.6.1-WALL'
+          build['content']['text'] = '実機テスト v0.6.1-WALL'
+          status['string'] = '壁回避テスト準備中…'
+          status['content']['text'] = '壁回避テスト準備中…'
+
+          code = r'''if (!runtimeScene.__iceWolfWallPreviewInit) {
+            const vars = runtimeScene.getVariables();
+            const players = runtimeScene.getObjects('Player');
+            const actors = runtimeScene.getObjects('Actor');
+            const walls = runtimeScene.getObjects('Wall');
+            const status = runtimeScene.getObjects('StatusText')[0];
+            const player = players.length ? players[0] : null;
+            const rescuer = actors.length ? actors[0] : null;
+            const wall = walls.find(w => w.getWidth() <= 40 && w.getHeight() >= 150 && w.getHeight() <= 170 && w.getCenterXInScene() < 0 && Math.abs(w.getCenterXInScene()) < 300 && w.getCenterYInScene() < 0 && Math.abs(w.getCenterYInScene()) < 300);
+            if (!player || !rescuer || !wall) {
+              if (status) status.setString('テストERROR：必要なPlayer / Human CPU / 壁を取得できません');
+              vars.get('GameOver').setBoolean(true);
+              runtimeScene.__iceWolfWallPreviewInit = 'error';
+            } else {
+              vars.get('GameOver').setBoolean(false);
+              vars.get('CpuWolfDiagPhase').setNumber(0);
+              vars.get('MatchTimeLeft').setNumber(vars.get('MatchDuration').getAsNumber());
+              vars.get('WolfModeLeft').setNumber(0);
+              vars.get('CooldownLeft').setNumber(0);
+              vars.get('InfectionUsed').setBoolean(false);
+              const pv = player.getVariables();
+              pv.get('Role').setString('Human');
+              pv.get('State').setString('Frozen');
+              for (const actor of actors) {
+                const av = actor.getVariables();
+                av.get('Role').setString('Human');
+                av.get('State').setString('Disabled');
+                av.get('AIWolfModeLeft').setNumber(0);
+                av.get('AIWolfCooldownLeft').setNumber(0);
+                actor.__iceWolfDiagnosticTargetPlayer = false;
+                actor.__iceWolfDiagnosticHoldLeft = 0;
+                actor.__iceWolfPrimaryCPUWolf = false;
+                actor.__iceWolfAIRescueCooldown = 0;
+                actor.__iceWolfAITurnLeft = 0;
+                actor.__iceWolfAIHumanPrevActualX = NaN;
+                actor.__iceWolfAIHumanPrevActualY = NaN;
+                actor.__iceWolfAIHumanLastExpectedMove = 0;
+                actor.__iceWolfAIHumanBlockedFor = 0;
+                actor.__iceWolfAIHumanDetourLeft = 0;
+                actor.__iceWolfAIHumanDetourSign = 0;
+              }
+              rescuer.getVariables().get('State').setString('Active');
+              const laneY = wall.getCenterYInScene() + wall.getHeight() / 2 - 24;
+              rescuer.setX(wall.getCenterXInScene() - wall.getWidth() / 2 - 48 - rescuer.getWidth() / 2);
+              rescuer.setY(laneY - rescuer.getHeight() / 2);
+              player.setX(wall.getCenterXInScene() + wall.getWidth() / 2 + 48 - player.getWidth() / 2);
+              player.setY(laneY - player.getHeight() / 2);
+              runtimeScene.__iceWolfWallPreviewStartY = rescuer.getCenterYInScene();
+              runtimeScene.__iceWolfWallPreviewMaxLateral = 0;
+              runtimeScene.__iceWolfWallPreviewInit = true;
+              if (status) status.setString('① 壁へ接近中：Human CPUの詰まり検出を確認');
+            }
+          }
+
+          if (runtimeScene.__iceWolfWallPreviewInit === true) {
+            const vars = runtimeScene.getVariables();
+            const player = runtimeScene.getObjects('Player')[0];
+            const rescuer = runtimeScene.getObjects('Actor')[0];
+            const status = runtimeScene.getObjects('StatusText')[0];
+            if (player && rescuer && status) {
+              const lateral = Math.abs(rescuer.getCenterYInScene() - runtimeScene.__iceWolfWallPreviewStartY);
+              runtimeScene.__iceWolfWallPreviewMaxLateral = Math.max(runtimeScene.__iceWolfWallPreviewMaxLateral || 0, lateral);
+              if (player.getVariables().get('State').getAsString() === 'Active') {
+                status.setString('実機PASS：壁回避 → 回り込み → 救助');
+                vars.get('GameOver').setBoolean(true);
+              } else if (runtimeScene.__iceWolfWallPreviewMaxLateral > 20) {
+                status.setString('② 回避中：Human CPUが壁を回り込み中');
+              } else {
+                status.setString('① 壁へ接近中：Human CPUの詰まり検出を確認');
+              }
+            }
+          }'''
+
+          frost['events'].append({
+              'colorB': 90,
+              'colorG': 210,
+              'colorR': 80,
+              'creationTime': 0,
+              'name': 'TEMP v0.6.1 Wall Recovery Device Preview',
+              'source': '',
+              'type': 'BuiltinCommonInstructions::Group',
+              'events': [{
+                  'type': 'BuiltinCommonInstructions::JsCode',
+                  'inlineCode': code.splitlines(),
+                  'parameterObjects': '',
+                  'useStrict': True,
+                  'eventsSheetExpanded': False,
+                  'actions': []
+              }],
+              'parameters': [],
+              'actions': []
+          })
+
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+
+          raw = json.dumps(data, ensure_ascii=False)
+          assert '実機テスト v0.6.1-WALL' in raw
+          assert '実機PASS：壁回避 → 回り込み → 救助' in raw
+          assert 'TEMP v0.6.1 Wall Recovery Device Preview' in raw
+          print('Temporary device scenario injection PASS.')
+          PY
+          python3 -m json.tool game.json >/dev/null
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' \
+            --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then
+            BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"
+          fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Export temporary HTML5 preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" \
+            --no-sandbox \
+            --disable-update-check \
+            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test "$(find build -type f | wc -l)" -gt 5
+          printf '%s\n' \
+            'ICE WOLF v0.6.1 wall-recovery device preview' \
+            'source-main=7697cbd998046bfc6c0e7e027342b164fd1ebd05' \
+            'purpose=Human CPU wall stall -> lateral detour -> rescue real-device confirmation' \
+            > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          echo 'HTML5 preview export PASS.'
+
+      - name: Publish isolated static preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a build /tmp/ice-wolf-preview-build
+          git clean -fdx
+          git switch --orphan preview-v061-wall-device
+          git rm -rf .
+          cp -a /tmp/ice-wolf-preview-build/. .
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.1 Human CPU wall recovery device test'
+          git push origin HEAD:preview-v061-wall-device
+          echo 'Static preview branch published.'
