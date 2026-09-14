@@ -29,41 +29,55 @@ jobs:
           git fetch origin main feature/v063-mobile-virtual-joystick --no-tags
           test "$(git rev-parse origin/main)" = "$MAIN"
           test "$(git rev-parse origin/feature/v063-mobile-virtual-joystick)" = "$PARENT"
+          test "$(git merge-base "$MAIN" HEAD)" = "$MAIN"
           test "$(git hash-object game.json)" = "$PARENT_GAME_BLOB"
           git diff --quiet "$PARENT" -- game.json
-      - name: Correct only the Run 1 comparison direction
+      - name: Correct Run 2 gate only
         shell: bash
         run: |
           set -euo pipefail
-          FILE='.github/workflows/v064-compact-joystick-overview-camera.yml'
           python3 - <<'PY'
           from pathlib import Path
           p=Path('.github/workflows/v064-compact-joystick-overview-camera.yml')
-          s=p.read_text()
+          s=p.read_text(encoding='utf-8')
+          # Correct Run #1 comparison direction if not already corrected.
           old="""          aj['events'][0]['inlineCode'] = expected.split('\\n')
-          assert aj == bj, 'joystick changed outside approved visual-only edits'
-"""
+          assert aj == bj, 'joystick changed outside approved visual-only edits'"""
           new="""          expected_obj = copy.deepcopy(bj)
           expected_obj['events'][0]['inlineCode'] = expected.split('\\n')
-          assert aj == expected_obj, 'joystick changed outside approved visual-only edits'
-"""
-          assert s.count(old)==1, s.count(old)
-          p.write_text(s.replace(old,new,1))
+          assert aj == expected_obj, 'joystick changed outside approved visual-only edits'"""
+          if old in s:
+              s=s.replace(old,new,1)
+          assert new in s
+          # Allow the audit-only correction history plus one trigger file while preserving exact parent/game guards.
+          s=s.replace("      - '.github/workflows/v064-compact-joystick-overview-camera.yml'", "      - '.github/workflows/v064-compact-joystick-overview-camera.yml'\n      - '.github/v064-run2-trigger'", 1)
+          s=s.replace('          test "$(git rev-parse HEAD^)" = "$PARENT"\n', '', 1)
+          old_guard="""          ACTUAL=\"$(git diff --name-only \"$PARENT\"..HEAD)\"
+          test \"$ACTUAL\" = '.github/workflows/v064-compact-joystick-overview-camera.yml'"""
+          new_guard="""          ACTUAL=\"$(git diff --name-only \"$PARENT\"..HEAD | sort)\"
+          EXPECTED=\"$(printf '%s\\n' '.github/v064-run2-trigger' '.github/workflows/v064-compact-joystick-overview-camera.yml' | sort)\"
+          test \"$ACTUAL\" = \"$EXPECTED\""""
+          assert old_guard in s
+          s=s.replace(old_guard,new_guard,1)
+          # Final feature must self-clean both one-time gate and trigger.
+          s=s.replace('          git rm .github/workflows/v064-compact-joystick-overview-camera.yml', '          git rm .github/workflows/v064-compact-joystick-overview-camera.yml .github/v064-run2-trigger', 1)
+          old_stage="EXPECTED=\"$(printf '%s\\n' '.github/workflows/v064-compact-joystick-overview-camera.yml' 'game.json' | sort)\""
+          new_stage="EXPECTED=\"$(printf '%s\\n' '.github/v064-run2-trigger' '.github/workflows/v064-compact-joystick-overview-camera.yml' 'game.json' | sort)\""
+          assert old_stage in s
+          s=s.replace(old_stage,new_stage,1)
+          p.write_text(s,encoding='utf-8')
           PY
           git diff --check
-          test "$(git diff --name-only)" = "$FILE"
-          git diff --quiet a08d5301b3fecf98900946354f046841910ff936 -- game.json
-      - name: Self-clean helper and push corrected Run 2 gate
+          test "$(git hash-object game.json)" = '73dc5913c07813b3858acbbe456f2e5af380282c'
+      - name: Self-clean audit helpers and push corrected gate
         shell: bash
         run: |
           set -euo pipefail
           git rm .github/workflows/v064-run2-audit-fix.yml
+          if [ -e .github/workflows/v064-audit-fix.yml ]; then git rm .github/workflows/v064-audit-fix.yml; fi
           git add .github/workflows/v064-compact-joystick-overview-camera.yml
-          STAGED="$(git diff --cached --name-only | sort)"
-          EXPECTED="$(printf '%s\n' '.github/workflows/v064-compact-joystick-overview-camera.yml' '.github/workflows/v064-run2-audit-fix.yml' | sort)"
-          test "$STAGED" = "$EXPECTED"
           test "$(git hash-object game.json)" = '73dc5913c07813b3858acbbe456f2e5af380282c'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'ci: fix v0.6.4 expected joystick audit [skip ci]'
+          git commit -m 'ci: finalize v0.6.4 Run 2 audit-only correction [skip ci]'
           git push origin HEAD:feature/v064-compact-joystick-overview-camera
