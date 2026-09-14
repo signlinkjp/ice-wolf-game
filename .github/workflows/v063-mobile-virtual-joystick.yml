@@ -1,0 +1,503 @@
+name: v0.6.3 Mobile Virtual Joystick One-Time Gate
+
+on:
+  push:
+    branches:
+      - feature/v063-mobile-virtual-joystick
+    paths:
+      - '.github/workflows/v063-mobile-virtual-joystick.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  implement-test-build-preview:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact v0.6.3 feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v063-mobile-virtual-joystick
+          fetch-depth: 0
+
+      - name: Guard exact v0.6.2 real-device-PASS baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='45024fa159bd66291a4687c74eb29f5896b35392'
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$BASE"
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          git diff --quiet "$BASE" -- game.json
+          ACTUAL="$(git diff --name-only "$BASE"..HEAD | sort)"
+          EXPECTED='.github/workflows/v063-mobile-virtual-joystick.yml'
+          test "$ACTUAL" = "$EXPECTED"
+          git show "$BASE":game.json > main-baseline.json
+          python3 -m json.tool main-baseline.json >/dev/null
+          echo 'Exact v0.6.2 baseline guard PASS.'
+
+      - name: Implement v0.6.3 round mobile virtual joystick
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+
+          path = 'game.json'
+          with open(path, encoding='utf-8') as f:
+              data = json.load(f)
+
+          frost = next(x for x in data['layouts'] if x.get('name') == 'FROST LAB')
+          build = next(x for x in frost['objects'] if x.get('name') == 'BuildText')
+          assert build['string'] == '開発版 v0.6.2-DIAG', build['string']
+          build['string'] = '開発版 v0.6.3-DIAG'
+          build['content']['text'] = '開発版 v0.6.3-DIAG'
+
+          dpad_names = {'Dpad_NW','Dpad_N','Dpad_NE','Dpad_W','Dpad_E','Dpad_SW','Dpad_S','Dpad_SE'}
+          before_instances = len(frost['instances'])
+          dpad_instances = [x for x in frost['instances'] if x.get('name') in dpad_names]
+          assert len(dpad_instances) == 8, len(dpad_instances)
+          frost['instances'] = [x for x in frost['instances'] if x.get('name') not in dpad_names]
+          assert len(frost['instances']) == before_instances - 8
+
+          existing_vars = {v.get('name') for v in frost.get('variables', [])}
+          for name in ('VirtualJoystickReady','JoystickActive','JoystickX','JoystickY'):
+              assert name not in existing_vars, name
+          frost['variables'].extend([
+              {'name':'VirtualJoystickReady','type':'boolean','value':False},
+              {'name':'JoystickActive','type':'boolean','value':False},
+              {'name':'JoystickX','type':'number','value':0},
+              {'name':'JoystickY','type':'number','value':0},
+          ])
+
+          events = frost['events']
+          movement = next(x for x in events if x.get('name') == 'Dpad 8-way movement (fixed camera)')
+          movement['name'] = 'v0.6.3 Virtual joystick + keyboard movement (fixed camera)'
+
+          joystick_ui_code = r'''const vars = runtimeScene.getVariables();
+          const resetInput = () => {
+            vars.get('JoystickActive').setBoolean(false);
+            vars.get('JoystickX').setNumber(0);
+            vars.get('JoystickY').setNumber(0);
+          };
+          if (typeof document === 'undefined') {
+            vars.get('VirtualJoystickReady').setBoolean(false);
+          } else {
+            if (!runtimeScene.__iceWolfV063JoystickUi) {
+              for (const old of document.querySelectorAll('[data-ice-wolf-v063-joystick="1"]')) old.remove();
+              const root = document.createElement('div');
+              root.dataset.iceWolfV063Joystick = '1';
+              root.setAttribute('aria-label', 'Movement joystick');
+              root.style.position = 'fixed';
+              root.style.left = '28px';
+              root.style.bottom = '28px';
+              root.style.width = '174px';
+              root.style.height = '174px';
+              root.style.zIndex = '2147482500';
+              root.style.touchAction = 'none';
+              root.style.userSelect = 'none';
+              root.style.webkitUserSelect = 'none';
+              root.style.webkitTapHighlightColor = 'transparent';
+
+              const base = document.createElement('div');
+              base.style.position = 'absolute';
+              base.style.left = '10px';
+              base.style.top = '10px';
+              base.style.width = '154px';
+              base.style.height = '154px';
+              base.style.borderRadius = '50%';
+              base.style.boxSizing = 'border-box';
+              base.style.border = '2px solid rgba(255,255,255,0.76)';
+              base.style.background = 'radial-gradient(circle at 38% 32%, rgba(255,255,255,0.42) 0%, rgba(180,190,202,0.40) 36%, rgba(88,99,112,0.56) 72%, rgba(32,39,48,0.66) 100%)';
+              base.style.boxShadow = 'inset 0 4px 10px rgba(255,255,255,0.28), inset 0 -8px 16px rgba(0,0,0,0.34), 0 3px 12px rgba(0,0,0,0.26)';
+              base.style.backdropFilter = 'blur(3px)';
+              base.style.webkitBackdropFilter = 'blur(3px)';
+
+              const thumb = document.createElement('div');
+              thumb.style.position = 'absolute';
+              thumb.style.left = '51px';
+              thumb.style.top = '51px';
+              thumb.style.width = '72px';
+              thumb.style.height = '72px';
+              thumb.style.borderRadius = '50%';
+              thumb.style.boxSizing = 'border-box';
+              thumb.style.border = '2px solid rgba(255,255,255,0.86)';
+              thumb.style.background = 'radial-gradient(circle at 36% 28%, rgba(255,255,255,0.98) 0%, rgba(218,226,234,0.98) 34%, rgba(118,130,144,0.98) 69%, rgba(48,57,68,0.98) 100%)';
+              thumb.style.boxShadow = 'inset 0 3px 8px rgba(255,255,255,0.55), inset 0 -7px 12px rgba(0,0,0,0.34), 0 4px 10px rgba(0,0,0,0.35)';
+              thumb.style.pointerEvents = 'none';
+              thumb.style.willChange = 'transform';
+
+              root.appendChild(base);
+              root.appendChild(thumb);
+              document.body.appendChild(root);
+
+              const RANGE = 48;
+              const DEAD_ZONE = 0.18;
+              let pointerId = null;
+
+              const setVectorFromPointer = (clientX, clientY) => {
+                const rect = base.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const dx = clientX - cx;
+                const dy = clientY - cy;
+                const distance = Math.hypot(dx, dy);
+                const visualDistance = Math.min(distance, RANGE);
+                const ux = distance > 0.001 ? dx / distance : 0;
+                const uy = distance > 0.001 ? dy / distance : 0;
+                thumb.style.transform = `translate(${ux * visualDistance}px, ${uy * visualDistance}px)`;
+                const force = Math.min(distance / RANGE, 1);
+                if (force >= DEAD_ZONE) {
+                  vars.get('JoystickActive').setBoolean(true);
+                  vars.get('JoystickX').setNumber(ux);
+                  vars.get('JoystickY').setNumber(uy);
+                } else {
+                  resetInput();
+                }
+              };
+
+              const release = (event) => {
+                if (pointerId !== null && event && event.pointerId !== pointerId) return;
+                pointerId = null;
+                thumb.style.transform = 'translate(0px, 0px)';
+                resetInput();
+              };
+
+              root.addEventListener('pointerdown', (event) => {
+                if (pointerId !== null) return;
+                pointerId = event.pointerId;
+                event.preventDefault();
+                try { root.setPointerCapture(pointerId); } catch (_) {}
+                setVectorFromPointer(event.clientX, event.clientY);
+              }, { passive: false });
+              root.addEventListener('pointermove', (event) => {
+                if (event.pointerId !== pointerId) return;
+                event.preventDefault();
+                setVectorFromPointer(event.clientX, event.clientY);
+              }, { passive: false });
+              root.addEventListener('pointerup', release, { passive: false });
+              root.addEventListener('pointercancel', release, { passive: false });
+              window.addEventListener('blur', () => release(null));
+              document.addEventListener('visibilitychange', () => { if (document.hidden) release(null); });
+
+              runtimeScene.__iceWolfV063JoystickUi = { root, base, thumb };
+              resetInput();
+            }
+            vars.get('VirtualJoystickReady').setBoolean(!!runtimeScene.__iceWolfV063JoystickUi);
+          }'''
+          ui_lines = [line.strip() if line.startswith('          ') else line for line in joystick_ui_code.splitlines()]
+
+          joystick_group = {
+              'colorB': 228, 'colorG': 176, 'colorR': 74, 'creationTime': 0,
+              'name': 'v0.6.3 Mobile Virtual Joystick UI', 'source': '',
+              'type': 'BuiltinCommonInstructions::Group',
+              'events': [{
+                  'type': 'BuiltinCommonInstructions::JsCode',
+                  'inlineCode': ui_lines,
+                  'parameterObjects': '', 'useStrict': True,
+                  'eventsSheetExpanded': False, 'actions': []
+              }],
+              'parameters': [], 'actions': []
+          }
+          movement_index = events.index(movement)
+          events.insert(movement_index, joystick_group)
+
+          movement_events = movement['events']
+          norm_index = None
+          for i, ev in enumerate(movement_events):
+              acts = ev.get('actions', [])
+              params = [a.get('parameters', []) for a in acts]
+              if ['MoveX','/','1.4142'] in params and ['MoveY','/','1.4142'] in params:
+                  norm_index = i
+                  break
+          assert norm_index is not None
+
+          override_code = [
+              "const vars = runtimeScene.getVariables();",
+              "if (vars.get('JoystickActive').getAsBoolean()) {",
+              "  const jx = vars.get('JoystickX').getAsNumber();",
+              "  const jy = vars.get('JoystickY').getAsNumber();",
+              "  const mag = Math.hypot(jx, jy);",
+              "  if (mag > 0.001) {",
+              "    vars.get('MoveX').setNumber(jx / mag);",
+              "    vars.get('MoveY').setNumber(jy / mag);",
+              "  }",
+              "}",
+          ]
+          movement_events.insert(norm_index + 1, {
+              'type': 'BuiltinCommonInstructions::JsCode',
+              'inlineCode': override_code,
+              'parameterObjects': '', 'useStrict': True,
+              'eventsSheetExpanded': False, 'actions': []
+          })
+
+          stability = next(t for t in data['tests'] if t.get('name') == 'Stability self-test')
+          old_lines = stability['source']
+          start = old_lines.index("// no old joystick")
+          end = old_lines.index("// camera follows: record camera before/after move")
+          replacement = [
+              "// virtual joystick replaces the old 8-button dpad",
+              "const sticks = harness.getObjects('MoveStick');",
+              "harness.assert(sticks.length === 0, 'Old MoveStick gone');",
+              "for (const n of ['Dpad_N','Dpad_S','Dpad_E','Dpad_W','Dpad_NW','Dpad_NE','Dpad_SW','Dpad_SE']) {",
+              "  harness.assert(harness.getObjects(n).length === 0, n+' not instantiated');",
+              "}",
+              "harness.assert(harness.getSceneVariable('VirtualJoystickReady')?.value === true, 'Virtual joystick initialized');",
+          ]
+          stability['source'] = old_lines[:start] + replacement + old_lines[end:]
+          stability['description'] = 'Core stability: round virtual joystick UI, keyboard fallback, normalized movement, camera, bounds'
+          stability['lastRunAt'] = 0
+          stability['lastRunDurationMs'] = 0
+          stability['lastRunFramesExecuted'] = 0
+          stability['lastRunStatus'] = 'not-run'
+
+          test_name = 'v0.6.3 Mobile Virtual Joystick test'
+          assert not any(t.get('name') == test_name for t in data['tests'])
+          data['tests'].append({
+              'description': 'Round virtual joystick replaces D-pad, keeps constant 260 movement speed, supports 360-degree direction and spring release',
+              'lastRunAt': 0, 'lastRunDurationMs': 0, 'lastRunFramesExecuted': 0,
+              'lastRunStatus': 'not-run', 'name': test_name, 'type': 'gameplay',
+              'source': [
+                  "await harness.goToScene('FROST LAB');",
+                  "await harness.stepFrames(30);",
+                  "const dpadNames = ['Dpad_N','Dpad_S','Dpad_E','Dpad_W','Dpad_NW','Dpad_NE','Dpad_SW','Dpad_SE'];",
+                  "for (const n of dpadNames) harness.assert(harness.getObjects(n).length === 0, n+' removed from UI');",
+                  "harness.assert(harness.getSceneVariable('VirtualJoystickReady')?.value === true, 'virtual joystick ready');",
+                  "harness.assert(harness.getObjects('BuildText')[0].text === '開発版 v0.6.3-DIAG', 'v0.6.3 build marker');",
+                  "const p0 = harness.getObjects('Player')[0];",
+                  "harness.setSceneVariable('JoystickX', 1);",
+                  "harness.setSceneVariable('JoystickY', 0);",
+                  "harness.setSceneVariable('JoystickActive', true);",
+                  "await harness.stepFrames(60);",
+                  "const p1 = harness.getObjects('Player')[0];",
+                  "const cardinal = Math.hypot(p1.centerX-p0.centerX, p1.centerY-p0.centerY);",
+                  "harness.assert(p1.centerX > p0.centerX + 30, `joystick right moves right: ${p0.centerX}->${p1.centerX}`);",
+                  "harness.setSceneVariable('JoystickX', 0);",
+                  "harness.setSceneVariable('JoystickY', -1);",
+                  "await harness.stepFrames(60);",
+                  "const p2 = harness.getObjects('Player')[0];",
+                  "harness.assert(p2.centerY < p1.centerY - 30, `joystick up moves up: ${p1.centerY}->${p2.centerY}`);",
+                  "const beforeDiag = harness.getObjects('Player')[0];",
+                  "harness.setSceneVariable('JoystickX', 0.70710678);",
+                  "harness.setSceneVariable('JoystickY', 0.70710678);",
+                  "await harness.stepFrames(60);",
+                  "const afterDiag = harness.getObjects('Player')[0];",
+                  "const diagonal = Math.hypot(afterDiag.centerX-beforeDiag.centerX, afterDiag.centerY-beforeDiag.centerY);",
+                  "harness.assert(diagonal > 20, `360 diagonal input moves: ${diagonal}`);",
+                  "harness.assert(Math.abs(diagonal-cardinal)/Math.max(cardinal,1) < 0.25, `constant speed: cardinal=${cardinal} diagonal=${diagonal}`);",
+                  "harness.setSceneVariable('JoystickActive', false);",
+                  "harness.setSceneVariable('JoystickX', 0);",
+                  "harness.setSceneVariable('JoystickY', 0);",
+                  "const r0 = harness.getObjects('Player')[0];",
+                  "await harness.stepFrames(30);",
+                  "const r1 = harness.getObjects('Player')[0];",
+                  "harness.assert(Math.hypot(r1.centerX-r0.centerX, r1.centerY-r0.centerY) < 5, 'release returns movement to neutral');",
+                  "harness.assert((r1.z ?? 0) > -50 && (r1.z ?? 0) < 100, `player remains on floor: z=${r1.z}`);",
+                  ""
+              ]
+          })
+
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+          print('v0.6.3 mobile virtual joystick implemented.')
+          PY
+          python3 -m json.tool game.json >/dev/null
+
+      - name: Verify v0.6.3 structure and protected gameplay logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          with open('main-baseline.json', encoding='utf-8') as f: before = json.load(f)
+          with open('game.json', encoding='utf-8') as f: after = json.load(f)
+          b = next(x for x in before['layouts'] if x.get('name') == 'FROST LAB')
+          a = next(x for x in after['layouts'] if x.get('name') == 'FROST LAB')
+          def event(scene, name):
+              items=[x for x in scene['events'] if x.get('name')==name]
+              assert len(items)==1,(name,len(items)); return items[0]
+          for protected in ('v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle','v0.6.2 Color-independent Actor ID Labels','v0.3.4 guaranteed solid-state visuals','Wolf actions'):
+              assert event(b, protected) == event(a, protected), protected
+          btests={x['name']:x for x in before['tests']}; atests={x['name']:x for x in after['tests']}
+          for protected in ('v0.6.2 Color-independent Actor ID Labels test','v0.6.1 Human CPU navigation recovery test','v0.6.0 human-side CPU Wolf test','v0.6.0 CPU Wolf device diagnostic test'):
+              assert btests[protected] == atests[protected], protected
+          assert not any(x.get('name','').startswith('Dpad_') for x in a['instances'])
+          for name in ('VirtualJoystickReady','JoystickActive','JoystickX','JoystickY'):
+              assert any(v.get('name')==name for v in a['variables']), name
+          ui=event(a,'v0.6.3 Mobile Virtual Joystick UI')
+          js='\n'.join(ui['events'][0]['inlineCode'])
+          for marker in ('pointerdown','pointermove','pointerup','pointercancel','DEAD_ZONE = 0.18','radial-gradient','JoystickX','JoystickY','translate(0px, 0px)'):
+              assert marker in js, marker
+          move=event(a,'v0.6.3 Virtual joystick + keyboard movement (fixed camera)')
+          move_js='\n'.join(line for ev in move['events'] if ev.get('type')=='BuiltinCommonInstructions::JsCode' for line in ev.get('inlineCode',[]))
+          assert "get('JoystickActive')" in move_js and "get('MoveX')" in move_js and "get('MoveY')" in move_js
+          build=next(x for x in a['objects'] if x.get('name')=='BuildText')
+          assert build['string']=='開発版 v0.6.3-DIAG' and build['content']['text']=='開発版 v0.6.3-DIAG'
+          assert sum(t.get('name')=='v0.6.3 Mobile Virtual Joystick test' for t in after['tests'])==1
+          print('v0.6.3 structural/protected-logic gate PASS.')
+          PY
+
+      - name: Install GDevelop Linux runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282 portable build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip' --output /tmp/gdevelop.zip
+          echo 'c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472  /tmp/gdevelop.zip' | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -u+x | head -n 1)"
+          if [ -z "$BIN" ]; then BIN="$(find /tmp/gdevelop -type f -name gdevelop | head -n 1)"; fi
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "GDEVELOP_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Run v0.6.3 joystick gameplay test
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.3 Mobile Virtual Joystick test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v063-joystick-results.json
+
+      - name: Run updated stability regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'Stability self-test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json stability-results.json
+
+      - name: Run v0.6.2 labels regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.2 Color-independent Actor ID Labels test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v062-label-results.json
+
+      - name: Run v0.6.1 Human navigation regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.1 Human CPU navigation recovery test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v061-navigation-results.json
+
+      - name: Run v0.6.0 CPU Wolf diagnostic regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.0 CPU Wolf device diagnostic test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json cpu-wolf-diag-results.json
+
+      - name: Prove strict diagnostic debt did not increase
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json" > feature-strict.log 2>&1
+          FEATURE_STATUS=$?
+          set -e
+          test "$FEATURE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' feature-strict.log
+          rm -rf build
+          set +e
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/main-baseline.json" > baseline-strict.log 2>&1
+          BASELINE_STATUS=$?
+          set -e
+          test "$BASELINE_STATUS" -ne 0
+          grep -Fq '[CLI] Diagnostic report has 14 error(s). Export blocked.' baseline-strict.log
+          echo 'Strict diagnostic provenance PASS: feature=14, baseline=14.'
+
+      - name: Export v0.6.3 HTML5 and stage iPhone preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -s build/index.html
+          test -s build/code0.js
+          FILE_COUNT="$(find build -type f | wc -l)"
+          test "$FILE_COUNT" -gt 5
+          python3 - <<'PY'
+          path='build/code0.js'
+          text=open(path,encoding='utf-8').read()
+          needle='Code.eventsList0 = function(runtimeScene) {\n\n};'
+          assert text.count(needle)==1, text.count(needle)
+          text=text.replace(needle,'Code.eventsList0 = function(runtimeScene) {\n  gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "FROST LAB", false);\n};',1)
+          open(path,'w',encoding='utf-8').write(text)
+          PY
+          printf '%s\n' 'ICE WOLF v0.6.3 Mobile Virtual Joystick preview' 'source-main=45024fa159bd66291a4687c74eb29f5896b35392' 'feature=round spring-return virtual joystick; 360-degree fixed-speed movement; D-pad hidden' > build/PREVIEW_SOURCE.txt
+          touch build/.nojekyll
+          rm -rf /tmp/v063-preview-build
+          cp -a build /tmp/v063-preview-build
+          echo "v0.6.3 standard export PASS: $FILE_COUNT files."
+
+      - name: Commit only final game.json and self-clean one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='45024fa159bd66291a4687c74eb29f5896b35392'
+          rm -f main-baseline.json v063-joystick-results.json stability-results.json v062-label-results.json v061-navigation-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log gameplay-test-results.json
+          rm -rf build
+          git rm .github/workflows/v063-mobile-virtual-joystick.yml
+          git add game.json
+          STAGED="$(git diff --cached --name-only | sort)"
+          EXPECTED="$(printf '%s\n' '.github/workflows/v063-mobile-virtual-joystick.yml' 'game.json' | sort)"
+          test "$STAGED" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: add v0.6.3 mobile virtual joystick [skip ci]'
+          git push origin HEAD:feature/v063-mobile-virtual-joystick
+          FINAL="$(git diff --name-only "$BASE"..HEAD)"
+          test "$FINAL" = 'game.json'
+          test ! -e .github/workflows/v063-mobile-virtual-joystick.yml
+          echo "FINAL_FEATURE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo 'Final feature branch proof PASS: net delta is game.json only.'
+
+      - name: Publish isolated v0.6.3 iPhone preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/v063-preview-build/index.html
+          if git ls-remote --exit-code --heads origin preview-v063-mobile-virtual-joystick >/dev/null 2>&1; then
+            echo 'STOP: preview-v063-mobile-virtual-joystick already exists unexpectedly.' >&2
+            exit 1
+          fi
+          git switch --orphan preview-v063-mobile-virtual-joystick
+          git rm -rf . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/v063-preview-build/. .
+          test -s index.html
+          test -s PREVIEW_SOURCE.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'preview: v0.6.3 mobile virtual joystick device test'
+          git push origin HEAD:preview-v063-mobile-virtual-joystick
+          echo "PREVIEW_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo 'Static v0.6.3 iPhone preview published.'
+
+      - name: Final provenance report
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "feature head: $FINAL_FEATURE_HEAD"
+          echo "preview head: $PREVIEW_HEAD"
+          echo 'source main: 45024fa159bd66291a4687c74eb29f5896b35392'
+          echo 'v0.6.3 gate COMPLETE'
