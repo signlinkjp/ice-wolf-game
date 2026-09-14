@@ -1,4 +1,4 @@
-# revision: 5
+# revision: 6
 name: v0.6.1 Human CPU Navigation Recovery One-Time Gate
 
 on:
@@ -105,37 +105,40 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          rm -f gameplay-test-results.json
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
             --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
-            --cmd-args 'v0.6.1 Human CPU navigation recovery test' \
-            --results-path "$GITHUB_WORKSPACE/v061-navigation-results.json"
-          test -s v061-navigation-results.json
+            --cmd-args 'v0.6.1 Human CPU navigation recovery test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json v061-navigation-results.json
 
       - name: Run Human-side CPU Wolf regression test in GDevelop
         shell: bash
         run: |
           set -euo pipefail
+          rm -f gameplay-test-results.json
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
             --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
-            --cmd-args 'v0.6.0 human-side CPU Wolf test' \
-            --results-path "$GITHUB_WORKSPACE/human-side-results.json"
-          test -s human-side-results.json
+            --cmd-args 'v0.6.0 human-side CPU Wolf test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json human-side-results.json
 
       - name: Run CPU Wolf device-diagnostic regression test in GDevelop
         shell: bash
         run: |
           set -euo pipefail
+          rm -f gameplay-test-results.json
           xvfb-run -a "$GDEVELOP_BIN" \
             --no-sandbox \
             --disable-update-check \
             --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" \
-            --cmd-args 'v0.6.0 CPU Wolf device diagnostic test' \
-            --results-path "$GITHUB_WORKSPACE/cpu-wolf-diag-results.json"
-          test -s cpu-wolf-diag-results.json
+            --cmd-args 'v0.6.0 CPU Wolf device diagnostic test'
+          test -s gameplay-test-results.json
+          mv gameplay-test-results.json cpu-wolf-diag-results.json
 
       - name: Prove strict diagnostic debt is unchanged from exact current main
         shell: bash
@@ -189,7 +192,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='cfd2aae6a48e8ad3d33e176e49ff2ede25dbaefb'
-          rm -f main-baseline.json v061-navigation-results.json human-side-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log
+          rm -f main-baseline.json v061-navigation-results.json human-side-results.json cpu-wolf-diag-results.json feature-strict.log baseline-strict.log gameplay-test-results.json
           rm -rf build
           git rm .github/ice-wolf/v061_transplant.py
           git rm .github/workflows/v061-human-cpu-navigation-recovery.yml
