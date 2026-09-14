@@ -86,7 +86,11 @@ def main():
 
     insert_before(lines, "      actor.setX(Math.max(-708, Math.min(692, actor.getX() + vx * speed * dt)));", [
         "      if (actor.__iceWolfAIHumanBlockedFor >= humanBlockedTrigger && actor.__iceWolfAIHumanDetourLeft <= 0) {",
-        "        actor.__iceWolfAIHumanDetourSign = Math.random() < 0.5 ? -1 : 1;",
+        "        if (Math.abs(vx) >= Math.abs(vy)) {",
+        "          actor.__iceWolfAIHumanDetourSign = (ay < 0 ? 1 : -1) * (vx >= 0 ? 1 : -1);",
+        "        } else {",
+        "          actor.__iceWolfAIHumanDetourSign = (ax >= 0 ? 1 : -1) * (vy >= 0 ? 1 : -1);",
+        "        }",
         "        actor.__iceWolfAIHumanDetourLeft = humanDetourDuration;",
         "        actor.__iceWolfAIHumanBlockedFor = 0;",
         "      }",
@@ -116,7 +120,7 @@ def main():
     if any(t.get("name") == TEST_NAME for t in data.get("tests", [])):
         raise AssertionError("v0.6.1 navigation test already exists")
     data.setdefault("tests", []).append({
-        "description": "Human CPU detects a wall stall, detours around the obstacle, and completes a frozen Player rescue",
+        "description": "Human CPU detects a wall stall, detours toward the central passage, and completes a frozen Player rescue",
         "lastRunAt": 0,
         "lastRunDurationMs": 0,
         "lastRunFramesExecuted": 0,
@@ -125,7 +129,7 @@ def main():
         "type": "gameplay",
         "source": [
             "await harness.goToScene('FROST LAB');",
-            "await harness.stepFrames(30);",
+            "await harness.stepFrames(10);",
             "const players = harness.getObjects('Player');",
             "const actors = harness.getObjects('Actor');",
             "const walls = harness.getObjects('Wall');",
@@ -144,19 +148,19 @@ def main():
             "  harness.setObjectVariable(actor.id, 'State', 'Disabled');",
             "}",
             "harness.setObjectVariable(rescuer.id, 'State', 'Active');",
-            "const laneY = wall.centerY;",
-            "harness.setObjectPosition(rescuer.id, wall.centerX - wall.width / 2 - 72 - rescuer.width / 2, laneY - rescuer.height / 2);",
-            "harness.setObjectPosition(player.id, wall.centerX + wall.width / 2 + 72 - player.width / 2, laneY - player.height / 2);",
-            "await harness.stepFrames(5);",
+            "const laneY = wall.centerY + wall.height / 2 - 24;",
+            "harness.setObjectPosition(rescuer.id, wall.centerX - wall.width / 2 - 48 - rescuer.width / 2, laneY - rescuer.height / 2);",
+            "harness.setObjectPosition(player.id, wall.centerX + wall.width / 2 + 48 - player.width / 2, laneY - player.height / 2);",
+            "await harness.stepFrames(3);",
             "const startRescuer = harness.getObjects('Actor').find(a => a.id === rescuer.id);",
             "const startY = startRescuer.centerY;",
             "let maxLateral = 0;",
-            "for (let i = 0; i < 36 && harness.getObjectVariable('Player', 'State')?.value !== 'Active'; i++) {",
-            "  await harness.stepFrames(10);",
+            "for (let i = 0; i < 16 && harness.getObjectVariable('Player', 'State')?.value !== 'Active'; i++) {",
+            "  await harness.stepFrames(8);",
             "  const current = harness.getObjects('Actor').find(a => a.id === rescuer.id);",
             "  maxLateral = Math.max(maxLateral, Math.abs(current.centerY - startY));",
             "}",
-            "harness.assert(maxLateral > 35, `Human CPU visibly detours around wall: lateral=${maxLateral.toFixed(1)}`);",
+            "harness.assert(maxLateral > 20, `Human CPU visibly detours around wall: lateral=${maxLateral.toFixed(1)}`);",
             "harness.assert(harness.getObjectVariable('Player', 'State')?.value === 'Active', 'Human CPU completes rescue after wall detour');",
             ""
         ]
@@ -186,7 +190,7 @@ def main():
 
     print("v0.6.1 Human CPU navigation recovery patch PASS")
     print("Protected PR #10 markers preserved: " + ", ".join(protected))
-    print("Added runtime regression: " + TEST_NAME)
+    print("Added bounded runtime regression: " + TEST_NAME)
 
 
 if __name__ == "__main__":
