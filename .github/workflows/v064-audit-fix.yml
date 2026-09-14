@@ -1,0 +1,57 @@
+name: v0.6.4 Audit Comparator Fix
+
+on:
+  push:
+    branches:
+      - feature/v064-compact-joystick-overview-camera
+    paths:
+      - '.github/workflows/v064-audit-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-audit-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/v064-compact-joystick-overview-camera
+          fetch-depth: 0
+      - name: Guard main, parent and untouched game
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN='45024fa159bd66291a4687c74eb29f5896b35392'
+          PARENT='a08d5301b3fecf98900946354f046841910ff936'
+          GAME_BLOB='73dc5913c07813b3858acbbe456f2e5af380282c'
+          git fetch origin main feature/v063-mobile-virtual-joystick --no-tags
+          test "$(git rev-parse origin/main)" = "$MAIN"
+          test "$(git rev-parse origin/feature/v063-mobile-virtual-joystick)" = "$PARENT"
+          test "$(git hash-object game.json)" = "$GAME_BLOB"
+          git diff --quiet "$PARENT" -- game.json
+      - name: Correct comparator only and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/v064-compact-joystick-overview-camera.yml')
+          s=p.read_text()
+          old="""          aj['events'][0]['inlineCode'] = expected.split('\\n')
+          assert aj == bj, 'joystick changed outside approved visual-only edits'
+"""
+          new="""          expected_joystick = copy.deepcopy(bj)
+          expected_joystick['events'][0]['inlineCode'] = expected.split('\\n')
+          assert aj == expected_joystick, 'joystick changed outside approved visual-only edits'
+"""
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,new,1))
+          PY
+          git rm .github/workflows/v064-audit-fix.yml
+          git add .github/workflows/v064-compact-joystick-overview-camera.yml
+          test -z "$(git diff --name-only -- game.json)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test: correct v0.6.4 joystick comparator [skip ci]'
+          git push origin HEAD:feature/v064-compact-joystick-overview-camera
