@@ -17,6 +17,8 @@ def load_commit(sha: str):
 
 
 def inline_text(value):
+    if isinstance(value, str):
+        return value
     if not isinstance(value, list) or not value or not all(isinstance(x, str) for x in value):
         return None
     if len(value) == 1:
@@ -121,7 +123,8 @@ def main():
         if marker not in merged:
             raise AssertionError(f"transplant lost protected PR #10 marker: {marker}")
 
-    current_node["inlineCode"] = [merged]
+    current_inline = current_node.get("inlineCode")
+    current_node["inlineCode"] = merged if isinstance(current_inline, str) else [merged]
 
     label_count = replace_exact_string(current, "開発版 v0.6.0-DIAG", "開発版 v0.6.1-DIAG")
     if label_count < 1:
@@ -139,10 +142,11 @@ def main():
     pathlib.Path("/tmp/v061-merged-ai.js").write_text(merged, encoding="utf-8")
 
     roundtrip = json.loads(PROJECT.read_text(encoding="utf-8"))
-    rt_node, rt_src, _ = find_cpu_ai(roundtrip, "patched v0.6.1")
+    _, rt_src, _ = find_cpu_ai(roundtrip, "patched v0.6.1")
     assert rt_src == merged
-    assert "開発版 v0.6.1-DIAG" in PROJECT.read_text(encoding="utf-8")
-    assert "v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle" in PROJECT.read_text(encoding="utf-8")
+    raw = PROJECT.read_text(encoding="utf-8")
+    assert "開発版 v0.6.1-DIAG" in raw
+    assert "v0.6.1 Human CPU Navigation Recovery + CPU Wolf Cycle" in raw
 
     print("v0.6.1 semantic transplant PASS")
     print(f"CPU AI path: {current_path}")
