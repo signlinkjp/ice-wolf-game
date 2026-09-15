@@ -1,4 +1,4 @@
-name: PR16 Diagnostic Variable Identity Audit
+name: PR16 Baseline Raw Diagnostic Smoke
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  identify-diagnostic-variable:
+  baseline-raw-diagnostic-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -21,8 +21,7 @@ jobs:
       GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
       WORKFLOW_PATH: .github/workflows/pr16-diagnostic-identity.yml
       RUNTIME_BUNDLE: www/static/js/local-app.4119ac3d.chunk.js
-      SOURCE_MAP: www/static/js/local-app.4119ac3d.chunk.js.map
-      MARKER: Diagnostic report has
+      SENTINEL: __IW_DIAG_JSON__
     steps:
       - name: Checkout diagnostic branch
         uses: actions/checkout@v4
@@ -39,189 +38,108 @@ jobs:
           test "$(git diff --name-only "$PR_HEAD"..HEAD)" = "$WORKFLOW_PATH"
           echo 'initial guard PASS'
 
-      - name: Resolve t vs o by runtime code and source map only
+      - name: Prepare exact GDevelop and current-main baseline
         shell: bash
         run: |
           set -euo pipefail
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl >/dev/null
           curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip" >/dev/null
           echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
-          rm -rf /tmp/gdevelop /tmp/gdevelop-app /tmp/report /tmp/sourcemap
-          mkdir -p /tmp/gdevelop /tmp/report /tmp/sourcemap
+          rm -rf /tmp/gdevelop /tmp/gdevelop-app /tmp/report /tmp/strict
+          mkdir -p /tmp/gdevelop /tmp/report /tmp/strict
           unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
           ASAR="$(find /tmp/gdevelop -type f -name app.asar | head -n 1)"
-          test -n "$ASAR"
+          test -n "$GDEVELOP_BIN" && test -n "$ASAR"
+          echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
+          echo "ASAR=$ASAR" >> "$GITHUB_ENV"
+          git show "$BASE_SHA:game.json" > /tmp/baseline-game.json
+          python3 -m json.tool /tmp/baseline-game.json >/dev/null
+          echo 'exact GDevelop + baseline PASS'
+
+      - name: Instrument temporary runtime bundle for raw diagnostic JSON
+        shell: bash
+        run: |
+          set -euo pipefail
           npx --yes asar@3.2.0 extract "$ASAR" /tmp/gdevelop-app >/dev/null
           test -f "/tmp/gdevelop-app/$RUNTIME_BUNDLE"
-          test -f "/tmp/gdevelop-app/$SOURCE_MAP"
-          npm install --prefix /tmp/sourcemap --silent source-map@0.7.4
-          NODE_PATH=/tmp/sourcemap/node_modules node <<'NODE'
+          node <<'NODE'
           const fs = require('fs');
           const path = require('path');
-          const { SourceMapConsumer } = require('source-map');
-
-          const bundle = process.env.RUNTIME_BUNDLE;
-          const sourceMapPath = process.env.SOURCE_MAP;
-          const marker = process.env.MARKER;
-          const text = fs.readFileSync(path.join('/tmp/gdevelop-app', bundle), 'utf8');
-          const map = JSON.parse(fs.readFileSync(path.join('/tmp/gdevelop-app', sourceMapPath), 'utf8'));
-
-          const positions = [];
-          for (let from = 0;;) {
-            const i = text.indexOf(marker, from);
-            if (i < 0) break;
-            positions.push(i);
-            from = i + marker.length;
-          }
-
-          const posToLineCol = offset => {
-            const before = text.slice(0, offset);
-            const line = before.split('\n').length;
-            const lastNl = before.lastIndexOf('\n');
-            return { line, column: offset - lastNl - 1 };
-          };
-
-          const findOriginalDefinition = (content, name) => {
-            if (!content || !name) return 'UNRESOLVED';
-            const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const patterns = [
-              new RegExp(`(?:const|let|var)\\s+${escaped}\\s*=\\s*[^;]+;`),
-              new RegExp(`${escaped}\\s*=\\s*[^;]+;`),
-            ];
-            for (const re of patterns) {
-              const m = content.match(re);
-              if (m) return m[0].replace(/\s+/g, ' ').slice(0, 500);
-            }
-            return 'UNRESOLVED';
-          };
-
-          let tMeaning = 'UNRESOLVED';
-          let oMeaning = 'UNRESOLVED';
-          let diagnosticExpression = 'UNRESOLVED';
-          let unique = false;
-          let reason = '';
-          let markerSnippet = '(snippet unavailable)\n';
-          const evidence = [];
-
-          if (positions.length !== 1) {
-            reason = `runtime marker hit count=${positions.length}`;
-          } else {
-            const markerPos = positions[0];
-            markerSnippet = text.slice(Math.max(0, markerPos - 900), Math.min(text.length, markerPos + marker.length + 900));
-
-            const errorPhrasePos = text.indexOf('error(s)', markerPos);
-            const messageSegmentEnd = errorPhrasePos >= 0 ? errorPhrasePos + 'error(s)'.length : markerPos + marker.length + 180;
-            const messageSegment = text.slice(markerPos, messageSegmentEnd);
-            const direct = [...messageSegment.matchAll(/\b([to])\.length\b/g)].map(m => ({ name: m[1], abs: markerPos + m.index }));
-            evidence.push(`messageSegmentLengthExpressions=${JSON.stringify(direct.map(x => x.name))}`);
-
-            const localStart = Math.max(0, markerPos - 500);
-            const localEnd = Math.min(text.length, markerPos + marker.length + 500);
-            const local = text.slice(localStart, localEnd);
-            const nearby = [...local.matchAll(/\b([to])\.length\b/g)].map(m => ({ name: m[1], abs: localStart + m.index }));
-            evidence.push(`nearbyLengthExpressions=${JSON.stringify(nearby.map(x => x.name))}`);
-
-            const sourceHits = [];
-            for (let i = 0; i < (map.sourcesContent || []).length; i++) {
-              const content = map.sourcesContent[i];
-              if (typeof content === 'string' && content.includes(marker)) sourceHits.push(i);
-            }
-            evidence.push(`sourceMarkerHitCount=${sourceHits.length}`);
-
-            await SourceMapConsumer.with(map, null, consumer => {
-              const candidateInfo = {};
-              for (const name of ['t', 'o']) {
-                const occ = nearby.filter(x => x.name === name).sort((a,b) => Math.abs(a.abs-markerPos) - Math.abs(b.abs-markerPos))[0];
-                if (!occ) {
-                  candidateInfo[name] = { generated:name, originalName:'UNRESOLVED', source:'UNRESOLVED', line:null, definition:'UNRESOLVED' };
-                  continue;
-                }
-                const lc = posToLineCol(occ.abs);
-                const orig = consumer.originalPositionFor({ line: lc.line, column: lc.column, bias: SourceMapConsumer.LEAST_UPPER_BOUND });
-                let definition = 'UNRESOLVED';
-                if (orig.source && orig.name) {
-                  const idx = map.sources.indexOf(orig.source);
-                  if (idx >= 0) definition = findOriginalDefinition(map.sourcesContent[idx], orig.name);
-                }
-                candidateInfo[name] = {
-                  generated: name,
-                  originalName: orig.name || 'UNRESOLVED',
-                  source: orig.source || 'UNRESOLVED',
-                  line: orig.line || null,
-                  column: orig.column ?? null,
-                  definition,
-                };
-              }
-
-              const sourceEvidence = [];
-              for (const idx of sourceHits) {
-                const content = map.sourcesContent[idx];
-                const p = content.indexOf(marker);
-                const ctx = content.slice(Math.max(0, p - 1200), Math.min(content.length, p + marker.length + 600));
-                const scanMatch = ctx.match(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*scanProjectForValidationErrors\s*\([^;]+\)\s*;/);
-                const msgMatch = ctx.match(/Diagnostic report has[^\n]{0,120}\$\{([A-Za-z_$][\w$]*)\.length\}/);
-                sourceEvidence.push({ source: map.sources[idx], scanVar: scanMatch ? scanMatch[1] : 'UNRESOLVED', messageVar: msgMatch ? msgMatch[1] : 'UNRESOLVED', context: ctx.replace(/\s+/g,' ').slice(0,1200) });
-              }
-
-              const directNames = [...new Set(direct.map(x => x.name))];
-              const sourceResolved = sourceEvidence.find(x => x.scanVar !== 'UNRESOLVED' && x.messageVar !== 'UNRESOLVED' && x.scanVar === x.messageVar);
-              if (directNames.length === 1 && sourceResolved) {
-                const generatedDiag = directNames[0];
-                const mapped = candidateInfo[generatedDiag];
-                const mappedMatches = mapped && (mapped.originalName === sourceResolved.scanVar || mapped.definition.includes('scanProjectForValidationErrors'));
-                if (mappedMatches) {
-                  diagnosticExpression = generatedDiag;
-                  unique = true;
-                  reason = `direct runtime message uses ${generatedDiag}.length and source map ties it to ${sourceResolved.scanVar}=scanProjectForValidationErrors(...)`;
-                } else {
-                  reason = `direct runtime message candidate=${generatedDiag}, but source-map identity did not prove scanner linkage`;
-                }
-              } else {
-                reason = `unable to prove one runtime message variable and one matching source scanner variable`;
-              }
-
-              const renderMeaning = name => {
-                const info = candidateInfo[name];
-                if (!info) return 'UNRESOLVED';
-                if (diagnosticExpression === name) return `diagnostic array returned by scanProjectForValidationErrors(project); original=${info.originalName}; source=${info.source}:${info.line ?? '?'}; definition=${info.definition}`;
-                return `non-diagnostic nearby .length expression; original=${info.originalName}; source=${info.source}:${info.line ?? '?'}; definition=${info.definition}`;
-              };
-              tMeaning = renderMeaning('t');
-              oMeaning = renderMeaning('o');
-
-              evidence.push(`sourceEvidence=${JSON.stringify(sourceEvidence.map(x => ({source:x.source,scanVar:x.scanVar,messageVar:x.messageVar})))}`);
-              evidence.push(`candidateInfo=${JSON.stringify(candidateInfo)}`);
-            });
-          }
-
-          fs.writeFileSync('/tmp/report/marker-snippet.txt', markerSnippet);
-          fs.writeFileSync('/tmp/report/expression-analysis.txt', [
-            'GDevelop=5.6.282',
-            `GDevelopZipSHA256=${process.env.GDEVELOP_SHA256}`,
-            `runtimeBundle=${bundle}`,
-            `sourceMap=${sourceMapPath}`,
-            `marker=${marker}`,
-            `markerHitCount=${positions.length}`,
-            `tMeaning=${tMeaning}`,
-            `oMeaning=${oMeaning}`,
-            `diagnosticArrayExpression=${diagnosticExpression}`,
-            `unique=${unique ? 'YES' : 'NO'}`,
-            `verdict=${unique ? 'GO' : 'STOP'}`,
-            `reason=${reason}`,
-            ...evidence,
-            'scope=READ ONLY runtime/source-map identity analysis only; no instrumentation/repack/diagnostic execution',
-            ''
-          ].join('\n'));
+          const p = path.join('/tmp/gdevelop-app', process.env.RUNTIME_BUNDLE);
+          const text = fs.readFileSync(p, 'utf8');
+          const anchor = 'const t=(0,No.d8)(e);if(t.length>0)throw console.error(';
+          const count = text.split(anchor).length - 1;
+          if (count !== 1) throw new Error(`instrumentation anchor count=${count}`);
+          const replacement = 'const t=(0,No.d8)(e);console.error("' + process.env.SENTINEL + '"+JSON.stringify(t));if(t.length>0)throw console.error(';
+          fs.writeFileSync(p, text.replace(anchor, replacement));
+          console.log('temporary instrumentation anchor PASS');
           NODE
-          (cd /tmp/report && sha256sum expression-analysis.txt marker-snippet.txt > MANIFEST.sha256)
-          cat /tmp/report/expression-analysis.txt
+          npx --yes asar@3.2.0 pack /tmp/gdevelop-app /tmp/app.instrumented.asar >/dev/null
+          cp /tmp/app.instrumented.asar "$ASAR"
+          echo 'temporary app.asar repack PASS'
 
-      - name: Upload minimal variable-identity artifact
+      - name: Run one baseline strict diagnostic and extract JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          (cd /tmp/strict && xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL /tmp/baseline-game.json) > /tmp/baseline-strict.log 2>&1
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+          sentinel='__IW_DIAG_JSON__'
+          lines=Path('/tmp/baseline-strict.log').read_text(encoding='utf-8',errors='replace').splitlines()
+          hits=[]
+          for line in lines:
+              if sentinel in line:
+                  payload=line.split(sentinel,1)[1].strip()
+                  try:
+                      value=json.loads(payload)
+                      hits.append(value)
+                  except Exception:
+                      pass
+          if len(hits)!=1:
+              raise SystemExit(f'valid sentinel JSON hit count={len(hits)}')
+          data=hits[0]
+          if not isinstance(data,list):
+              raise SystemExit('diagnostic payload is not an array')
+          Path('/tmp/report/baseline-diagnostics.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
+          first=data[0] if data else None
+          if first is not None and not isinstance(first,dict):
+              raise SystemExit('first diagnostic is not an object')
+          keys=sorted(first.keys()) if isinstance(first,dict) else []
+          expected={'type','isCondition','instructionType','instructionSentence','locationName','locationType','eventPath'}
+          schema_ok=(first is None) or expected.issubset(first.keys())
+          summary='\n'.join([
+              'GDevelop=5.6.282',
+              'baseline=current-main-equivalent',
+              'baselineSHA=9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1',
+              f'diagnosticCount={len(data)}',
+              'jsonParse=PASS',
+              f'firstSchema={"PASS" if schema_ok else "PARTIAL"}',
+              f'firstKeys={json.dumps(keys,ensure_ascii=False)}',
+              'verdict=GO' if schema_ok else 'verdict=STOP',
+              ''
+          ])
+          Path('/tmp/report/baseline-summary.txt').write_text(summary,encoding='utf-8')
+          print(summary)
+          if not schema_ok:
+              raise SystemExit('first diagnostic schema did not contain expected core fields')
+          PY
+          (cd /tmp/report && sha256sum baseline-diagnostics.json baseline-summary.txt > MANIFEST.sha256)
+
+      - name: Upload minimal baseline diagnostic artifact
         uses: actions/upload-artifact@v4
         with:
-          name: icewolf-pr16-variable-identity
+          name: icewolf-pr16-baseline-diagnostics
           path: |
-            /tmp/report/expression-analysis.txt
-            /tmp/report/marker-snippet.txt
+            /tmp/report/baseline-diagnostics.json
+            /tmp/report/baseline-summary.txt
             /tmp/report/MANIFEST.sha256
           if-no-files-found: error
           retention-days: 7
