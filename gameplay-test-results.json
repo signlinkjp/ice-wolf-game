@@ -1,0 +1,263 @@
+[
+  {
+    "status": "passed",
+    "testName": "v0.6.0 CPU Wolf device diagnostic test",
+    "framesExecuted": 131,
+    "durationMs": 12432,
+    "loadingMs": 203,
+    "timeoutMs": 30000,
+    "hiddenStallMs": 0,
+    "gameTimeMs": 2183,
+    "assertions": [
+      {
+        "message": "diagnostic starts Player Human/Active",
+        "passed": true
+      },
+      {
+        "message": "diagnostic phase 1",
+        "passed": true
+      },
+      {
+        "message": "one diagnostic CPU Wolf, got 1",
+        "passed": true
+      },
+      {
+        "message": "diagnostic CPU Wolf starts in WOLF MODE",
+        "passed": true
+      },
+      {
+        "message": "diagnostic CPU Wolf naturally reaches/freezes Player",
+        "passed": true
+      },
+      {
+        "message": "diagnostic phase 2 after freeze",
+        "passed": true
+      },
+      {
+        "message": "Human CPU naturally rescues frozen Player",
+        "passed": true
+      },
+      {
+        "message": "diagnostic phase 3 PASS",
+        "passed": true
+      },
+      {
+        "message": "PASS status visible: 診断PASS：追跡 → 凍結 → 救助",
+        "passed": true
+      }
+    ],
+    "errors": [],
+    "consoleLogs": [
+      "[warn] [PIXI Image manager] Unable to find texture for resource \"\".",
+      "[log] [LayerPixiRenderer] RenderTexture created for layer .",
+      "[log] [LayerPixiRenderer] RenderTexture created for layer UI."
+    ],
+    "eventLog": [
+      {
+        "frame": 1,
+        "event": "sceneChanged",
+        "sceneName": "FROST LAB",
+        "cause": "harness"
+      }
+    ],
+    "finalState": {
+      "sceneName": "FROST LAB",
+      "objectCounts": {
+        "Floor": 1,
+        "Wall": 30,
+        "Player": 1,
+        "Barrier": 4,
+        "Actor": 6,
+        "TimerText": 1,
+        "RoleText": 1,
+        "WolfButton": 1,
+        "RescueButton": 1,
+        "InfectButton": 1,
+        "WinText": 1,
+        "TestRoleButton": 1,
+        "TestResetButton": 1,
+        "StatusText": 1,
+        "ActionFeedbackText": 1,
+        "BuildText": 1,
+        "CpuWolfTestButton": 1
+      },
+      "watchedObjects": {},
+      "sceneVariables": [
+        {
+          "name": "GameOver",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "InfectionUsed",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "HumanActive",
+          "value": 6,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "CooldownLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfModeLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MatchTimeLeft",
+          "value": 208.46666666666545,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MatchDuration",
+          "value": 210,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfCooldown",
+          "value": 5,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfModeDuration",
+          "value": 5,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "SafeY",
+          "value": 358.50000381469727,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "SafeX",
+          "value": 8.500000089406967,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MoveY",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MoveX",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "FeedbackLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "CpuWolfDiagPhase",
+          "value": 3,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "ActorIdLabelsReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "VirtualJoystickReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "JoystickActive",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "JoystickX",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "JoystickY",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "OverviewCameraEnabled",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "OverviewCameraReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "RoundPhase",
+          "value": "Active",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundRole",
+          "value": "Wolf",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundCommand",
+          "value": "",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundPhaseLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "ProductionMenuReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "RoundResultRecorded",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        }
+      ]
+    },
+    "screenshots": [],
+    "profiles": [],
+    "performance": {
+      "avgStepMs": 9.78,
+      "worstStepMs": 111
+    }
+  }
+]
