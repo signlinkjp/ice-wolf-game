@@ -1,5 +1,6 @@
-ICE WOLF v0.6.5 Production Round Start preview
+ICE WOLF v0.6.5 preview
 source branch: feature/v065-production-round-start
-source commit: 1e92675464a9d0ac59eaae245516610e8e6356a9
+source commit: e046f0b4910c723b8ed31d45ba4ced2e6b162586
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
+feedback: 5-second Wolf Mode multi-freeze

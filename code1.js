@@ -197,7 +197,7 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects5= [];
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0x11d2380 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa2e220 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -325,12 +325,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x11d2380(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa2e220(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xffe410 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa149e0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -834,7 +834,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xffe410(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa149e0(runtimeScene);
 
 }
 
@@ -944,7 +944,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x1236970 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1288908 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1013,7 +1013,7 @@ gdjs.FROST_32LABCode.eventsList4 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1236970(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1288908(runtimeScene);
 
 }
 
@@ -1720,11 +1720,6 @@ gdjs.copyArray(runtimeScene.getObjects("ActionFeedbackText"), gdjs.FROST_32LABCo
 }
 }
 {/* Mismatched object type - skipped. */}
-{runtimeScene.getScene().getVariables().getFromIndex(4).setNumber(0);
-}
-{runtimeScene.getScene().getVariables().getFromIndex(3).setNumber(runtimeScene.getScene().getVariables().getFromIndex(7).getAsNumber());
-}
-{/* Mismatched object type - skipped. */}
 {for(var i = 0, len = gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2.length ;i < len;++i) {
     gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2[i].getBehavior("Text").setText("人間を凍らせた！");
 }
@@ -1876,7 +1871,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0x1001688 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xe25d18 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -1997,7 +1992,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1001688(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe25d18(runtimeScene);
 
 }
 
@@ -2005,7 +2000,7 @@ gdjs.FROST_32LABCode.userFunc0x1001688(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList17 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0xa498d0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc9f828 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2049,7 +2044,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa498d0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc9f828(runtimeScene);
 
 }
 
@@ -3130,7 +3125,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb47fb8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x947d38 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -3173,12 +3168,12 @@ gdjs.FROST_32LABCode.eventsList23 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb47fb8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x947d38(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb481b8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x947f48 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -3623,7 +3618,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb481b8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x947f48(runtimeScene);
 
 }
 
@@ -3673,7 +3668,7 @@ gdjs.FROST_32LABCode.eventsList24(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xf93028 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc35be0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3722,7 +3717,7 @@ gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xf93028(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc35be0(runtimeScene);
 
 }
 
@@ -3783,7 +3778,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xe2c008 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa16250 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3866,12 +3861,12 @@ gdjs.FROST_32LABCode.eventsList28 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe2c008(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa16250(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xe2c208 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa16460 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4002,7 +3997,7 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       </div>
       <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.5</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：人狼モード中に接触して人間を凍らせる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>元の人狼だけが1試合に1度、凍った人間へ秘密の「感染」を仕込める。</li><li>感染した氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>元の人狼だけが1試合に1度、凍った人間へ秘密の「感染」を仕込める。</li><li>感染した氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2><div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div><div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div><p class="iw-small">Sound and additional accessibility settings will be expanded in a later version. Current gameplay audio remains unchanged.</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="reveal"><div class="iw-modal iw-reveal"><h2>YOUR ROLE</h2><div class="iw-role" data-role-text>WOLF</div><p data-role-copy></p></div></div>
@@ -4146,7 +4141,7 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe2c208(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa16460(runtimeScene);
 
 }
 
