@@ -1,0 +1,150 @@
+name: v0.6.5 Startup Scene Fix
+
+on:
+  push:
+    branches:
+      - feature/v065-production-round-start
+    paths:
+      - .github/workflows/v065-startup-scene-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-validate-preview-cleanup:
+    if: ${{ !contains(github.event.head_commit.message, 'remove v0.6.5 startup scene fix helper') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
+      EXPECTED_FEATURE_HEAD: 80516f85fcc307133f239bf5cc632f28f5365d56
+      FEATURE_BRANCH: feature/v065-production-round-start
+      PREVIEW_BRANCH: preview-v065-production-round-start
+      GDEVELOP_VERSION: 5.6.282
+      GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
+    steps:
+      - name: Checkout exact feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v065-production-round-start
+          fetch-depth: 0
+
+      - name: Guard baseline and expected parent head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$FEATURE_BRANCH" "$PREVIEW_BRANCH"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_FEATURE_HEAD"
+          changed="$(git diff --name-only "$EXPECTED_FEATURE_HEAD"..HEAD)"
+          echo "$changed"
+          test "$changed" = ".github/workflows/v065-startup-scene-fix.yml"
+
+      - name: Fix startup scene to FROST LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'game.json';
+          const game = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (!Array.isArray(game.layouts) || !game.layouts.some(x => x.name === 'FROST LAB')) {
+            throw new Error('FROST LAB layout missing');
+          }
+          if (game.firstLayout !== '') {
+            throw new Error(`Unexpected pre-fix firstLayout: ${JSON.stringify(game.firstLayout)}`);
+          }
+          game.firstLayout = 'FROST LAB';
+          fs.writeFileSync(path, JSON.stringify(game));
+          const verify = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (verify.firstLayout !== 'FROST LAB') throw new Error('firstLayout patch failed');
+          console.log('Startup scene fixed: FROST LAB');
+          NODE
+
+      - name: Verify minimal delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const child = JSON.parse(fs.readFileSync('game.json','utf8'));
+          if (child.firstLayout !== 'FROST LAB') throw new Error('wrong firstLayout');
+          if (!child.layouts.some(x => x.name === 'FROST LAB')) throw new Error('FROST LAB missing');
+          console.log('Minimal startup-scene fix PASS');
+          NODE
+
+      - name: Install GDevelop runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip"
+          echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
+          test -n "$GDEVELOP_BIN"
+          echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
+
+      - name: Run v0.6.5 production-round regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f gameplay-test-results.json
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.5 Production Round Start test'
+          test -f gameplay-test-results.json
+          cat gameplay-test-results.json
+
+      - name: Export HTML5
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -f build/index.html
+          test -f build/code0.js
+          cp -a build /tmp/v065-fixed-build
+
+      - name: Commit startup fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add game.json
+          test "$(git diff --cached --name-only)" = "game.json"
+          git commit -m 'fix: launch v0.6.5 into FROST LAB [skip ci]'
+          git push origin "HEAD:$FEATURE_BRANCH"
+
+      - name: Remove one-time helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/v065-startup-scene-fix.yml
+          git commit -m 'chore: remove v0.6.5 startup scene fix helper [skip ci]'
+          git push origin "HEAD:$FEATURE_BRANCH"
+          final_head="$(git rev-parse HEAD)"
+          echo "FINAL_FEATURE_HEAD=$final_head" >> "$GITHUB_ENV"
+          final_files="$(git diff --name-only "$BASE_SHA"..HEAD)"
+          echo "Final delta vs baseline:"
+          echo "$final_files"
+          test "$final_files" = "game.json"
+
+      - name: Refresh iPhone preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d /tmp/v065-fixed-build
+          git checkout -B "$PREVIEW_BRANCH" "origin/$PREVIEW_BRANCH"
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -a /tmp/v065-fixed-build/. .
+          printf 'ICE WOLF v0.6.5 Production Round Start preview\nsource branch: %s\nsource commit: %s\nbaseline: %s\nstartup scene: FROST LAB\n' "$FEATURE_BRANCH" "$FINAL_FEATURE_HEAD" "$BASE_SHA" > PREVIEW_SOURCE.txt
+          git add -A
+          git commit -m 'preview: refresh v0.6.5 with FROST LAB startup [skip ci]'
+          git push origin "HEAD:$PREVIEW_BRANCH"
