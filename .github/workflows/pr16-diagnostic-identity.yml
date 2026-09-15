@@ -1,4 +1,4 @@
-name: PR16 Diagnostic Bundle Location Audit
+name: PR16 Diagnostic Runtime Expression Audit
 
 on:
   push:
@@ -11,15 +11,16 @@ permissions:
   contents: read
 
 jobs:
-  locate-diagnostic-bundle:
+  locate-runtime-expression:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
       PR_HEAD: b5b56a691cb5948bcf3c4ccfbcd431d746509073
       FEATURE_BRANCH: feature/v065-production-round-start
       GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
       WORKFLOW_PATH: .github/workflows/pr16-diagnostic-identity.yml
+      RUNTIME_BUNDLE: www/static/js/local-app.4119ac3d.chunk.js
       MARKER: Diagnostic report has
     steps:
       - name: Checkout diagnostic branch
@@ -27,23 +28,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Guard main PR head and isolated diagnostic delta
+      - name: Initial no-drift guard
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main "$FEATURE_BRANCH"
           test "$(git rev-parse origin/main)" = "$BASE_SHA"
           test "$(git rev-parse origin/$FEATURE_BRANCH)" = "$PR_HEAD"
-          changed="$(git diff --name-only "$PR_HEAD"..HEAD)"
-          test "$changed" = "$WORKFLOW_PATH"
+          test "$(git diff --name-only "$PR_HEAD"..HEAD)" = "$WORKFLOW_PATH"
           echo 'initial guard PASS'
 
-      - name: Locate exact compiled bundle and stable anchor
+      - name: Inspect runtime JS marker and diagnostic expression only
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update >/dev/null
-          sudo apt-get install -y unzip curl >/dev/null
           curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip" >/dev/null
           echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
           rm -rf /tmp/gdevelop /tmp/gdevelop-app /tmp/report
@@ -51,103 +49,71 @@ jobs:
           unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
           ASAR="$(find /tmp/gdevelop -type f -name app.asar | head -n 1)"
           test -n "$ASAR"
-          npx --yes asar@3.2.0 extract "$ASAR" /tmp/gdevelop-app
+          npx --yes asar@3.2.0 extract "$ASAR" /tmp/gdevelop-app >/dev/null
+          test -f "/tmp/gdevelop-app/$RUNTIME_BUNDLE"
           node <<'NODE'
           const fs = require('fs');
           const path = require('path');
-          const root = '/tmp/gdevelop-app';
-          const out = '/tmp/report';
-          const marker = 'Diagnostic report has';
-          const files = [];
-          const walk = dir => {
-            for (const name of fs.readdirSync(dir)) {
-              const p = path.join(dir, name);
-              const st = fs.statSync(p);
-              if (st.isDirectory()) walk(p);
-              else files.push(p);
-            }
-          };
-          walk(root);
-          const fileHits = [];
-          let occurrenceCount = 0;
-          for (const p of files) {
-            let text;
-            try { text = fs.readFileSync(p, 'utf8'); } catch (_) { continue; }
-            let from = 0;
-            const positions = [];
-            while (true) {
-              const i = text.indexOf(marker, from);
-              if (i < 0) break;
-              positions.push(i);
-              occurrenceCount++;
-              from = i + marker.length;
-            }
-            if (positions.length) fileHits.push({p, text, positions});
+          const bundle = process.env.RUNTIME_BUNDLE;
+          const marker = process.env.MARKER;
+          const full = path.join('/tmp/gdevelop-app', bundle);
+          const text = fs.readFileSync(full, 'utf8');
+          const positions = [];
+          for (let from = 0;;) {
+            const i = text.indexOf(marker, from);
+            if (i < 0) break;
+            positions.push(i);
+            from = i + marker.length;
           }
-
-          const rel = p => path.relative(root, p);
-          const locations = [];
-          for (const hit of fileHits) {
-            locations.push(`${rel(hit.p)}\toccurrences=${hit.positions.length}`);
-          }
-          fs.writeFileSync(path.join(out, 'bundle-location.txt'),
-            `marker=${marker}\nfileHitCount=${fileHits.length}\nmarkerOccurrenceCount=${occurrenceCount}\n` +
-            locations.join('\n') + '\n');
-
-          let go = false;
-          let exactPath = '';
-          let variableExpr = '';
+          const hitCount = positions.length;
+          let expression = 'UNRESOLVED';
+          let unique = false;
           let reason = '';
-          let snippet = '';
-          if (fileHits.length !== 1 || occurrenceCount !== 1) {
-            reason = `marker is not unique: fileHitCount=${fileHits.length}, markerOccurrenceCount=${occurrenceCount}`;
+          let snippet = '(snippet unavailable)\n';
+          if (hitCount !== 1) {
+            reason = `runtime marker hit count=${hitCount}`;
           } else {
-            const hit = fileHits[0];
-            exactPath = rel(hit.p);
-            const pos = hit.positions[0];
-            const start = Math.max(0, pos - 1000);
-            const end = Math.min(hit.text.length, pos + marker.length + 1000);
-            snippet = hit.text.slice(start, end);
-            const tail = hit.text.slice(pos, Math.min(hit.text.length, pos + marker.length + 500));
+            const pos = positions[0];
+            const start = Math.max(0, pos - 700);
+            const end = Math.min(text.length, pos + marker.length + 700);
+            snippet = text.slice(start, end);
+            const local = text.slice(Math.max(0, pos - 120), Math.min(text.length, pos + marker.length + 300));
             const re = /([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\.length/g;
             const candidates = [];
             let m;
-            while ((m = re.exec(tail))) {
-              candidates.push({expr:m[1], offset:m.index});
-            }
-            const unique = [...new Set(candidates.map(x => x.expr))];
-            if (unique.length === 1) {
-              variableExpr = unique[0];
-              go = true;
-              reason = 'single marker and one unique .length expression in marker tail';
+            while ((m = re.exec(local))) candidates.push(m[1]);
+            const distinct = [...new Set(candidates)];
+            if (distinct.length === 1) {
+              expression = distinct[0];
+              unique = true;
+              reason = 'exactly one .length expression near the runtime marker';
             } else {
-              reason = `diagnostic array expression not unique in marker tail: candidates=${JSON.stringify(candidates)}`;
+              reason = `near-marker .length expressions=${JSON.stringify(distinct)}`;
             }
           }
-          fs.writeFileSync(path.join(out, 'marker-snippet.txt'), snippet || '(snippet unavailable)\n');
-          fs.writeFileSync(path.join(out, 'analysis.txt'), [
+          fs.writeFileSync('/tmp/report/marker-snippet.txt', snippet);
+          fs.writeFileSync('/tmp/report/analysis.txt', [
             'GDevelop=5.6.282',
             `GDevelopZipSHA256=${process.env.GDEVELOP_SHA256}`,
+            `runtimeBundle=${bundle}`,
             `marker=${marker}`,
-            `fileHitCount=${fileHits.length}`,
-            `markerOccurrenceCount=${occurrenceCount}`,
-            `exactBundlePath=${exactPath || 'UNRESOLVED'}`,
-            `diagnosticArrayExpression=${variableExpr || 'UNRESOLVED'}`,
-            `verdict=${go ? 'GO' : 'STOP'}`,
+            `markerHitCount=${hitCount}`,
+            `diagnosticArrayExpression=${expression}`,
+            `unique=${unique ? 'YES' : 'NO'}`,
+            `verdict=${unique ? 'GO' : 'STOP'}`,
             `reason=${reason}`,
-            'scope=location/snippet analysis only; no instrumentation or repack performed',
+            'scope=runtime JS inspection only; no instrumentation/repack/diagnostic execution',
             ''
           ].join('\n'));
           NODE
-          (cd /tmp/report && sha256sum bundle-location.txt marker-snippet.txt analysis.txt > MANIFEST.sha256)
-          echo 'bundle inspection complete'
+          (cd /tmp/report && sha256sum marker-snippet.txt analysis.txt > MANIFEST.sha256)
+          cat /tmp/report/analysis.txt
 
-      - name: Upload one minimal bundle-location artifact
+      - name: Upload minimal runtime-expression artifact
         uses: actions/upload-artifact@v4
         with:
-          name: icewolf-pr16-diagnostic-bundle-location
+          name: icewolf-pr16-runtime-expression
           path: |
-            /tmp/report/bundle-location.txt
             /tmp/report/marker-snippet.txt
             /tmp/report/analysis.txt
             /tmp/report/MANIFEST.sha256
@@ -162,7 +128,5 @@ jobs:
           git fetch origin main "$FEATURE_BRANCH"
           test "$(git rev-parse origin/main)" = "$BASE_SHA"
           test "$(git rev-parse origin/$FEATURE_BRANCH)" = "$PR_HEAD"
-          changed="$(git diff --name-only "$PR_HEAD"..HEAD)"
-          test "$changed" = "$WORKFLOW_PATH"
-          cat /tmp/report/analysis.txt
+          test "$(git diff --name-only "$PR_HEAD"..HEAD)" = "$WORKFLOW_PATH"
           echo 'final guard PASS'
