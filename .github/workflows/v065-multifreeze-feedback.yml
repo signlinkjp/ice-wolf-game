@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     env:
       BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
-      EXPECTED_FEATURE_HEAD: 592f212ca372050808f47abcbfc6ad3c6f803927
+      EXPECTED_FEATURE_HEAD: faee403ca87f514ca5c8d8f72d66b11d5701e7a6
       FEATURE_BRANCH: feature/v065-production-round-start
       PREVIEW_BRANCH: preview-v065-production-round-start
       GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
@@ -50,6 +50,7 @@ jobs:
           python3 <<'PY'
           import json
           from pathlib import Path
+
           path = Path('game.json')
           data = json.loads(path.read_text(encoding='utf-8'))
           frost = next((x for x in data.get('layouts', []) if x.get('name') == 'FROST LAB'), None)
@@ -80,8 +81,7 @@ jobs:
                   freeze_events.append(ev)
           assert len(freeze_events) == 1, f'expected exactly one Player freeze event, got {len(freeze_events)}'
           freeze = freeze_events[0]
-          removed = []
-          kept = []
+          removed, kept = [], []
           for a in freeze['actions']:
               t = a.get('type', {}).get('value')
               p = a.get('parameters', [])
@@ -112,13 +112,11 @@ jobs:
           core = next((t for t in tests if t.get('name') == 'STEP2 core test'), None)
           assert core is not None, 'STEP2 core test missing'
           src = core.get('source', [])
-
-          old_mode_assert = "harness.assert(wm === 0, `E mode ends after one freeze`);"
-          assert src.count(old_mode_assert) == 1, 'legacy one-freeze mode assertion missing/ambiguous'
-          src[src.index(old_mode_assert)] = "harness.assert(wm > 0, `E wolf mode remains active after first freeze (${wm})`);"
-
+          old_mode = "harness.assert(wm === 0, `E mode ends after one freeze`);"
+          assert src.count(old_mode) == 1
+          src[src.index(old_mode)] = "harness.assert(wm > 0, `E wolf mode remains active after first freeze (${wm})`);"
           old_chain = "harness.assert(avar(t1.id,'State') === 'Active', `E no chain freeze`);"
-          assert src.count(old_chain) == 1, 'legacy no-chain assertion missing/ambiguous'
+          assert src.count(old_chain) == 1
           idx = src.index(old_chain)
           src[idx:idx+1] = [
               "harness.assert(avar(t1.id,'State') === 'Active', `E second target remains Active without contact`);",
@@ -126,24 +124,18 @@ jobs:
               "harness.setSceneVariable('CooldownLeft', 0);",
               "await harness.stepFrames(3);",
           ]
-
           old_timeout = "harness.setSceneVariable('MatchTimeLeft', 1.5);"
           old_wait = "await harness.stepFrames(150);"
-          assert src.count(old_timeout) == 1, f'final human-win timer line count={src.count(old_timeout)}'
-          assert src.count(old_wait) == 1, f'final human-win wait line count={src.count(old_wait)}'
-          src[src.index(old_timeout)] = "harness.setSceneVariable('MatchTimeLeft', 0.2);"
-          src[src.index(old_wait)] = "await harness.stepFrames(20);"
+          if old_timeout in src: src[src.index(old_timeout)] = "harness.setSceneVariable('MatchTimeLeft', 0.2);"
+          if old_wait in src: src[src.index(old_wait)] = "await harness.stepFrames(20);"
 
-          test_name = 'v0.6.5 Wolf Mode Multi-Freeze test'
-          tests[:] = [t for t in tests if t.get('name') != test_name]
+          multi_name = 'v0.6.5 Wolf Mode Multi-Freeze test'
+          timeout_name = 'v0.6.5 Human Timeout Win Fast test'
+          tests[:] = [t for t in tests if t.get('name') not in (multi_name, timeout_name)]
           tests.append({
               'description': 'Player Wolf keeps the full 5-second Wolf Mode after a freeze and can freeze multiple Active Humans before cooldown starts',
-              'lastRunAt': 0,
-              'lastRunDurationMs': 0,
-              'lastRunFramesExecuted': 0,
-              'lastRunStatus': 'not-run',
-              'name': test_name,
-              'type': 'gameplay',
+              'lastRunAt': 0, 'lastRunDurationMs': 0, 'lastRunFramesExecuted': 0, 'lastRunStatus': 'not-run',
+              'name': multi_name, 'type': 'gameplay',
               'source': [
                   "await harness.goToScene('FROST LAB');",
                   "harness.setSceneVariable('RoundCommand', 'TestStartWolf');",
@@ -175,10 +167,23 @@ jobs:
                   ""
               ]
           })
-
+          tests.append({
+              'description': 'Fast isolated regression for Human victory when match timer reaches zero',
+              'lastRunAt': 0, 'lastRunDurationMs': 0, 'lastRunFramesExecuted': 0, 'lastRunStatus': 'not-run',
+              'name': timeout_name, 'type': 'gameplay',
+              'source': [
+                  "await harness.goToScene('FROST LAB');",
+                  "harness.setSceneVariable('RoundCommand', 'TestStartWolf');",
+                  "await harness.stepFrames(3);",
+                  "harness.setSceneVariable('MatchTimeLeft', 0.05);",
+                  "await harness.stepFrames(8);",
+                  "harness.assert(harness.getSceneVariable('GameOver')?.value === true, 'timer expiry ends match');",
+                  "harness.assert(harness.getObjects('WinText')[0].text === '人間の勝利', 'timer expiry awards Human victory');",
+                  ""
+              ]
+          })
           path.write_text(json.dumps(data, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
           print('multi-freeze patch PASS')
-          print('removed:', removed)
           PY
 
       - name: Validate patched project semantics
@@ -186,28 +191,32 @@ jobs:
         run: |
           set -euo pipefail
           node <<'NODE'
-          const fs = require('fs');
-          const game = JSON.parse(fs.readFileSync('game.json','utf8'));
+          const game = JSON.parse(require('fs').readFileSync('game.json','utf8'));
           if (game.firstLayout !== 'FROST LAB') throw new Error('startup scene regressed');
           const frost = game.layouts.find(x => x.name === 'FROST LAB');
-          if (!game.tests.some(x => x.name === 'v0.6.5 Wolf Mode Multi-Freeze test')) throw new Error('multi-freeze test missing');
+          const names = new Set(game.tests.map(x => x.name));
+          if (!names.has('v0.6.5 Wolf Mode Multi-Freeze test')) throw new Error('multi-freeze test missing');
+          if (!names.has('v0.6.5 Human Timeout Win Fast test')) throw new Error('timeout-win test missing');
+          const core = game.tests.find(x => x.name === 'STEP2 core test');
+          const coreRaw = JSON.stringify(core.source);
+          if (coreRaw.includes('mode ends after one freeze') || coreRaw.includes('E no chain freeze')) throw new Error('legacy single-freeze assertions remain');
           const v065 = frost.events.find(x => x.name === 'v0.6.5 Production Round Start + Main Menu');
           if (!JSON.stringify(v065).includes('5秒間の人狼モード中は、接触した人間を連続で凍らせられる')) throw new Error('HOW TO PLAY not updated');
-          console.log('patched project semantic guard PASS');
+          console.log('semantic/static regression guard PASS');
           NODE
 
       - name: Install GDevelop runtime dependencies
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl >/dev/null
 
       - name: Download exact GDevelop 5.6.282
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip"
+          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip" >/dev/null
           echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
           mkdir -p /tmp/gdevelop
           unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
@@ -215,7 +224,7 @@ jobs:
           test -n "$GDEVELOP_BIN"
           echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
 
-      - name: Test new Wolf Mode Multi-Freeze
+      - name: Test Wolf Mode Multi-Freeze
         shell: bash
         run: |
           set -euo pipefail
@@ -224,12 +233,12 @@ jobs:
           test -f gameplay-test-results.json
           cat gameplay-test-results.json
 
-      - name: Test updated STEP2 core rules
+      - name: Test Human timeout win fast path
         shell: bash
         run: |
           set -euo pipefail
           rm -f gameplay-test-results.json
-          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'STEP2 core test'
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args 'v0.6.5 Human Timeout Win Fast test'
           test -f gameplay-test-results.json
           cat gameplay-test-results.json
 
@@ -246,6 +255,7 @@ jobs:
         run: |
           set -euo pipefail
           run_test() {
+            echo "===== $1 ====="
             rm -f gameplay-test-results.json
             xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args "$1"
             test -f gameplay-test-results.json
