@@ -18,7 +18,7 @@ jobs:
     env:
       BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
       PRE_FEEDBACK_HEAD: ec003356f33161fe3b23252ae09f2649d2e291ee
-      EXPECTED_FEATURE_HEAD: 19047d34609ff1de0b9954f72172038b6d154612
+      EXPECTED_FEATURE_HEAD: b5b56a691cb5948bcf3c4ccfbcd431d746509073
       FEATURE_BRANCH: feature/v065-production-round-start
       PREVIEW_BRANCH: preview-v065-production-round-start
       GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
@@ -223,7 +223,7 @@ jobs:
             cat gameplay-test-results.json
           done
 
-      - name: Confirm diagnostic debt unchanged at 14
+      - name: Confirm audited diagnostic transition 14 to 13
         shell: bash
         run: |
           set -euo pipefail
@@ -236,8 +236,26 @@ jobs:
           post_rc=$?
           set -e
           test "$pre_rc" -ne 0 && test "$post_rc" -ne 0
-          grep -F '[CLI] Diagnostic report has 14 error(s). Export blocked.' /tmp/pre-strict.log
-          grep -F '[CLI] Diagnostic report has 14 error(s). Export blocked.' /tmp/post-strict.log
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+          pattern=re.compile(r'Diagnostic report has (\d+) error\(s\)\. Export blocked\.')
+          def count(path):
+              hits=pattern.findall(Path(path).read_text(encoding='utf-8',errors='replace'))
+              if len(hits)!=1:
+                  raise SystemExit(f'{path}: diagnostic count marker hits={hits}')
+              return int(hits[0])
+          pre=count('/tmp/pre-strict.log')
+          post=count('/tmp/post-strict.log')
+          print(f'audited diagnostic transition: {pre} -> {post}')
+          if pre != 14:
+              raise SystemExit(f'pre-feedback diagnostic count drifted: {pre} != 14')
+          if post != 13:
+              raise SystemExit(f'multi-freeze candidate diagnostic count drifted: {post} != 13')
+          if post > pre:
+              raise SystemExit(f'diagnostic debt increased: {pre} -> {post}')
+          print('diagnostic gate PASS: no new diagnostic debt')
+          PY
 
       - name: Export HTML5 preview
         shell: bash
