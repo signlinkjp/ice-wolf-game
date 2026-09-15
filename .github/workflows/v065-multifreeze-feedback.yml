@@ -1,0 +1,302 @@
+name: v0.6.5 Wolf Mode Multi-Freeze Feedback
+
+on:
+  push:
+    branches:
+      - feature/v065-production-round-start
+    paths:
+      - .github/workflows/v065-multifreeze-feedback.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-export-preview-cleanup:
+    if: ${{ !contains(github.event.head_commit.message, 'remove v0.6.5 multi-freeze feedback helper') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
+      EXPECTED_FEATURE_HEAD: ec003356f33161fe3b23252ae09f2649d2e291ee
+      FEATURE_BRANCH: feature/v065-production-round-start
+      PREVIEW_BRANCH: preview-v065-production-round-start
+      GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
+    steps:
+      - name: Checkout exact feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v065-production-round-start
+          fetch-depth: 0
+
+      - name: Guard baseline and expected parent head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$FEATURE_BRANCH" "$PREVIEW_BRANCH"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_FEATURE_HEAD"
+          test "$(git diff --name-only "$EXPECTED_FEATURE_HEAD"..HEAD)" = ".github/workflows/v065-multifreeze-feedback.yml"
+          node <<'NODE'
+          const game = JSON.parse(require('fs').readFileSync('game.json','utf8'));
+          if (game.firstLayout !== 'FROST LAB') throw new Error(`firstLayout=${JSON.stringify(game.firstLayout)}`);
+          if (!game.layouts.some(x => x.name === 'FROST LAB')) throw new Error('FROST LAB missing');
+          console.log('baseline/startup guard PASS');
+          NODE
+
+      - name: Apply minimal Wolf Mode multi-freeze patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('game.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          frost = next((x for x in data.get('layouts', []) if x.get('name') == 'FROST LAB'), None)
+          assert frost is not None, 'FROST LAB missing'
+          wolf_group = next((x for x in frost.get('events', []) if x.get('type') == 'BuiltinCommonInstructions::Group' and x.get('name') == 'Wolf actions'), None)
+          assert wolf_group is not None, 'Wolf actions group missing'
+
+          def walk(events):
+              for ev in events or []:
+                  yield ev
+                  yield from walk(ev.get('events', []))
+
+          freeze_events = []
+          for ev in walk(wolf_group.get('events', [])):
+              actions = ev.get('actions', [])
+              has_freeze = any(
+                  a.get('type', {}).get('value') == 'SetStringObjectVariable'
+                  and a.get('parameters', [None, None, None, None])[:4] == ['Actor', 'State', '=', '\"Frozen\"']
+                  for a in actions
+              )
+              has_sound = any(
+                  a.get('type', {}).get('value') == 'PlaySound'
+                  and len(a.get('parameters', [])) > 1
+                  and a.get('parameters', [])[1] == 'freeze_crack.wav'
+                  for a in actions
+              )
+              if has_freeze and has_sound:
+                  freeze_events.append(ev)
+          assert len(freeze_events) == 1, f'expected exactly one Player freeze event, got {len(freeze_events)}'
+          freeze = freeze_events[0]
+          before = freeze['actions']
+          removed = []
+          kept = []
+          for a in before:
+              t = a.get('type', {}).get('value')
+              p = a.get('parameters', [])
+              if t == 'SetNumberVariable' and p and p[0] in ('WolfModeLeft', 'CooldownLeft'):
+                  removed.append((t, p))
+                  continue
+              if t == 'ChangeColor' and len(p) >= 2 and p[0] == 'Player' and p[1] == '\"255;255;255\"':
+                  removed.append((t, p))
+                  continue
+              kept.append(a)
+          assert len(removed) == 3, f'expected 3 end-after-first-freeze actions removed, got {removed}'
+          freeze['actions'] = kept
+
+          how_old = '<li>人狼：人狼モード中に接触して人間を凍らせる。</li>'
+          how_new = '<li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li>'
+          how_replacements = 0
+          for ev in walk(frost.get('events', [])):
+              if ev.get('type') != 'BuiltinCommonInstructions::JsCode':
+                  continue
+              lines = ev.get('inlineCode', [])
+              for i, line in enumerate(lines):
+                  if how_old in line:
+                      lines[i] = line.replace(how_old, how_new)
+                      how_replacements += 1
+          assert how_replacements == 1, f'HOW TO PLAY replacement count={how_replacements}'
+
+          tests = data.setdefault('tests', [])
+          core = next((t for t in tests if t.get('name') == 'STEP2 core test'), None)
+          assert core is not None, 'STEP2 core test missing'
+          src = core.get('source', [])
+          old_mode_assert = "harness.assert(wm === 0, `E mode ends after one freeze`);"
+          new_mode_assert = "harness.assert(wm > 0, `E wolf mode remains active after first freeze (${wm})`);"
+          assert src.count(old_mode_assert) == 1, 'legacy one-freeze mode assertion missing/ambiguous'
+          src[src.index(old_mode_assert)] = new_mode_assert
+          old_chain = "harness.assert(avar(t1.id,'State') === 'Active', `E no chain freeze`);"
+          assert src.count(old_chain) == 1, 'legacy no-chain assertion missing/ambiguous'
+          idx = src.index(old_chain)
+          src[idx:idx+1] = [
+              "harness.assert(avar(t1.id,'State') === 'Active', `E second target starts Active`);",
+              "const t1Now = actors().find(a => a.id === t1.id);",
+              "await tpPlayer(t1Now.centerX - 8.5, t1Now.centerY - 8.5);",
+              "await harness.stepFrames(10);",
+              "harness.assert(avar(t1.id,'State') === 'Frozen', `E second actor freezes during same wolf mode`);",
+              "wm = harness.getSceneVariable('WolfModeLeft')?.value ?? 0;",
+              "harness.assert(wm > 0, `E wolf mode still active after second freeze (${wm})`);",
+          ]
+
+          test_name = 'v0.6.5 Wolf Mode Multi-Freeze test'
+          tests[:] = [t for t in tests if t.get('name') != test_name]
+          tests.append({
+              'description': 'Player Wolf keeps the full 5-second Wolf Mode after a freeze and can freeze multiple Active Humans before cooldown starts',
+              'lastRunAt': 0,
+              'lastRunDurationMs': 0,
+              'lastRunFramesExecuted': 0,
+              'lastRunStatus': 'not-run',
+              'name': test_name,
+              'type': 'gameplay',
+              'source': [
+                  "await harness.goToScene('FROST LAB');",
+                  "harness.setSceneVariable('RoundCommand', 'TestStartWolf');",
+                  "await harness.stepFrames(3);",
+                  "await harness.stepFrames(12);",
+                  "harness.assert((harness.getSceneVariable('WolfModeDuration')?.value ?? 0) === 5, 'Wolf Mode duration remains 5 seconds');",
+                  "harness.assert((harness.getSceneVariable('WolfCooldown')?.value ?? 0) === 5, 'Wolf cooldown remains 5 seconds');",
+                  "harness.setSceneVariable('WolfModeLeft', 5);",
+                  "harness.setSceneVariable('CooldownLeft', 0);",
+                  "const player = harness.getObjects('Player')[0];",
+                  "const actorIds = harness.getObjects('Actor').slice(0,3).map(a => a.id);",
+                  "harness.assert(actorIds.length === 3, 'three human targets available');",
+                  "for (let i = 0; i < actorIds.length; i++) {",
+                  "  const target = harness.getObjects('Actor').find(a => a.id === actorIds[i]);",
+                  "  harness.assert(!!target, `target ${i} exists`);",
+                  "  harness.assert(harness.getObjectVariable(target.id, 'Role')?.value === 'Human', `target ${i} is Human`);",
+                  "  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Active', `target ${i} starts Active`);",
+                  "  harness.setObjectPosition(player.id, target.centerX - 8.5, target.centerY - 8.5);",
+                  "  await harness.stepFrames(8);",
+                  "  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Frozen', `target ${i} frozen in same Wolf Mode`);",
+                  "  harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? 0) > 0, `Wolf Mode remains active after target ${i}`);",
+                  "}",
+                  "const frozen = harness.getObjects('Actor').filter(a => harness.getObjectVariable(a.id, 'State')?.value === 'Frozen');",
+                  "harness.assert(frozen.length >= 3, `at least 3 humans frozen during one Wolf Mode, got ${frozen.length}`);",
+                  "harness.setSceneVariable('WolfModeLeft', 0.01);",
+                  "await harness.stepFrames(8);",
+                  "harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? -1) === 0, 'Wolf Mode expires normally');",
+                  "harness.assert((harness.getSceneVariable('CooldownLeft')?.value ?? 0) > 0, 'cooldown starts only after Wolf Mode expires');",
+                  ""
+              ]
+          })
+
+          path.write_text(json.dumps(data, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+          print('multi-freeze patch PASS')
+          print('removed:', removed)
+          PY
+
+      - name: Validate patched project semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const game = JSON.parse(fs.readFileSync('game.json','utf8'));
+          if (game.firstLayout !== 'FROST LAB') throw new Error('startup scene regressed');
+          const frost = game.layouts.find(x => x.name === 'FROST LAB');
+          const names = game.tests.map(x => x.name);
+          if (!names.includes('v0.6.5 Wolf Mode Multi-Freeze test')) throw new Error('multi-freeze test missing');
+          const wolf = frost.events.find(x => x.name === 'Wolf actions');
+          const raw = JSON.stringify(wolf);
+          if (!raw.includes('人間を凍らせた！')) throw new Error('freeze feedback missing');
+          const v065 = frost.events.find(x => x.name === 'v0.6.5 Production Round Start + Main Menu');
+          if (!JSON.stringify(v065).includes('5秒間の人狼モード中は、接触した人間を連続で凍らせられる')) throw new Error('HOW TO PLAY not updated');
+          console.log('patched project semantic guard PASS');
+          NODE
+
+      - name: Install GDevelop runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download exact GDevelop 5.6.282
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip"
+          echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
+          test -n "$GDEVELOP_BIN"
+          echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
+
+      - name: Run new multi-freeze and protected regression suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_test() {
+            local name="$1"
+            echo "===== TEST: $name ====="
+            rm -f gameplay-test-results.json
+            xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command RUN_ALL_TESTS "$GITHUB_WORKSPACE/game.json" --cmd-args "$name"
+            test -f gameplay-test-results.json
+            cat gameplay-test-results.json
+          }
+          run_test 'v0.6.5 Wolf Mode Multi-Freeze test'
+          run_test 'STEP2 core test'
+          run_test 'v0.6.5 Production Round Start test'
+          run_test 'v0.6.4 Device Tuning liveness test'
+          run_test 'v0.6.4 Compact Joystick + Overview Camera test'
+          run_test 'v0.6.3 Mobile Virtual Joystick test'
+          run_test 'Stability self-test'
+          run_test 'v0.6.2 Color-independent Actor ID Labels test'
+          run_test 'v0.6.1 Human CPU navigation recovery test'
+          run_test 'v0.6.0 human-side CPU Wolf test'
+          run_test 'v0.6.0 CPU Wolf device diagnostic test'
+          run_test 'v0.3 action clarity test'
+          run_test 'Wall block check'
+          run_test 'STEP1 bounds test'
+
+      - name: Export HTML5 preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build /tmp/v065-multifreeze-build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -f build/index.html
+          test -f build/code0.js
+          cp -a build /tmp/v065-multifreeze-build
+
+      - name: Recheck main drift before write
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+
+      - name: Commit gameplay feedback patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add game.json
+          git diff --cached --quiet && { echo 'expected game.json change missing'; exit 1; }
+          test "$(git diff --cached --name-only)" = "game.json"
+          git commit -m 'fix: allow multi-freeze during Wolf Mode'
+          git push origin "HEAD:$FEATURE_BRANCH"
+          echo "FEATURE_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Refresh iPhone preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$PREVIEW_BRANCH"
+          rm -rf /tmp/preview-worktree
+          git worktree add --detach /tmp/preview-worktree "origin/$PREVIEW_BRANCH"
+          cd /tmp/preview-worktree
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -a /tmp/v065-multifreeze-build/. .
+          printf 'ICE WOLF v0.6.5 Production Round Start preview\nsource branch: %s\nsource commit: %s\nbaseline: %s\nstartup scene: FROST LAB\nfeedback: 5-second Wolf Mode multi-freeze\n' "$FEATURE_BRANCH" "$FEATURE_HEAD" "$BASE_SHA" > PREVIEW_SOURCE.txt
+          git add -A
+          git commit -m 'preview: refresh v0.6.5 Wolf Mode multi-freeze [skip ci]'
+          git push origin "HEAD:$PREVIEW_BRANCH"
+
+      - name: Final no-drift check and remove one-time helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          git fetch origin main "$FEATURE_BRANCH"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          git checkout "$FEATURE_BRANCH"
+          git pull --ff-only origin "$FEATURE_BRANCH"
+          git rm .github/workflows/v065-multifreeze-feedback.yml
+          git commit -m 'chore: remove v0.6.5 multi-freeze feedback helper [skip ci]'
+          git push origin "HEAD:$FEATURE_BRANCH"
