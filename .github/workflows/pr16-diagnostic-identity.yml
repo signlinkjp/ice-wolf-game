@@ -1,4 +1,4 @@
-name: PR16 Pre-Feedback Raw Diagnostic Smoke
+name: PR16 Candidate Raw Diagnostic Smoke
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  pre-feedback-raw-diagnostic-smoke:
+  candidate-raw-diagnostic-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -40,7 +40,92 @@ jobs:
           git cat-file -e "$PRE_FEEDBACK_HEAD^{commit}"
           echo 'initial guard PASS'
 
-      - name: Prepare exact GDevelop and pre-feedback project
+      - name: Prepare exact candidate project
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "$PRE_FEEDBACK_HEAD:game.json" > /tmp/candidate-game.json
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('/tmp/candidate-game.json'); data=json.loads(path.read_text(encoding='utf-8'))
+          frost=next(x for x in data['layouts'] if x.get('name')=='FROST LAB')
+          wolf_group=next(x for x in frost['events'] if x.get('type')=='BuiltinCommonInstructions::Group' and x.get('name')=='Wolf actions')
+          def walk(events):
+              for ev in events or []:
+                  yield ev
+                  yield from walk(ev.get('events',[]))
+          freeze_events=[]
+          for ev in walk(wolf_group.get('events',[])):
+              acts=ev.get('actions',[])
+              has_freeze=any(a.get('type',{}).get('value')=='SetStringObjectVariable' and a.get('parameters',[None,None,None,None])[:4]==['Actor','State','=','\"Frozen\"'] for a in acts)
+              has_sound=any(a.get('type',{}).get('value')=='PlaySound' and len(a.get('parameters',[]))>1 and a['parameters'][1]=='freeze_crack.wav' for a in acts)
+              if has_freeze and has_sound: freeze_events.append(ev)
+          assert len(freeze_events)==1, f'Player freeze event count={len(freeze_events)}'
+          freeze=freeze_events[0]; removed=[]; kept=[]
+          for a in freeze['actions']:
+              t=a.get('type',{}).get('value'); p=a.get('parameters',[])
+              if t=='SetNumberVariable' and p and p[0] in ('WolfModeLeft','CooldownLeft'):
+                  removed.append((t,p)); continue
+              if t=='ChangeColor' and len(p)>=2 and p[0]=='Player' and p[1]=='\"255;255;255\"':
+                  removed.append((t,p)); continue
+              kept.append(a)
+          assert len(removed)==3, f'intended action removals={removed}'
+          freeze['actions']=kept
+
+          how_old='<li>人狼：人狼モード中に接触して人間を凍らせる。</li>'
+          how_new='<li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li>'
+          replacements=0
+          for ev in walk(frost.get('events',[])):
+              if ev.get('type')!='BuiltinCommonInstructions::JsCode': continue
+              for i,line in enumerate(ev.get('inlineCode',[])):
+                  if how_old in line:
+                      ev['inlineCode'][i]=line.replace(how_old,how_new); replacements+=1
+          assert replacements==1, f'HOW TO PLAY replacement count={replacements}'
+
+          tests=data.setdefault('tests',[])
+          core=next(t for t in tests if t.get('name')=='STEP2 core test'); src=core['source']
+          old="harness.assert(wm === 0, `E mode ends after one freeze`);"
+          assert src.count(old)==1
+          src[src.index(old)]="harness.assert(wm > 0, `E wolf mode remains active after first freeze (${wm})`);"
+          old2="harness.assert(avar(t1.id,'State') === 'Active', `E no chain freeze`);"
+          assert src.count(old2)==1
+          i=src.index(old2)
+          src[i:i+1]=[
+              "harness.assert(avar(t1.id,'State') === 'Active', `E second target remains Active without contact`);",
+              "harness.setSceneVariable('WolfModeLeft', 0);",
+              "harness.setSceneVariable('CooldownLeft', 0);",
+              "await harness.stepFrames(3);",
+          ]
+          if "harness.setSceneVariable('MatchTimeLeft', 1.5);" in src:
+              src[src.index("harness.setSceneVariable('MatchTimeLeft', 1.5);")]="harness.setSceneVariable('MatchTimeLeft', 0.2);"
+          if "await harness.stepFrames(150);" in src:
+              src[src.index("await harness.stepFrames(150);")]="await harness.stepFrames(20);"
+
+          multi='v0.6.5 Wolf Mode Multi-Freeze test'; timeout='v0.6.5 Human Timeout Win Fast test'
+          tests[:]=[t for t in tests if t.get('name') not in (multi,timeout)]
+          tests.append({'description':'Player Wolf keeps the full 5-second Wolf Mode after a freeze and can freeze multiple Active Humans before cooldown starts','lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,'lastRunStatus':'not-run','name':multi,'type':'gameplay','source':[
+              "await harness.goToScene('FROST LAB');",
+              "harness.setSceneVariable('RoundCommand', 'TestStartWolf');","await harness.stepFrames(3);","await harness.stepFrames(12);",
+              "harness.assert((harness.getSceneVariable('WolfModeDuration')?.value ?? 0) === 5, 'Wolf Mode duration remains 5 seconds');",
+              "harness.assert((harness.getSceneVariable('WolfCooldown')?.value ?? 0) === 5, 'Wolf cooldown remains 5 seconds');",
+              "harness.setSceneVariable('WolfModeLeft', 5);","harness.setSceneVariable('CooldownLeft', 0);",
+              "const actorIds = harness.getObjects('Actor').slice(0,3).map(a => a.id);","harness.assert(actorIds.length === 3, 'three human targets available');",
+              "for (let i = 0; i < actorIds.length; i++) {","  const target = harness.getObjects('Actor').find(a => a.id === actorIds[i]);","  const playerNow = harness.getObjects('Player')[0];",
+              "  harness.assert(!!target && !!playerNow, `target/player ${i} exists`);","  harness.assert(harness.getObjectVariable(target.id, 'Role')?.value === 'Human', `target ${i} is Human`);","  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Active', `target ${i} starts Active`);",
+              "  harness.setObjectPosition(playerNow.id, target.centerX - 8.5, target.centerY - 8.5);","  await harness.stepFrames(8);","  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Frozen', `target ${i} frozen in same Wolf Mode`);","  harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? 0) > 0, `Wolf Mode remains active after target ${i}`);","}",
+              "const frozen = harness.getObjects('Actor').filter(a => harness.getObjectVariable(a.id, 'State')?.value === 'Frozen');","harness.assert(frozen.length >= 3, `at least 3 humans frozen during one Wolf Mode, got ${frozen.length}`);",
+              "harness.setSceneVariable('WolfModeLeft', 0.01);","await harness.stepFrames(8);","harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? -1) === 0, 'Wolf Mode expires normally');","harness.assert((harness.getSceneVariable('CooldownLeft')?.value ?? 0) > 0, 'cooldown starts only after Wolf Mode expires');",""
+          ]})
+          tests.append({'description':'Fast isolated regression for Human victory when match timer reaches zero','lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,'lastRunStatus':'not-run','name':timeout,'type':'gameplay','source':[
+              "await harness.goToScene('FROST LAB');","harness.setSceneVariable('RoundCommand', 'TestStartWolf');","await harness.stepFrames(3);","harness.setSceneVariable('MatchTimeLeft', 0.05);","await harness.stepFrames(8);","harness.assert(harness.getSceneVariable('GameOver')?.value === true, 'timer expiry ends match');","harness.assert(harness.getObjects('WinText')[0].text === '人間の勝利', 'timer expiry awards Human victory');",""
+          ]})
+          path.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          print('candidate reconstruction PASS')
+          PY
+          python3 -m json.tool /tmp/candidate-game.json >/dev/null
+
+      - name: Prepare exact GDevelop and instrument temporary runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -56,50 +141,38 @@ jobs:
           test -n "$GDEVELOP_BIN" && test -n "$ASAR"
           echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
           echo "ASAR=$ASAR" >> "$GITHUB_ENV"
-          git show "$PRE_FEEDBACK_HEAD:game.json" > /tmp/pre-feedback-game.json
-          python3 -m json.tool /tmp/pre-feedback-game.json >/dev/null
-          echo 'exact GDevelop + pre-feedback project PASS'
-
-      - name: Instrument temporary runtime bundle
-        shell: bash
-        run: |
-          set -euo pipefail
           npx --yes asar@3.2.0 extract "$ASAR" /tmp/gdevelop-app >/dev/null
           test -f "/tmp/gdevelop-app/$RUNTIME_BUNDLE"
           node <<'NODE'
-          const fs = require('fs');
-          const path = require('path');
-          const p = path.join('/tmp/gdevelop-app', process.env.RUNTIME_BUNDLE);
-          const text = fs.readFileSync(p, 'utf8');
-          const anchor = 'const t=(0,No.d8)(e);if(t.length>0)throw console.error(';
-          const count = text.split(anchor).length - 1;
-          if (count !== 1) throw new Error(`instrumentation anchor count=${count}`);
-          const replacement = 'const t=(0,No.d8)(e);console.error("' + process.env.SENTINEL + '"+JSON.stringify(t));if(t.length>0)throw console.error(';
-          fs.writeFileSync(p, text.replace(anchor, replacement));
+          const fs=require('fs'), path=require('path');
+          const p=path.join('/tmp/gdevelop-app',process.env.RUNTIME_BUNDLE);
+          const text=fs.readFileSync(p,'utf8');
+          const anchor='const t=(0,No.d8)(e);if(t.length>0)throw console.error(';
+          const count=text.split(anchor).length-1;
+          if(count!==1) throw new Error(`instrumentation anchor count=${count}`);
+          const replacement='const t=(0,No.d8)(e);console.error("'+process.env.SENTINEL+'"+JSON.stringify(t));if(t.length>0)throw console.error(';
+          fs.writeFileSync(p,text.replace(anchor,replacement));
           console.log('temporary instrumentation anchor PASS');
           NODE
           npx --yes asar@3.2.0 pack /tmp/gdevelop-app /tmp/app.instrumented.asar >/dev/null
           cp /tmp/app.instrumented.asar "$ASAR"
-          echo 'temporary app.asar repack PASS'
 
-      - name: Run one pre-feedback strict diagnostic and extract JSON
+      - name: Run one candidate strict diagnostic and extract JSON
         shell: bash
         run: |
           set -euo pipefail
           set +e
-          (cd /tmp/strict && xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL /tmp/pre-feedback-game.json) > /tmp/pre-feedback-strict.log 2>&1
+          (cd /tmp/strict && xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL /tmp/candidate-game.json) > /tmp/candidate-strict.log 2>&1
           rc=$?
           set -e
           test "$rc" -ne 0
           python3 <<'PY'
           import json
           from pathlib import Path
-          sentinel='__IW_DIAG_JSON__'
-          hits=[]
-          for line in Path('/tmp/pre-feedback-strict.log').read_text(encoding='utf-8',errors='replace').splitlines():
+          sentinel='__IW_DIAG_JSON__'; hits=[]
+          for line in Path('/tmp/candidate-strict.log').read_text(encoding='utf-8',errors='replace').splitlines():
               if sentinel in line:
-                  payload=line.split(sentinel,1)[1].strip()
-                  try: hits.append(json.loads(payload))
+                  try: hits.append(json.loads(line.split(sentinel,1)[1].strip()))
                   except Exception: pass
           if len(hits)!=1: raise SystemExit(f'valid sentinel JSON hit count={len(hits)}')
           data=hits[0]
@@ -108,29 +181,20 @@ jobs:
           expected={'type','isCondition','instructionType','instructionSentence','locationName','locationType','eventPath'}
           schema_ok=(first is None) or (isinstance(first,dict) and expected.issubset(first.keys()))
           if not schema_ok: raise SystemExit('first diagnostic schema check failed')
-          Path('/tmp/report/pre-feedback-diagnostics.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
-          summary='\n'.join([
-              'GDevelop=5.6.282',
-              'source=pre-feedback',
-              'sourceSHA=ec003356f33161fe3b23252ae09f2649d2e291ee',
-              f'diagnosticCount={len(data)}',
-              'jsonParse=PASS',
-              'firstSchema=PASS',
-              'verdict=GO',
-              ''
-          ])
-          Path('/tmp/report/pre-feedback-summary.txt').write_text(summary,encoding='utf-8')
+          Path('/tmp/report/candidate-diagnostics.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
+          summary='\n'.join(['GDevelop=5.6.282','source=multi-freeze-candidate','sourceBaseSHA=ec003356f33161fe3b23252ae09f2649d2e291ee',f'diagnosticCount={len(data)}','jsonParse=PASS','firstSchema=PASS','verdict=GO',''])
+          Path('/tmp/report/candidate-summary.txt').write_text(summary,encoding='utf-8')
           print(summary)
           PY
-          (cd /tmp/report && sha256sum pre-feedback-diagnostics.json pre-feedback-summary.txt > MANIFEST.sha256)
+          (cd /tmp/report && sha256sum candidate-diagnostics.json candidate-summary.txt > MANIFEST.sha256)
 
-      - name: Upload minimal pre-feedback diagnostic artifact
+      - name: Upload minimal candidate diagnostic artifact
         uses: actions/upload-artifact@v4
         with:
-          name: icewolf-pr16-pre-feedback-diagnostics
+          name: icewolf-pr16-candidate-diagnostics
           path: |
-            /tmp/report/pre-feedback-diagnostics.json
-            /tmp/report/pre-feedback-summary.txt
+            /tmp/report/candidate-diagnostics.json
+            /tmp/report/candidate-summary.txt
             /tmp/report/MANIFEST.sha256
           if-no-files-found: error
           retention-days: 7
