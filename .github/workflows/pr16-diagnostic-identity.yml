@@ -1,4 +1,4 @@
-name: PR16 Baseline Raw Diagnostic Smoke
+name: PR16 Pre-Feedback Raw Diagnostic Smoke
 
 on:
   push:
@@ -11,11 +11,12 @@ permissions:
   contents: read
 
 jobs:
-  baseline-raw-diagnostic-smoke:
+  pre-feedback-raw-diagnostic-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
+      PRE_FEEDBACK_HEAD: ec003356f33161fe3b23252ae09f2649d2e291ee
       PR_HEAD: b5b56a691cb5948bcf3c4ccfbcd431d746509073
       FEATURE_BRANCH: feature/v065-production-round-start
       GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
@@ -36,9 +37,10 @@ jobs:
           test "$(git rev-parse origin/main)" = "$BASE_SHA"
           test "$(git rev-parse origin/$FEATURE_BRANCH)" = "$PR_HEAD"
           test "$(git diff --name-only "$PR_HEAD"..HEAD)" = "$WORKFLOW_PATH"
+          git cat-file -e "$PRE_FEEDBACK_HEAD^{commit}"
           echo 'initial guard PASS'
 
-      - name: Prepare exact GDevelop and current-main baseline
+      - name: Prepare exact GDevelop and pre-feedback project
         shell: bash
         run: |
           set -euo pipefail
@@ -54,11 +56,11 @@ jobs:
           test -n "$GDEVELOP_BIN" && test -n "$ASAR"
           echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
           echo "ASAR=$ASAR" >> "$GITHUB_ENV"
-          git show "$BASE_SHA:game.json" > /tmp/baseline-game.json
-          python3 -m json.tool /tmp/baseline-game.json >/dev/null
-          echo 'exact GDevelop + baseline PASS'
+          git show "$PRE_FEEDBACK_HEAD:game.json" > /tmp/pre-feedback-game.json
+          python3 -m json.tool /tmp/pre-feedback-game.json >/dev/null
+          echo 'exact GDevelop + pre-feedback project PASS'
 
-      - name: Instrument temporary runtime bundle for raw diagnostic JSON
+      - name: Instrument temporary runtime bundle
         shell: bash
         run: |
           set -euo pipefail
@@ -80,12 +82,12 @@ jobs:
           cp /tmp/app.instrumented.asar "$ASAR"
           echo 'temporary app.asar repack PASS'
 
-      - name: Run one baseline strict diagnostic and extract JSON
+      - name: Run one pre-feedback strict diagnostic and extract JSON
         shell: bash
         run: |
           set -euo pipefail
           set +e
-          (cd /tmp/strict && xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL /tmp/baseline-game.json) > /tmp/baseline-strict.log 2>&1
+          (cd /tmp/strict && xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL /tmp/pre-feedback-game.json) > /tmp/pre-feedback-strict.log 2>&1
           rc=$?
           set -e
           test "$rc" -ne 0
@@ -93,53 +95,42 @@ jobs:
           import json
           from pathlib import Path
           sentinel='__IW_DIAG_JSON__'
-          lines=Path('/tmp/baseline-strict.log').read_text(encoding='utf-8',errors='replace').splitlines()
           hits=[]
-          for line in lines:
+          for line in Path('/tmp/pre-feedback-strict.log').read_text(encoding='utf-8',errors='replace').splitlines():
               if sentinel in line:
                   payload=line.split(sentinel,1)[1].strip()
-                  try:
-                      value=json.loads(payload)
-                      hits.append(value)
-                  except Exception:
-                      pass
-          if len(hits)!=1:
-              raise SystemExit(f'valid sentinel JSON hit count={len(hits)}')
+                  try: hits.append(json.loads(payload))
+                  except Exception: pass
+          if len(hits)!=1: raise SystemExit(f'valid sentinel JSON hit count={len(hits)}')
           data=hits[0]
-          if not isinstance(data,list):
-              raise SystemExit('diagnostic payload is not an array')
-          Path('/tmp/report/baseline-diagnostics.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
+          if not isinstance(data,list): raise SystemExit('diagnostic payload is not an array')
           first=data[0] if data else None
-          if first is not None and not isinstance(first,dict):
-              raise SystemExit('first diagnostic is not an object')
-          keys=sorted(first.keys()) if isinstance(first,dict) else []
           expected={'type','isCondition','instructionType','instructionSentence','locationName','locationType','eventPath'}
-          schema_ok=(first is None) or expected.issubset(first.keys())
+          schema_ok=(first is None) or (isinstance(first,dict) and expected.issubset(first.keys()))
+          if not schema_ok: raise SystemExit('first diagnostic schema check failed')
+          Path('/tmp/report/pre-feedback-diagnostics.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
           summary='\n'.join([
               'GDevelop=5.6.282',
-              'baseline=current-main-equivalent',
-              'baselineSHA=9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1',
+              'source=pre-feedback',
+              'sourceSHA=ec003356f33161fe3b23252ae09f2649d2e291ee',
               f'diagnosticCount={len(data)}',
               'jsonParse=PASS',
-              f'firstSchema={"PASS" if schema_ok else "PARTIAL"}',
-              f'firstKeys={json.dumps(keys,ensure_ascii=False)}',
-              'verdict=GO' if schema_ok else 'verdict=STOP',
+              'firstSchema=PASS',
+              'verdict=GO',
               ''
           ])
-          Path('/tmp/report/baseline-summary.txt').write_text(summary,encoding='utf-8')
+          Path('/tmp/report/pre-feedback-summary.txt').write_text(summary,encoding='utf-8')
           print(summary)
-          if not schema_ok:
-              raise SystemExit('first diagnostic schema did not contain expected core fields')
           PY
-          (cd /tmp/report && sha256sum baseline-diagnostics.json baseline-summary.txt > MANIFEST.sha256)
+          (cd /tmp/report && sha256sum pre-feedback-diagnostics.json pre-feedback-summary.txt > MANIFEST.sha256)
 
-      - name: Upload minimal baseline diagnostic artifact
+      - name: Upload minimal pre-feedback diagnostic artifact
         uses: actions/upload-artifact@v4
         with:
-          name: icewolf-pr16-baseline-diagnostics
+          name: icewolf-pr16-pre-feedback-diagnostics
           path: |
-            /tmp/report/baseline-diagnostics.json
-            /tmp/report/baseline-summary.txt
+            /tmp/report/pre-feedback-diagnostics.json
+            /tmp/report/pre-feedback-summary.txt
             /tmp/report/MANIFEST.sha256
           if-no-files-found: error
           retention-days: 7
