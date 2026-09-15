@@ -1,0 +1,359 @@
+name: PR16 Diagnostic Identity Audit
+
+on:
+  push:
+    branches:
+      - diag/pr16-identity-audit
+    paths:
+      - .github/workflows/pr16-diagnostic-identity.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_SHA: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
+      PR_HEAD: b5b56a691cb5948bcf3c4ccfbcd431d746509073
+      PRE_FEEDBACK_HEAD: ec003356f33161fe3b23252ae09f2649d2e291ee
+      FEATURE_BRANCH: feature/v065-production-round-start
+      GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
+      WORKFLOW_PATH: .github/workflows/pr16-diagnostic-identity.yml
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard main PR head and isolated branch delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$FEATURE_BRANCH"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          test "$(git rev-parse origin/$FEATURE_BRANCH)" = "$PR_HEAD"
+          test "$(git rev-parse HEAD^)" = "$PR_HEAD"
+          test "$(git diff --name-only "$PR_HEAD"..HEAD)" = "$WORKFLOW_PATH"
+          git cat-file -e "$PRE_FEEDBACK_HEAD^{commit}"
+          echo 'guard PASS'
+
+      - name: Prepare exact baseline and patched candidate in tmp only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "$PRE_FEEDBACK_HEAD:game.json" > /tmp/baseline-game.json
+          git show "$PR_HEAD:game.json" > /tmp/pr-head-game.json
+          cmp /tmp/baseline-game.json /tmp/pr-head-game.json
+          cp /tmp/baseline-game.json /tmp/candidate-game.json
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('/tmp/candidate-game.json')
+          data=json.loads(path.read_text(encoding='utf-8'))
+          frost=next(x for x in data['layouts'] if x.get('name')=='FROST LAB')
+          wolf_group=next(x for x in frost['events'] if x.get('type')=='BuiltinCommonInstructions::Group' and x.get('name')=='Wolf actions')
+          def walk(events):
+              for ev in events or []:
+                  yield ev
+                  yield from walk(ev.get('events',[]))
+          freeze_events=[]
+          for ev in walk(wolf_group.get('events',[])):
+              acts=ev.get('actions',[])
+              has_freeze=any(a.get('type',{}).get('value')=='SetStringObjectVariable' and a.get('parameters',[None,None,None,None])[:4]==['Actor','State','=','\"Frozen\"'] for a in acts)
+              has_sound=any(a.get('type',{}).get('value')=='PlaySound' and len(a.get('parameters',[]))>1 and a['parameters'][1]=='freeze_crack.wav' for a in acts)
+              if has_freeze and has_sound: freeze_events.append(ev)
+          assert len(freeze_events)==1, f'Player freeze event count={len(freeze_events)}'
+          freeze=freeze_events[0]; removed=[]; kept=[]
+          for a in freeze['actions']:
+              t=a.get('type',{}).get('value'); p=a.get('parameters',[])
+              if t=='SetNumberVariable' and p and p[0] in ('WolfModeLeft','CooldownLeft'):
+                  removed.append((t,p)); continue
+              if t=='ChangeColor' and len(p)>=2 and p[0]=='Player' and p[1]=='\"255;255;255\"':
+                  removed.append((t,p)); continue
+              kept.append(a)
+          assert len(removed)==3, f'intended action removals={removed}'
+          freeze['actions']=kept
+
+          how_old='<li>人狼：人狼モード中に接触して人間を凍らせる。</li>'
+          how_new='<li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li>'
+          replacements=0
+          for ev in walk(frost.get('events',[])):
+              if ev.get('type')!='BuiltinCommonInstructions::JsCode': continue
+              for i,line in enumerate(ev.get('inlineCode',[])):
+                  if how_old in line:
+                      ev['inlineCode'][i]=line.replace(how_old,how_new); replacements+=1
+          assert replacements==1, f'HOW TO PLAY replacement count={replacements}'
+
+          tests=data.setdefault('tests',[])
+          core=next(t for t in tests if t.get('name')=='STEP2 core test'); src=core['source']
+          old="harness.assert(wm === 0, `E mode ends after one freeze`);"
+          assert src.count(old)==1
+          src[src.index(old)]="harness.assert(wm > 0, `E wolf mode remains active after first freeze (${wm})`);"
+          old2="harness.assert(avar(t1.id,'State') === 'Active', `E no chain freeze`);"
+          assert src.count(old2)==1
+          i=src.index(old2)
+          src[i:i+1]=[
+              "harness.assert(avar(t1.id,'State') === 'Active', `E second target remains Active without contact`);",
+              "harness.setSceneVariable('WolfModeLeft', 0);",
+              "harness.setSceneVariable('CooldownLeft', 0);",
+              "await harness.stepFrames(3);",
+          ]
+          if "harness.setSceneVariable('MatchTimeLeft', 1.5);" in src:
+              src[src.index("harness.setSceneVariable('MatchTimeLeft', 1.5);")]="harness.setSceneVariable('MatchTimeLeft', 0.2);"
+          if "await harness.stepFrames(150);" in src:
+              src[src.index("await harness.stepFrames(150);")]="await harness.stepFrames(20);"
+
+          multi='v0.6.5 Wolf Mode Multi-Freeze test'; timeout='v0.6.5 Human Timeout Win Fast test'
+          tests[:]=[t for t in tests if t.get('name') not in (multi,timeout)]
+          tests.append({'description':'Player Wolf keeps the full 5-second Wolf Mode after a freeze and can freeze multiple Active Humans before cooldown starts','lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,'lastRunStatus':'not-run','name':multi,'type':'gameplay','source':[
+              "await harness.goToScene('FROST LAB');",
+              "harness.setSceneVariable('RoundCommand', 'TestStartWolf');","await harness.stepFrames(3);","await harness.stepFrames(12);",
+              "harness.assert((harness.getSceneVariable('WolfModeDuration')?.value ?? 0) === 5, 'Wolf Mode duration remains 5 seconds');",
+              "harness.assert((harness.getSceneVariable('WolfCooldown')?.value ?? 0) === 5, 'Wolf cooldown remains 5 seconds');",
+              "harness.setSceneVariable('WolfModeLeft', 5);","harness.setSceneVariable('CooldownLeft', 0);",
+              "const actorIds = harness.getObjects('Actor').slice(0,3).map(a => a.id);","harness.assert(actorIds.length === 3, 'three human targets available');",
+              "for (let i = 0; i < actorIds.length; i++) {","  const target = harness.getObjects('Actor').find(a => a.id === actorIds[i]);","  const playerNow = harness.getObjects('Player')[0];",
+              "  harness.assert(!!target && !!playerNow, `target/player ${i} exists`);","  harness.assert(harness.getObjectVariable(target.id, 'Role')?.value === 'Human', `target ${i} is Human`);","  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Active', `target ${i} starts Active`);",
+              "  harness.setObjectPosition(playerNow.id, target.centerX - 8.5, target.centerY - 8.5);","  await harness.stepFrames(8);","  harness.assert(harness.getObjectVariable(target.id, 'State')?.value === 'Frozen', `target ${i} frozen in same Wolf Mode`);","  harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? 0) > 0, `Wolf Mode remains active after target ${i}`);","}",
+              "const frozen = harness.getObjects('Actor').filter(a => harness.getObjectVariable(a.id, 'State')?.value === 'Frozen');","harness.assert(frozen.length >= 3, `at least 3 humans frozen during one Wolf Mode, got ${frozen.length}`);",
+              "harness.setSceneVariable('WolfModeLeft', 0.01);","await harness.stepFrames(8);","harness.assert((harness.getSceneVariable('WolfModeLeft')?.value ?? -1) === 0, 'Wolf Mode expires normally');","harness.assert((harness.getSceneVariable('CooldownLeft')?.value ?? 0) > 0, 'cooldown starts only after Wolf Mode expires');",""
+          ]})
+          tests.append({'description':'Fast isolated regression for Human victory when match timer reaches zero','lastRunAt':0,'lastRunDurationMs':0,'lastRunFramesExecuted':0,'lastRunStatus':'not-run','name':timeout,'type':'gameplay','source':[
+              "await harness.goToScene('FROST LAB');","harness.setSceneVariable('RoundCommand', 'TestStartWolf');","await harness.stepFrames(3);","harness.setSceneVariable('MatchTimeLeft', 0.05);","await harness.stepFrames(8);","harness.assert(harness.getSceneVariable('GameOver')?.value === true, 'timer expiry ends match');","harness.assert(harness.getObjects('WinText')[0].text === '人間の勝利', 'timer expiry awards Human victory');",""
+          ]})
+          path.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          print('candidate recreation PASS')
+          PY
+
+      - name: Download exact GDevelop 5.6.282 and instrument diagnostic output in tmp only
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          exec > >(tee /tmp/diagnostic-core.log) 2>&1
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl zip >/dev/null
+          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip" >/dev/null
+          echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
+          test -n "$GDEVELOP_BIN"
+          ASAR="$(find /tmp/gdevelop -type f -name app.asar | head -n 1)"
+          test -n "$ASAR"
+          echo "GDEVELOP_BIN=$GDEVELOP_BIN" > /tmp/diag-env
+          echo "ASAR=$ASAR" >> /tmp/diag-env
+          rm -rf /tmp/gdevelop-app
+          npx --yes asar@3.2.0 extract "$ASAR" /tmp/gdevelop-app
+          node <<'NODE'
+          const fs=require('fs'), path=require('path');
+          const root='/tmp/gdevelop-app';
+          const files=[];
+          const walk=d=>{for(const n of fs.readdirSync(d)){const p=path.join(d,n);const s=fs.statSync(p);if(s.isDirectory())walk(p);else if(p.endsWith('.js'))files.push(p);}};
+          walk(root);
+          const hits=files.filter(p=>{try{return fs.readFileSync(p,'utf8').includes('Diagnostic report has');}catch(e){return false;}});
+          if(!hits.length) throw new Error('No runtime JS file contains diagnostic marker');
+          let patched=0;
+          for(const p of hits){
+            let text=fs.readFileSync(p,'utf8');
+            const marker=text.indexOf('Diagnostic report has');
+            if(marker<0) continue;
+            const start=Math.max(0,marker-6000);
+            const before=text.slice(start,marker);
+            const candidates=[];
+            const patterns=[
+              /if\s*\(\s*([A-Za-z_$][\w$]*)\.length\s*>\s*0\s*\)\s*\{/g,
+              /if\s*\(\s*0\s*<\s*([A-Za-z_$][\w$]*)\.length\s*\)\s*\{/g,
+              /if\s*\(\s*([A-Za-z_$][\w$]*)\.length\s*\)\s*\{/g,
+            ];
+            for(const re of patterns){let m;while((m=re.exec(before)))candidates.push({index:start+m.index,varName:m[1],len:m[0].length});}
+            if(!candidates.length) continue;
+            candidates.sort((a,b)=>a.index-b.index);
+            const c=candidates[candidates.length-1];
+            const injection=`console.error('[ICEWOLF_DIAG_JSON]'+JSON.stringify(${c.varName}));throw new Error('ICEWOLF_DIAGNOSTIC_CAPTURE_STOP');`;
+            text=text.slice(0,c.index)+injection+text.slice(c.index);
+            fs.writeFileSync(p,text);
+            console.log(`patched runtime diagnostic bundle: ${p} variable=${c.varName}`);
+            patched++;
+            break;
+          }
+          if(patched!==1) throw new Error(`runtime bundle patch count=${patched}`);
+          NODE
+          mv "$ASAR" "$ASAR.original"
+          npx --yes asar@3.2.0 pack /tmp/gdevelop-app "$ASAR"
+          echo instrumented > /tmp/diag-status
+
+      - name: Capture baseline and candidate raw diagnostics
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          exec > >(tee -a /tmp/diagnostic-core.log) 2>&1
+          test "$(cat /tmp/diag-status 2>/dev/null || true)" = instrumented
+          source /tmp/diag-env
+          capture() {
+            local project="$1" log="$2" out="$3"
+            rm -f "$log" "$out"
+            set +e
+            xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check --block-on-diagnostic-errors --run-command EXPORT_HTML5_EXTERNAL "$project" >"$log" 2>&1
+            local rc=$?
+            set -e
+            python3 - "$log" "$out" <<'PY'
+          import json,sys
+          log,out=sys.argv[1:]
+          marker='[ICEWOLF_DIAG_JSON]'
+          lines=open(log,encoding='utf-8',errors='replace').read().splitlines()
+          payloads=[line.split(marker,1)[1] for line in lines if marker in line]
+          if len(payloads)!=1:
+              raise SystemExit(f'expected exactly one diagnostic payload, got {len(payloads)}')
+          data=json.loads(payloads[0])
+          if not isinstance(data,list): raise SystemExit('diagnostic payload is not an array')
+          with open(out,'w',encoding='utf-8') as f: json.dump(data,f,ensure_ascii=False,indent=2,sort_keys=True)
+          print(f'captured {len(data)} diagnostics -> {out}')
+          PY
+            test "$rc" -ne 0
+          }
+          capture /tmp/baseline-game.json /tmp/baseline.log /tmp/baseline-raw.json
+          capture /tmp/candidate-game.json /tmp/candidate.log /tmp/candidate-raw.json
+          echo captured > /tmp/diag-status
+
+      - name: Normalize multiset and classify exact delta
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          exec > >(tee -a /tmp/diagnostic-core.log) 2>&1
+          test "$(cat /tmp/diag-status 2>/dev/null || true)" = captured
+          mkdir -p /tmp/report
+          python3 <<'PY'
+          import json,collections
+          from pathlib import Path
+          baseline=json.loads(Path('/tmp/baseline-raw.json').read_text(encoding='utf-8'))
+          candidate=json.loads(Path('/tmp/candidate-raw.json').read_text(encoding='utf-8'))
+          base_game=json.loads(Path('/tmp/baseline-game.json').read_text(encoding='utf-8'))
+          cand_game=json.loads(Path('/tmp/candidate-game.json').read_text(encoding='utf-8'))
+
+          def source_string(e):
+              path='.'.join(str(x) for x in e.get('eventPath') or [])
+              return f"{e.get('locationType','')}:{e.get('locationName','')}:eventPath={path}"
+          def object_string(e):
+              return e.get('objectName') or e.get('behaviorName') or e.get('extensionName') or e.get('instructionType') or ''
+          def norm(e):
+              return {
+                  'severity':'error',
+                  'code':e.get('type',''),
+                  'source':source_string(e),
+                  'object':object_string(e),
+                  'message':e.get('instructionSentence',''),
+              }
+          def key(n): return tuple(n[x] for x in ('severity','code','source','object','message'))
+          bn=[norm(e) for e in baseline]; cn=[norm(e) for e in candidate]
+          bc=collections.Counter(key(x) for x in bn); cc=collections.Counter(key(x) for x in cn)
+          added=cc-bc; removed=bc-cc
+
+          def top_group(game,e):
+              if e.get('locationType')!='scene': return None
+              layout=next((x for x in game.get('layouts',[]) if x.get('name')==e.get('locationName')),None)
+              path=e.get('eventPath') or []
+              if not layout or not path: return None
+              events=layout.get('events',[])
+              try:
+                  top=events[path[0]]
+              except Exception:
+                  return None
+              return top.get('name') or top.get('type') or None
+
+          raw_by_key=collections.defaultdict(list)
+          for e in candidate: raw_by_key[key(norm(e))].append(e)
+          added_rows=[]
+          production_count=0; unknown_count=0
+          for k,count in sorted(added.items()):
+              e=raw_by_key[k][0]
+              tg=top_group(cand_game,e)
+              if tg in ('Wolf actions','v0.6.5 Production Round Start + Main Menu'):
+                  classification='production-gameplay'; production_count+=count
+              elif tg and any(token in tg.lower() for token in ('test','diagnostic','debug')):
+                  classification='test-helper'
+              elif e.get('locationType') in ('scene','external-events','extension'):
+                  classification='production-or-unresolved'; unknown_count+=count
+              else:
+                  classification='tool-project'; unknown_count+=count
+              added_rows.append({'diagnostic':dict(zip(('severity','code','source','object','message'),k)),'count':count,'classification':classification,'topLevelGroup':tg,'rawExample':e})
+
+          removed_rows=[{'diagnostic':dict(zip(('severity','code','source','object','message'),k)),'count':count} for k,count in sorted(removed.items())]
+          result={
+              'baselineCount':len(baseline),
+              'candidateCount':len(candidate),
+              'addedCount':sum(added.values()),
+              'removedCount':sum(removed.values()),
+              'productionGameplayNewCount':production_count,
+              'unresolvedNewCount':unknown_count,
+              'goCandidate': production_count==0 and unknown_count==0,
+              'added':added_rows,
+              'removed':removed_rows,
+          }
+          Path('/tmp/report/baseline-diagnostics.json').write_text(json.dumps({'raw':baseline,'normalized':bn},ensure_ascii=False,indent=2,sort_keys=True),encoding='utf-8')
+          Path('/tmp/report/candidate-diagnostics.json').write_text(json.dumps({'raw':candidate,'normalized':cn},ensure_ascii=False,indent=2,sort_keys=True),encoding='utf-8')
+          Path('/tmp/report/diagnostic-diff.json').write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True),encoding='utf-8')
+          Path('/tmp/diag-summary.json').write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True),encoding='utf-8')
+          print(json.dumps(result,ensure_ascii=False,indent=2))
+          PY
+          echo success > /tmp/diag-status
+
+      - name: Build minimal report payload
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/report
+          status="$(cat /tmp/diag-status 2>/dev/null || echo failed)"
+          for f in baseline-diagnostics.json candidate-diagnostics.json diagnostic-diff.json; do
+            if [ ! -f "/tmp/report/$f" ]; then
+              printf '{"status":"unavailable","reason":"diagnostic raw capture did not complete"}\n' > "/tmp/report/$f"
+            fi
+          done
+          {
+            echo 'ICE WOLF PR #16 Diagnostic Identity Audit'
+            echo "status=$status"
+            echo 'gdevelop=5.6.282'
+            echo "base_sha=$BASE_SHA"
+            echo "pr_head=$PR_HEAD"
+            echo "pre_feedback_head=$PRE_FEEDBACK_HEAD"
+            echo 'scope=diagnostic only; no gameplay/main/PR/preview writes'
+            if [ -f /tmp/diag-summary.json ]; then
+              echo 'summary:'
+              cat /tmp/diag-summary.json
+            else
+              echo 'failure-tail:'
+              tail -n 80 /tmp/diagnostic-core.log 2>/dev/null || true
+            fi
+          } > /tmp/report/README.txt
+          (cd /tmp/report && sha256sum baseline-diagnostics.json candidate-diagnostics.json diagnostic-diff.json README.txt > MANIFEST.sha256)
+          find /tmp/report -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+
+      - name: Upload one minimal diagnostic artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: icewolf-pr16-diagnostic-identity
+          path: |
+            /tmp/report/baseline-diagnostics.json
+            /tmp/report/candidate-diagnostics.json
+            /tmp/report/diagnostic-diff.json
+            /tmp/report/README.txt
+            /tmp/report/MANIFEST.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Final read-only verdict
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cat /tmp/diag-status 2>/dev/null || true)" = success
+          git fetch origin main "$FEATURE_BRANCH"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          test "$(git rev-parse origin/$FEATURE_BRANCH)" = "$PR_HEAD"
+          echo 'READ ONLY diagnostic identity audit PASS'
