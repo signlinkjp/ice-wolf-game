@@ -1,0 +1,332 @@
+[
+  {
+    "status": "timeout",
+    "testName": "STEP2 core test",
+    "framesExecuted": 258,
+    "durationMs": 38819,
+    "loadingMs": 600,
+    "timeoutMs": 30000,
+    "hiddenStallMs": 0,
+    "gameTimeMs": 4300,
+    "assertions": [
+      {
+        "message": "C1 6 actors + player, got 6",
+        "passed": true
+      },
+      {
+        "message": "C2 player Wolf/Active",
+        "passed": true
+      },
+      {
+        "message": "C2 all actors Human/Active",
+        "passed": true
+      },
+      {
+        "message": "C3 same size w=17 d=32",
+        "passed": true
+      },
+      {
+        "message": "K timer ticking, got 3:29",
+        "passed": true
+      },
+      {
+        "message": "M role label",
+        "passed": true
+      },
+      {
+        "message": "D WOLF button visible for wolf",
+        "passed": true
+      },
+      {
+        "message": "D wolf mode entered (4.966666666666667)",
+        "passed": true
+      },
+      {
+        "message": "E actor frozen on contact",
+        "passed": true
+      },
+      {
+        "message": "E wolf mode remains active after first freeze (4.716666666666668)",
+        "passed": true
+      },
+      {
+        "message": "E second target remains Active without contact",
+        "passed": true
+      },
+      {
+        "message": "N role toggled to Human",
+        "passed": true
+      },
+      {
+        "message": "G RESCUE shown near frozen",
+        "passed": true
+      },
+      {
+        "message": "G frozen rescued to Active",
+        "passed": true
+      },
+      {
+        "message": "re-frozen for infect test",
+        "passed": true
+      },
+      {
+        "message": "H INFECT shown near frozen",
+        "passed": true
+      },
+      {
+        "message": "H infected to candidate",
+        "passed": true
+      },
+      {
+        "message": "H infection used once",
+        "passed": true
+      },
+      {
+        "message": "I rescuer becomes Frozen",
+        "passed": true
+      },
+      {
+        "message": "I candidate becomes Active Wolf",
+        "passed": true
+      },
+      {
+        "message": "N reset player",
+        "passed": true
+      },
+      {
+        "message": "N reset actors",
+        "passed": true
+      },
+      {
+        "message": "N reset gameover flag",
+        "passed": true
+      },
+      {
+        "message": "L game over on all frozen",
+        "passed": true
+      },
+      {
+        "message": "L 人狼の勝利 shown",
+        "passed": true
+      },
+      {
+        "message": "L frozen progression after win",
+        "passed": true
+      }
+    ],
+    "errors": [
+      "The test timed out after 30000ms (wall-clock, loading and time spent hidden excluded)."
+    ],
+    "consoleLogs": [
+      "[log] [LayerPixiRenderer] RenderTexture created for layer .",
+      "[log] [LayerPixiRenderer] RenderTexture created for layer UI."
+    ],
+    "eventLog": [
+      {
+        "frame": 1,
+        "event": "sceneChanged",
+        "sceneName": "FROST LAB",
+        "cause": "harness"
+      }
+    ],
+    "finalState": {
+      "sceneName": "FROST LAB",
+      "objectCounts": {
+        "Floor": 1,
+        "Wall": 30,
+        "Player": 1,
+        "Barrier": 4,
+        "Actor": 6,
+        "TimerText": 1,
+        "RoleText": 1,
+        "WolfButton": 1,
+        "RescueButton": 1,
+        "InfectButton": 1,
+        "WinText": 1,
+        "TestRoleButton": 1,
+        "TestResetButton": 1,
+        "StatusText": 1,
+        "ActionFeedbackText": 1,
+        "BuildText": 1,
+        "CpuWolfTestButton": 1
+      },
+      "watchedObjects": {},
+      "sceneVariables": [
+        {
+          "name": "GameOver",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "InfectionUsed",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "HumanActive",
+          "value": 6,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "CooldownLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfModeLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MatchTimeLeft",
+          "value": 1.333333333333334,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MatchDuration",
+          "value": 210,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfCooldown",
+          "value": 5,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "WolfModeDuration",
+          "value": 5,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "SafeY",
+          "value": 358.50000381469727,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "SafeX",
+          "value": 8.500000089406967,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MoveY",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "MoveX",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "FeedbackLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "CpuWolfDiagPhase",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "ActorIdLabelsReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "VirtualJoystickReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "JoystickActive",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "JoystickX",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "JoystickY",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "OverviewCameraEnabled",
+          "value": false,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "OverviewCameraReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "RoundPhase",
+          "value": "Result",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundRole",
+          "value": "Wolf",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundCommand",
+          "value": "",
+          "type": "string",
+          "owner": 0
+        },
+        {
+          "name": "RoundPhaseLeft",
+          "value": 0,
+          "type": "number",
+          "owner": 0
+        },
+        {
+          "name": "ProductionMenuReady",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        },
+        {
+          "name": "RoundResultRecorded",
+          "value": true,
+          "type": "boolean",
+          "owner": 0
+        }
+      ]
+    },
+    "screenshots": [],
+    "profiles": [],
+    "performance": {
+      "avgStepMs": 5.49,
+      "worstStepMs": 101
+    }
+  }
+]
