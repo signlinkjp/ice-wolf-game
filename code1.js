@@ -197,7 +197,7 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects5= [];
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xc85b48 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x11d2380 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -325,12 +325,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc85b48(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x11d2380(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xaedb68 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xffe410 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -834,7 +834,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xaedb68(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xffe410(runtimeScene);
 
 }
 
@@ -944,7 +944,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa11c98 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1236970 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1013,7 +1013,7 @@ gdjs.FROST_32LABCode.eventsList4 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa11c98(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1236970(runtimeScene);
 
 }
 
@@ -1876,7 +1876,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xc32270 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x1001688 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -1997,7 +1997,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc32270(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1001688(runtimeScene);
 
 }
 
@@ -2005,7 +2005,7 @@ gdjs.FROST_32LABCode.userFunc0xc32270(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList17 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0x925070 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa498d0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2049,7 +2049,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x925070(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa498d0(runtimeScene);
 
 }
 
@@ -3130,7 +3130,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xae83d0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb47fb8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -3173,12 +3173,12 @@ gdjs.FROST_32LABCode.eventsList23 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xae83d0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb47fb8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x98e328 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb481b8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -3623,7 +3623,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x98e328(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb481b8(runtimeScene);
 
 }
 
@@ -3673,7 +3673,7 @@ gdjs.FROST_32LABCode.eventsList24(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x121ecc0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xf93028 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3722,7 +3722,7 @@ gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x121ecc0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xf93028(runtimeScene);
 
 }
 
@@ -3783,7 +3783,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9c9d70 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xe2c008 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3866,12 +3866,12 @@ gdjs.FROST_32LABCode.eventsList28 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9c9d70(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe2c008(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9c9f80 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xe2c208 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4146,7 +4146,7 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9c9f80(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe2c208(runtimeScene);
 
 }
 
