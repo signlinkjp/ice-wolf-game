@@ -73,14 +73,14 @@ def _crack_path(rng, x, y, angle, length, depth):
 
 def build_floor() -> Image.Image:
     rng = random.Random(1106)
-    image = Image.new("RGB", (SIZE, SIZE), (146, 184, 212))
+    image = Image.new("RGB", (SIZE, SIZE), (100, 132, 162))
     draw = ImageDraw.Draw(image)
 
     cell = 128
     # Cool inner sheen inside every tile cell (kept fully inside the cell so it tiles).
     sheen_mask = Image.radial_gradient("L").resize((cell, cell))
     sheen_mask = sheen_mask.point(lambda v: max(0, int((1 - v / 255.0) * 62)))
-    sheen = Image.new("RGB", (cell, cell), (208, 234, 250))
+    sheen = Image.new("RGB", (cell, cell), (150, 182, 208))
     for cy in (0, cell):
         for cx in (0, cell):
             region = image.crop((cx, cy, cx + cell, cy + cell))
@@ -89,72 +89,72 @@ def build_floor() -> Image.Image:
 
     # Tile seams.
     for pos in (0, cell):
-        draw.line([(pos, 0), (pos, SIZE)], fill=(104, 142, 170), width=2)
-        draw.line([(0, pos), (SIZE, pos)], fill=(104, 142, 170), width=2)
+        draw.line([(pos, 0), (pos, SIZE)], fill=(74, 106, 136), width=2)
+        draw.line([(0, pos), (SIZE, pos)], fill=(74, 106, 136), width=2)
         for off in (1, 2):
-            draw.line([(pos + off, 0), (pos + off, SIZE)], fill=(186, 219, 240), width=1)
-            draw.line([(0, pos + off), (SIZE, pos + off)], fill=(186, 219, 240), width=1)
+            draw.line([(pos + off, 0), (pos + off, SIZE)], fill=(168, 200, 226), width=1)
+            draw.line([(0, pos + off), (SIZE, pos + off)], fill=(168, 200, 226), width=1)
 
     # Frost speckles and short hairline cracks (wrapped so the tile repeats cleanly).
-    for _ in range(340):
+    for _ in range(170):
         x = rng.uniform(0, SIZE)
         y = rng.uniform(0, SIZE)
         r = rng.choice((0, 0, 0, 1, 1, 2))
-        tone = rng.randint(198, 240)
-        _dot(draw, x, y, r, (tone, min(255, tone + 14), 255))
+        tone = rng.randint(176, 226)
+        _dot(draw, x, y, r, (tone, min(255, tone + 16), 255))
 
-    for _ in range(16):
+    for _ in range(9):
         x = rng.uniform(0, SIZE)
         y = rng.uniform(0, SIZE)
         angle = rng.uniform(0, math.tau)
-        points = _crack_path(rng, x, y, angle, rng.uniform(18, 46), 0)
-        _line(draw, points, (216, 238, 252), width=1)
+        points = _crack_path(rng, x, y, angle, rng.uniform(14, 34), 0)
+        _line(draw, points, (204, 228, 246), width=1)
 
     # Recessed corner rivets on each cell corner.
     for cy in (0, cell):
         for cx in (0, cell):
-            _dot(draw, cx + 10, cy + 10, 3, (96, 134, 162))
-            _dot(draw, cx + 9, cy + 9, 1, (214, 238, 252))
+            _dot(draw, cx + 10, cy + 10, 3, (68, 100, 128))
+            _dot(draw, cx + 9, cy + 9, 1, (186, 216, 240))
 
     return image.filter(ImageFilter.SMOOTH)
 
 
 def build_wall() -> Image.Image:
     rng = random.Random(6502)
-    image = Image.new("RGB", (SIZE, SIZE), (52, 82, 110))
+    image = Image.new("RGB", (SIZE, SIZE), (48, 74, 100))
     draw = ImageDraw.Draw(image)
 
     # Brushed metal streaks (vertical, wrapped).
     for _ in range(220):
         x = rng.uniform(0, SIZE)
-        tone = rng.randint(-16, 16)
-        base = (52 + tone, 82 + tone, 110 + tone)
+        tone = rng.randint(-14, 14)
+        base = (48 + tone, 74 + tone, 100 + tone)
         _line(draw, [(x, 0), (x, SIZE)], base, width=rng.choice((1, 1, 2)))
 
     cell = 128
     for cy in (0, cell):
         for cx in (0, cell):
             # Panel bevel.
-            draw.line([(cx + 4, cy + 4), (cx + cell - 4, cy + 4)], fill=(96, 132, 162), width=2)
-            draw.line([(cx + 4, cy + 4), (cx + 4, cy + cell - 4)], fill=(90, 126, 156), width=2)
+            draw.line([(cx + 4, cy + 4), (cx + cell - 4, cy + 4)], fill=(86, 120, 150), width=2)
+            draw.line([(cx + 4, cy + 4), (cx + 4, cy + cell - 4)], fill=(80, 114, 144), width=2)
             draw.line(
                 [(cx + 4, cy + cell - 4), (cx + cell - 4, cy + cell - 4)],
-                fill=(30, 52, 74),
+                fill=(26, 46, 66),
                 width=3,
             )
             draw.line(
                 [(cx + cell - 4, cy + 4), (cx + cell - 4, cy + cell - 4)],
-                fill=(30, 52, 74),
+                fill=(26, 46, 66),
                 width=3,
             )
             # Inner tech strip.
             draw.rectangle(
                 [cx + 22, cy + cell - 40, cx + cell - 22, cy + cell - 32],
-                fill=(38, 66, 92),
+                fill=(32, 58, 82),
             )
             draw.line(
                 [(cx + 26, cy + cell - 36), (cx + cell - 30, cy + cell - 36)],
-                fill=(120, 214, 245),
+                fill=(110, 200, 235),
                 width=2,
             )
 
@@ -177,12 +177,12 @@ def build_wall() -> Image.Image:
     for cy in (0, cell):
         for cx in (0, cell):
             for rx, ry in ((14, 14), (cell - 14, 14), (14, cell - 14), (cell - 14, cell - 14)):
-                _dot(draw, cx + rx, cy + ry, 3, (18, 40, 60))
-                _dot(draw, cx + rx - 1, cy + ry - 1, 1, (150, 224, 248))
+                _dot(draw, cx + rx, cy + ry, 3, (16, 36, 54))
+                _dot(draw, cx + rx - 1, cy + ry - 1, 1, (140, 214, 240))
     for _ in range(240):
         x = rng.uniform(0, SIZE)
         y = rng.uniform(0, SIZE)
-        _dot(draw, x, y, rng.choice((0, 0, 1)), (206, 232, 248))
+        _dot(draw, x, y, rng.choice((0, 0, 1)), (190, 220, 240))
 
     return image
 
