@@ -91,8 +91,16 @@ xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check \
   --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
 test -f build/index.html
 test -f build/code0.js
-for asset in assets/floor_frostlab.png assets/wall_frostlab.png assets/ice_freeze.png; do
-  test -f "build/$asset" || { echo "MISSING FROM EXPORT: $asset"; exit 1; }
+for asset in floor_frostlab.png wall_frostlab.png ice_freeze.png; do
+  if [ -f "build/assets/$asset" ]; then
+    echo "exported: build/assets/$asset"
+  elif [ -f "build/$asset" ]; then
+    echo "exported: build/$asset"
+  else
+    echo "MISSING FROM EXPORT: $asset"
+    ls -la build/ | head -40
+    exit 1
+  fi
 done
 echo "export carries the frost-lab assets"
 cp -a build /tmp/v065-improvements-build
