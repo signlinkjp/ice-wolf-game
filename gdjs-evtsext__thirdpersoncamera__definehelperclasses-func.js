@@ -9,7 +9,7 @@ gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses = {};
 gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.idToCallbackMap = new Map();
 
 
-gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.userFunc0x1228f80 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
+gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.userFunc0x122d8a0 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
 "use strict";
 //@ts-ignore
 if (gdjs.__thirdPersonCameraExtension) {
@@ -67,7 +67,7 @@ gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.eventsList0 = function(runt
 {
 
 
-gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.userFunc0x1228f80(runtimeScene, eventsFunctionContext);
+gdjs.evtsExt__ThirdPersonCamera__DefineHelperClasses.userFunc0x122d8a0(runtimeScene, eventsFunctionContext);
 
 }
 

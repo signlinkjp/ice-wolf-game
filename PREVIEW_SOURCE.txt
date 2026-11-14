@@ -1,6 +1,6 @@
-ICE WOLF v0.6.5 preview (survivor counter + instant wolf win + wolf role pick)
+ICE WOLF v0.6.6 preview (ice-lab visuals + secret second-wolf notice)
 source branch: feature/v065-production-round-start
-source commit: 461eccd5c22564d7176df70826a7b49329ba928a
+source commit: fa2ca83392af3825610466fb0081a0675bec7f4b
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-features: live 生存/凍結 HUD, instant 全員凍結 wolf victory with Result reason, selectable 人狼役 among frozen captures
+features: frost-lab floor/wall textures, ice-cyan frozen blocks with ice texture, 人狼役にする label, ⚠️ 誰かが人狼に染まった…！ secret notice

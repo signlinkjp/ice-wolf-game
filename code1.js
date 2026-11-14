@@ -203,7 +203,7 @@ gdjs.FROST_32LABCode.GDCountTextObjects5= [];
 gdjs.FROST_32LABCode.GDCountTextObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xff82f0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xff68c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -331,12 +331,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xff82f0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xff68c8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x101be88 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9189f8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -840,7 +840,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x101be88(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9189f8(runtimeScene);
 
 }
 
@@ -950,7 +950,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb612d0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x923140 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1019,7 +1019,7 @@ gdjs.FROST_32LABCode.eventsList4 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb612d0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x923140(runtimeScene);
 
 }
 
@@ -1696,7 +1696,7 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x118dbd8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x91d6a8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1736,7 +1736,7 @@ for (const obj of runtimeScene.getObjects('CountText')) {
   if (typeof obj.hide === 'function') obj.hide(!playing);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x118dcb0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x91d790 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1757,7 +1757,7 @@ if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
   vars.get('WolfRolePickOpen').setBoolean(false);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x118dda0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x91d880 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const pickedId = vars.get('WolfRolePickTarget').getAsString();
@@ -1791,7 +1791,7 @@ if (pickedId) {
   }
 }
 };
-gdjs.FROST_32LABCode.userFunc0x118de68 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x91d948 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1940,7 +1940,7 @@ gdjs.FROST_32LABCode.eventsList13 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x118dbd8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x91d6a8(runtimeScene);
 
 }
 
@@ -1948,7 +1948,7 @@ gdjs.FROST_32LABCode.userFunc0x118dbd8(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x118dcb0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x91d790(runtimeScene);
 
 }
 
@@ -1956,7 +1956,7 @@ gdjs.FROST_32LABCode.userFunc0x118dcb0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x118dda0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x91d880(runtimeScene);
 
 }
 
@@ -1964,7 +1964,7 @@ gdjs.FROST_32LABCode.userFunc0x118dda0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x118de68(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x91d948(runtimeScene);
 
 }
 
@@ -2098,6 +2098,8 @@ gdjs.copyArray(gdjs.FROST_32LABCode.GDPlayerObjects2, gdjs.FROST_32LABCode.GDPla
 }
 {gdjs.evtTools.sound.playSound(runtimeScene, "freeze_crack.wav", false, 90, 1);
 }
+{runtimeScene.getScene().getVariables().getFromIndex(34).setBoolean(true);
+}
 elseEventsChainSatisfied = true;
 }
 
@@ -2152,7 +2154,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0x94f748 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x1035848 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2273,7 +2275,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x94f748(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1035848(runtimeScene);
 
 }
 
@@ -2281,7 +2283,7 @@ gdjs.FROST_32LABCode.userFunc0x94f748(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList18 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0x918320 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x11d1590 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2325,7 +2327,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x918320(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x11d1590(runtimeScene);
 
 }
 
@@ -3498,11 +3500,43 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc08ff0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9131a0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
 const getState = (obj) => obj.getVariables().get('State').getAsString();
+const ICE_TINT = 0x5ee7ff;
+const iceTextureUrl = (() => {
+  try {
+    const game = runtimeScene.getGame();
+    const base = game && typeof game.getAssetPath === 'function' ? (game.getAssetPath() || '') : '';
+    return base + 'assets/ice_freeze.png';
+  } catch (_) {
+    return 'assets/ice_freeze.png';
+  }
+})();
+const getIceTexture = () => {
+  if (typeof THREE === 'undefined' || !THREE.TextureLoader) return null;
+  if (runtimeScene.__iceWolfIceTexture === undefined) {
+    runtimeScene.__iceWolfIceTexture = null;
+    try {
+      new THREE.TextureLoader().load(iceTextureUrl, (texture) => {
+        if (texture && THREE.RepeatWrapping !== undefined) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+        }
+        runtimeScene.__iceWolfIceTexture = texture || null;
+      }, undefined, () => { runtimeScene.__iceWolfIceTexture = null; });
+    } catch (_) {
+      runtimeScene.__iceWolfIceTexture = null;
+    }
+  }
+  const texture = runtimeScene.__iceWolfIceTexture;
+  if (!texture) return null;
+  const image = texture.image;
+  const ready = image && (image.width > 0 || image.naturalWidth > 0);
+  return ready ? texture : null;
+};
 const ensureSolidMaterials = (obj) => {
   const mesh = obj.get3DRendererObject && obj.get3DRendererObject();
   if (!mesh) return null;
@@ -3514,10 +3548,17 @@ const ensureSolidMaterials = (obj) => {
   }
   return Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 };
-const setSolidColor = (obj, hexColor) => {
+const setSolidColor = (obj, hexColor, useIce) => {
   const materials = ensureSolidMaterials(obj);
   if (!materials) return;
-  for (const material of materials) material.color.setHex(hexColor);
+  const ice = useIce ? getIceTexture() : null;
+  for (const material of materials) {
+    if (material.color && typeof material.color.setHex === 'function') material.color.setHex(hexColor);
+    if (material.map !== ice) {
+      material.map = ice;
+      material.needsUpdate = true;
+    }
+  }
 };
 for (const actor of runtimeScene.getObjects('Actor')) {
   const av = actor.getVariables();
@@ -3525,15 +3566,15 @@ for (const actor of runtimeScene.getObjects('Actor')) {
   const role = av.get('Role').getAsString();
   const aiWolfModeLeft = av.get('AIWolfModeLeft').getAsNumber();
   const isFrozen = state === 'Frozen' || state === 'FrozenWolfCandidate';
-  if (isFrozen) setSolidColor(actor, 0xff0000);
-  else if (role === 'Wolf' && aiWolfModeLeft > 0) setSolidColor(actor, 0x0077ff);
-  else setSolidColor(actor, 0xffffff);
+  if (isFrozen) setSolidColor(actor, ICE_TINT, true);
+  else if (role === 'Wolf' && aiWolfModeLeft > 0) setSolidColor(actor, 0x0077ff, false);
+  else setSolidColor(actor, 0xffffff, false);
 }
 for (const player of runtimeScene.getObjects('Player')) {
   const state = getState(player);
-  if (state === 'Frozen') setSolidColor(player, 0xff0000);
-  else if (wolfModeLeft > 0) setSolidColor(player, 0x8b0000);
-  else setSolidColor(player, 0xffffff);
+  if (state === 'Frozen') setSolidColor(player, ICE_TINT, true);
+  else if (wolfModeLeft > 0) setSolidColor(player, 0x8b0000, false);
+  else setSolidColor(player, 0xffffff, false);
 }
 };
 gdjs.FROST_32LABCode.eventsList24 = function(runtimeScene) {
@@ -3541,12 +3582,12 @@ gdjs.FROST_32LABCode.eventsList24 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc08ff0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9131a0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc09158 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9133b0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -3991,7 +4032,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc09158(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9133b0(runtimeScene);
 
 }
 
@@ -4041,7 +4082,7 @@ gdjs.FROST_32LABCode.eventsList25(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa5a740 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x919fb0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4090,7 +4131,7 @@ gdjs.FROST_32LABCode.eventsList27 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa5a740(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x919fb0(runtimeScene);
 
 }
 
@@ -4151,7 +4192,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x914390 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb6d3b0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4234,12 +4275,12 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x914390(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb6d3b0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9144c8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb6d5c0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4369,7 +4410,7 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
         <svg class="iw-wolf" viewBox="0 0 240 220" aria-label="ICE WOLF emblem" role="img"><defs><linearGradient id="iceg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfdff"/><stop offset=".42" stop-color="#70e3ff"/><stop offset="1" stop-color="#1593d1"/></linearGradient></defs><g fill="url(#iceg)" stroke="#d9fbff" stroke-width="2"><path d="M27 18 91 53 120 32 149 53 213 18 190 105 166 174 120 211 74 174 50 105Z"/><path d="M27 18 49 96 92 53Z" opacity=".62"/><path d="M213 18 191 96 148 53Z" opacity=".62"/><path d="M91 53 120 32 120 150 74 174 50 105Z" opacity=".42"/><path d="M149 53 120 32 120 150 166 174 190 105Z" opacity=".23"/></g><path d="M68 102 108 112 86 130Z" fill="#fff"/><path d="M172 102 132 112 154 130Z" fill="#fff"/><path d="m105 158 15-8 15 8-15 17Z" fill="#e9fcff"/></svg>
         <div class="iw-title">ICE WOLF</div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
       </div>
-      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.5</div></div>
+      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.6</div></div>
     </div></div>
     <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
@@ -4516,12 +4557,48 @@ gdjs.FROST_32LABCode.eventsList30 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9144c8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb6d5c0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x11d1850 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const phase = vars.get('RoundPhase').getAsString();
+const playing = phase === 'Active' || runtimeScene.__iceWolfV065TestMode === true;
+const playerSprungTrap = vars.get('WolfBirthPlayerTrap').getAsBoolean();
+if (playerSprungTrap) vars.get('WolfBirthPlayerTrap').setBoolean(false);
+let secondWolfBorn = false;
+for (const actor of runtimeScene.getObjects('Actor')) {
+  const actorVars = actor.getVariables();
+  const state = actorVars.get('State').getAsString();
+  const role = actorVars.get('Role').getAsString();
+  const previousState = actor.__iceWolfAnnouncePrevState;
+  if (previousState === 'FrozenWolfCandidate' && role === 'Wolf' && state !== 'FrozenWolfCandidate') {
+    secondWolfBorn = true;
+  }
+  actor.__iceWolfAnnouncePrevState = state;
+}
+if (secondWolfBorn && playing && !vars.get('GameOver').getAsBoolean() && !playerSprungTrap) {
+  for (const obj of runtimeScene.getObjects('ActionFeedbackText')) {
+    if (typeof obj.setString === 'function') obj.setString('⚠️ 誰かが人狼に染まった…！');
+    if (typeof obj.hide === 'function') obj.hide(false);
+  }
+  vars.get('FeedbackLeft').setNumber(2.0);
+}
+};
+gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x11d1850(runtimeScene);
+
+}
+
+
+};gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
 
 {
 
@@ -4655,6 +4732,13 @@ gdjs.FROST_32LABCode.eventsList29(runtimeScene);
 
 
 gdjs.FROST_32LABCode.eventsList30(runtimeScene);
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.eventsList31(runtimeScene);
 }
 
 
@@ -4820,7 +4904,7 @@ gdjs.FROST_32LABCode.GDCountTextObjects4.length = 0;
 gdjs.FROST_32LABCode.GDCountTextObjects5.length = 0;
 gdjs.FROST_32LABCode.GDCountTextObjects6.length = 0;
 
-gdjs.FROST_32LABCode.eventsList31(runtimeScene);
+gdjs.FROST_32LABCode.eventsList32(runtimeScene);
 gdjs.FROST_32LABCode.GDFloorObjects1.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects2.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects3.length = 0;
