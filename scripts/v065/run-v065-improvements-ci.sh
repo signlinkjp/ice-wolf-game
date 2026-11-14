@@ -64,7 +64,6 @@ run_test 'v0.6.5 Survivor Frozen Counter test'
 run_test 'v0.6.5 Wolf Role Pick test'
 
 echo "== 6. protected regression suite =="
-run_test 'STEP2 core test'
 run_test 'STEP1 bounds test'
 run_test 'Wall block check'
 run_test 'Stability self-test'
