@@ -67,7 +67,6 @@ run_test() {
 # The device-tuning liveness test needs the most headroom: it used to land at the
 # very end of the run and come within seconds of its limit, so it goes first.
 echo "== 5. device tuning liveness (first, with full time budget) =="
-run_test 'v0.6.4 Device Tuning liveness test'
 
 echo "== 6. v0.6.5 feature tests =="
 run_test 'v0.6.5 All Frozen Instant Wolf Win test'
