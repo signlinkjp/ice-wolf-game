@@ -12,8 +12,8 @@ GDEVELOP_ZIP_URL="https://github.com/4ian/GDevelop/releases/download/v5.6.282/GD
 HELPER_WORKFLOW=".github/workflows/v0610-improvements-ci.yml"
 HELPER_SCRIPT="scripts/v0610/run-v0610-improvements-ci.sh"
 HELPER_GUARD="scripts/v0610/guard_v0610_improvements.py"
-SHIPPED_FILES="assets/floor_frostlab.png assets/ice_freeze.png assets/pad_speed.png assets/pad_warp.png assets/wall_frostlab.png game.json tools/make_frostlab_textures.py"
-EXPORT_ASSETS="floor_frostlab.png wall_frostlab.png ice_freeze.png pad_speed.png pad_warp.png"
+SHIPPED_FILES="assets/floor_frostlab.png assets/ice_freeze.png assets/menu_hero.png assets/pad_speed.png assets/pad_warp.png assets/wall_frostlab.png game.json tools/make_frostlab_textures.py"
+EXPORT_ASSETS="floor_frostlab.png wall_frostlab.png ice_freeze.png pad_speed.png pad_warp.png menu_hero.png"
 
 cd "$GITHUB_WORKSPACE"
 git config user.name "github-actions[bot]"
@@ -65,8 +65,9 @@ run_test() {
   echo "===== TEST DONE: $name ($((ended - started))s) ====="
 }
 
-echo "== 5. v0.6.10 concealment test =="
+echo "== 5. v0.6.10 concealment and start-screen tests =="
 run_test 'v0.6.10 Concealed Identity test'
+run_test 'v0.6.10 Menu Hero test'
 
 echo "== 6. v0.6.9 / v0.6.8 / v0.6.7 / v0.6.5 feature tests =="
 run_test 'v0.6.9 Circular Rescue Meter test'
@@ -122,12 +123,12 @@ cd /tmp/preview-worktree
 git rm -rf . >/dev/null 2>&1 || true
 cp -a /tmp/v0610-build/. .
 {
-  printf 'ICE WOLF v0.6.10 preview (11px head labels + concealed identity: red ears only in wolf mode)\n'
+  printf 'ICE WOLF v0.6.10 preview (hero start screen + 11px head labels + concealed identity: red ears only in wolf mode)\n'
   printf 'source branch: %s\n' "$FEATURE_BRANCH"
   printf 'source commit: %s\n' "$GAME_COMMIT"
   printf 'baseline: %s\n' "$BASE_SHA"
   printf 'startup scene: FROST LAB\n'
-  printf 'features: head labels shrunk to an 11px plate (line height 13px, 16px/24px min width, 1px 4px padding, 5px radius, 1px frame) so the 3D characters stay the star of the screen, and every character - wolf included - wears the identical human look (white body + cyan cap + cyan visor) while the wolf is lurking; the red ears, red visor and red body appear only while that character is actually in wolf mode (Player: WolfModeLeft > 0, Actor: AIWolfModeLeft > 0), with the frozen ice shell unchanged\n'
+  printf 'features: the start screen now leads with the menu_hero.png key visual (320x320, rounded neon cyan/red frame) and the HUD text behind the menu is masked so nothing bleeds through the title, head labels shrunk to an 11px plate (line height 13px, 16px/24px min width, 1px 4px padding, 5px radius, 1px frame) so the 3D characters stay the star of the screen, and every character - wolf included - wears the identical human look (white body + cyan cap + cyan visor) while the wolf is lurking; the red ears, red visor and red body appear only while that character is actually in wolf mode (Player: WolfModeLeft > 0, Actor: AIWolfModeLeft > 0), with the frozen ice shell unchanged\n'
 } > PREVIEW_SOURCE.txt
 git add -A
 git commit -m 'preview: v0.6.10 minimal head labels, concealed identity (red ears only in wolf mode) [skip ci]'

@@ -4,6 +4,8 @@
 Run by GitHub Actions from the repository root (it reads the relative game.json).
 """
 import json
+import os
+import struct
 import sys
 
 data = json.load(open('game.json', encoding='utf-8'))
@@ -88,6 +90,7 @@ protected_tests = (
     'v0.6.9 Sound FX test',
     'v0.6.9 Label Size + Chase Camera test',
     'v0.6.10 Concealed Identity test',
+    'v0.6.10 Menu Hero test',
 )
 for name in protected_tests:
     check(name in test_names, f'test {name} missing')
@@ -255,6 +258,60 @@ for needle in ('data-action="roleRandom"', 'data-action="roleWolf"', 'data-actio
                '>2分<', '>3分<', '>5分<', 'data-action="soundToggle"'):
     check(needle in prod_code, f'menu marker missing: {needle}')
 
+# --- v0.6.10 (4) start-screen hero visual + HUD masking ---------------------
+for needle in ('data-menu-hero="1"',
+               'MENU_HERO_FILE',
+               "const MENU_HERO_FILE = 'assets/menu_hero.png';",
+               '${assetBase}${MENU_HERO_FILE}',
+               '.iw-hero{position:relative',
+               '.iw-hero-img{display:block',
+               'linear-gradient(140deg,rgba(95,233,255,.96),rgba(255,79,96,.94))',
+               'backdrop-filter:blur(4px)',
+               'linear-gradient(rgba(1,9,17,.975),rgba(0,6,14,.99))',
+               '.iw-rule{width:min(190px,54%)',
+               '<div class="iw-title">ICE WOLF</div><div class="iw-rule"></div>',
+               'Find the wolf. Freeze or survive.',
+               "vars.get('MenuHeroReady').setBoolean(!!heroImage);",
+               "vars.get('MenuHeroSource').setString(heroSource);",
+               "vars.get('MenuHudMasked').setBoolean(!activeForUi);",
+               "for (const hudName of ['RoleText', 'StatusText', 'BuildText', 'ActionFeedbackText', 'WinText']) setObjVisible(hudName, activeForUi);"):
+    check(needle in prod_code, f'start-screen marker missing: {needle}')
+for banned in ('<svg class="iw-wolf"', '.iw-wolf{', 'aria-label="ICE WOLF emblem"'):
+    check(banned not in prod_code, f'the old wolf emblem is still in the start screen: {banned}')
+check("getAssetPath" in prod_code and "const assetBase" in prod_code,
+      'the hero image does not resolve through the game asset path')
+
+hero = next((r for r in res_list if r['name'] == 'menu_hero.png'), None)
+check(hero is not None, 'resource menu_hero.png is not registered (the HTML5 export would miss it)')
+if hero is not None:
+    check(hero.get('file') == 'assets/menu_hero.png', f'menu_hero.png file drifted: {hero.get("file")}')
+    check(hero.get('kind') == 'image', 'menu_hero.png kind is not image')
+    path = hero.get('file', '')
+    if not os.path.isfile(path):
+        problems.append(f'menu_hero.png missing on disk at {path}')
+    else:
+        with open(path, 'rb') as handle:
+            header = handle.read(24)
+        check(header[:8] == b'\x89PNG\r\n\x1a\n', 'menu_hero.png is not a PNG')
+        width, height = struct.unpack('>II', header[16:24])
+        check(width == 320 and height == 320, f'menu_hero.png is {width}x{height}')
+        size = os.path.getsize(path)
+        check(size < 90 * 1024, f'menu_hero.png is too heavy for the HTML5 build: {size} bytes')
+        check(size > 20 * 1024, f'menu_hero.png looks truncated: {size} bytes')
+
+hero_defaults = {'MenuHeroReady': False, 'MenuHeroLoaded': False, 'MenuHudMasked': False}
+for name, value in hero_defaults.items():
+    entry = scene_vars.get(name)
+    check(entry is not None, f'scene variable {name} missing')
+    if entry is not None:
+        check(entry['value'] is value, f'{name} must start {value}')
+        check(entry['type'] == 'boolean', f'{name} must be a boolean variable')
+entry = scene_vars.get('MenuHeroSource')
+check(entry is not None, 'scene variable MenuHeroSource missing')
+if entry is not None:
+    check(entry['value'] == '', 'MenuHeroSource must start empty')
+    check(entry['type'] == 'string', 'MenuHeroSource must be a string variable')
+
 build_text = objects.get('BuildText', {}).get('string')
 check(build_text == '開発版 v0.6.10', f'BuildText default is stale: {build_text}')
 
@@ -299,6 +356,12 @@ for needle in ('ActorIdLabelFontSize', 'ActorIdLabelLineHeight', 'ActorIdLabelMi
                'the wolf player turns red only during wolf mode',
                'a frozen wolf candidate never shows red ears'):
     check(needle in identity_test, f'identity test marker missing: {needle}')
+
+menu_test = sources.get('v0.6.10 Menu Hero test', '')
+for needle in ('MenuHeroReady', 'MenuHeroSource', 'assets/menu_hero.png', 'MenuHudMasked',
+               'RoleText', 'StatusText', 'BuildText', 'CountText', 'the HUD returns for play',
+               'the HUD is masked again on the menu'):
+    check(needle in menu_test, f'menu test marker missing: {needle}')
 
 label_test = sources.get('v0.6.9 Label Size + Chase Camera test', '')
 for needle in ('ActorIdLabelFontSize', 'ActorIdLabelLineHeight', 'getCameraState',
