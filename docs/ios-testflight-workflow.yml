@@ -1,0 +1,274 @@
+name: ICE WOLF iOS TestFlight
+
+# Builds the ICE WOLF iOS shell and (optionally) uploads it to TestFlight.
+#
+# Two jobs, on purpose:
+#   1. html5-export (ubuntu)  — GDevelop 5.6.282 EXPORT_HTML5_EXTERNAL, the exact
+#      headless path this repository has used for every preview build. No Apple
+#      credentials are in this job, so a failing export never touches Apple.
+#   2. ios-testflight (macos) — Capacitor sync, archive, App Store distribution
+#      signing with the App Store Connect API key, IPA verification, upload.
+#
+# Secrets (same names as signlinkjp/bridge-sign-chat and signlinkjp/eleven-game-fresh):
+#   ASC_ADMIN_AB_KEY_ID, ASC_ADMIN_AB_ISSUER_ID, ASC_ADMIN_AB_KEY_P8_BASE64
+#
+# First run: keep upload_to_testflight = false. It produces the signed IPA and its
+# SHA-256 without contacting App Store Connect for a write. Then re-run with
+# upload_to_testflight = true.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "I want to run the ICE WOLF iOS build"
+        type: boolean
+        required: true
+        default: false
+      upload_to_testflight:
+        description: "Upload the finished build to TestFlight (false = build only)"
+        type: boolean
+        required: true
+        default: false
+      build_number:
+        description: "CFBundleVersion (must be unused for this marketing version)"
+        type: string
+        required: true
+        default: "1"
+      marketing_version:
+        description: "CFBundleShortVersionString"
+        type: string
+        required: true
+        default: "0.6.10"
+      source_ref:
+        description: "Branch to build"
+        type: string
+        required: true
+        default: "feature/v065-production-round-start"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: icewolf-ios-testflight
+  cancel-in-progress: false
+
+env:
+  BUNDLE_ID: jp.signlink.IceWolf
+  TEAM_ID: TGBNH8WJV6
+  XCODE_VERSION_DIR: /Applications/Xcode_26.6.app
+  GDEVELOP_ZIP_URL: https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip
+  GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
+  # Assets the game cannot run without; the export is rejected if any is missing.
+  EXPORT_ASSETS: floor_frostlab.png wall_frostlab.png ice_freeze.png pad_speed.png pad_warp.png menu_hero.png
+
+jobs:
+  html5-export:
+    name: GDevelop HTML5 export
+    if: ${{ github.repository == 'signlinkjp/ice-wolf-game' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Confirm the run was started on purpose
+        run: |
+          set -euo pipefail
+          [ "${{ inputs.confirmation }}" = "true" ] || { echo "STOP: confirmation was not ticked." >&2; exit 1; }
+          case "${{ inputs.build_number }}" in
+            ''|*[!0-9]*) echo "STOP: build_number must be a positive integer." >&2; exit 1 ;;
+          esac
+          echo "Building ${{ inputs.marketing_version }} (${{ inputs.build_number }}) from ${{ inputs.source_ref }}"
+
+      - name: Checkout the requested branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Record the exact source commit
+        id: source
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "SOURCE_SHA=$sha" >> "$GITHUB_ENV"
+          echo "game.json sha256: $(sha256sum game.json | awk '{print $1}')"
+          echo "ICE WOLF source commit $sha" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guard the project file
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          with open('game.json', encoding='utf-8') as handle:
+              data = json.load(handle)
+          assert data['properties']['name'].strip() == 'ICE WOLF'
+          assert any(layout.get('name') == 'FROST LAB' for layout in data.get('layouts', []))
+          print('game.json parses and still describes ICE WOLF / FROST LAB')
+          PY
+
+      - name: Install GDevelop runtime dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
+
+      - name: Download and checksum GDevelop 5.6.282
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "$GDEVELOP_ZIP_URL"
+          echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
+          mkdir -p /tmp/gdevelop
+          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
+          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
+          test -n "$GDEVELOP_BIN"
+          echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
+          echo "GDevelop 5.6.282 verified ($GDEVELOP_SHA256)"
+
+      - name: Export HTML5 (EXPORT_HTML5_EXTERNAL -> build/)
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check \
+            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
+          test -f build/index.html
+          test -f build/code0.js
+          for asset in $EXPORT_ASSETS; do
+            if [ -f "build/assets/$asset" ] || [ -f "build/$asset" ]; then
+              echo "exported: $asset"
+            else
+              echo "MISSING FROM EXPORT: $asset" >&2
+              ls -la build | head -40 >&2
+              exit 1
+            fi
+          done
+
+      - name: Verify the export is a complete GDevelop bundle
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          build = pathlib.Path('build')
+          index = (build / 'index.html').read_text(encoding='utf-8', errors='replace')
+          assert 'gd.js' in index, 'index.html does not load the GDevelop runtime'
+          assert 'code0.js' in index, 'index.html does not load the game bundle'
+          bundles = sorted(build.glob('code*.js'))
+          assert bundles, 'no code*.js bundle exported'
+          assert (build / 'libs').is_dir(), 'runtime libs/ folder missing'
+          print(f'export ok: {len(bundles)} code bundle(s), {sum(1 for _ in build.rglob("*") if _.is_file())} files')
+          PY
+          du -sh build
+          echo "HTML5 export size: $(du -sh build | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Hand the export to the iOS job
+        uses: actions/upload-artifact@v4
+        with:
+          name: icewolf-html5-build
+          path: build/
+          retention-days: 3
+          if-no-files-found: error
+
+  ios-testflight:
+    name: iOS archive, sign and TestFlight
+    needs: html5-export
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the same branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Confirm the source commit matches the export job
+        run: |
+          set -euo pipefail
+          head="$(git rev-parse HEAD)"
+          exported="${{ needs.html5-export.outputs.sha }}"
+          [ "$head" = "$exported" ] || { echo "STOP: branch moved between the export job ($exported) and the iOS job ($head). Rerun." >&2; exit 1; }
+          echo "building source commit $head"
+
+      - name: Take the exported HTML5 build
+        uses: actions/download-artifact@v4
+        with:
+          name: icewolf-html5-build
+          path: build
+
+      - name: Select the audited Xcode
+        run: |
+          set -euo pipefail
+          if [ -d "$XCODE_VERSION_DIR" ]; then
+            sudo xcode-select -s "$XCODE_VERSION_DIR"
+          else
+            echo "note: $XCODE_VERSION_DIR is not on this image, using $(xcode-select -p)"
+          fi
+          xcodebuild -version
+
+      - name: Require the App Store Connect API key secrets
+        env:
+          KEY_ID: ${{ secrets.ASC_ADMIN_AB_KEY_ID }}
+          ISSUER_ID: ${{ secrets.ASC_ADMIN_AB_ISSUER_ID }}
+          KEY_P8: ${{ secrets.ASC_ADMIN_AB_KEY_P8_BASE64 }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -z "$KEY_ID" ] && missing="$missing ASC_ADMIN_AB_KEY_ID"
+          [ -z "$ISSUER_ID" ] && missing="$missing ASC_ADMIN_AB_ISSUER_ID"
+          [ -z "$KEY_P8" ] && missing="$missing ASC_ADMIN_AB_KEY_P8_BASE64"
+          if [ -n "$missing" ]; then
+            echo "STOP: missing repository secret(s):$missing" >&2
+            echo "Add them in Settings > Secrets and variables > Actions (same names as the other signlinkjp repos)." >&2
+            exit 1
+          fi
+          echo "App Store Connect API key secrets are present (values never printed)."
+
+      - name: Sync, archive, sign and verify the IPA
+        env:
+          APPLE_KEY_ID: ${{ secrets.ASC_ADMIN_AB_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.ASC_ADMIN_AB_ISSUER_ID }}
+          APPLE_P8_BASE64: ${{ secrets.ASC_ADMIN_AB_KEY_P8_BASE64 }}
+        run: |
+          set -euo pipefail
+          extra=""
+          if [ "${{ inputs.upload_to_testflight }}" = "true" ]; then
+            extra="--upload"
+            export ICEWOLF_UPLOAD_CONFIRM=1
+          fi
+          bash scripts/ios/build-and-upload-testflight.sh \
+            --skip-export \
+            --build-number "${{ inputs.build_number }}" \
+            --marketing-version "${{ inputs.marketing_version }}" \
+            --artifacts-dir "$RUNNER_TEMP/icewolf-ios" \
+            $extra
+
+      - name: Keep the signed IPA and its provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: icewolf-ios-${{ inputs.marketing_version }}-${{ inputs.build_number }}
+          path: |
+            ${{ runner.temp }}/icewolf-ios/**/*.ipa
+            ${{ runner.temp }}/icewolf-ios/manifest.json
+            ${{ runner.temp }}/icewolf-ios/build.log
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo "### ICE WOLF iOS"
+            echo ""
+            echo "- version: ${{ inputs.marketing_version }} (${{ inputs.build_number }})"
+            echo "- bundle id: ${{ env.BUNDLE_ID }}"
+            echo "- source: ${{ inputs.source_ref }} @ $(git rev-parse --short HEAD)"
+            if [ "${{ inputs.upload_to_testflight }}" = "true" ]; then
+              echo "- TestFlight: uploaded (Apple needs 5-30 minutes to process it)"
+            else
+              echo "- TestFlight: not uploaded (build-only run; download the IPA artifact if needed)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
