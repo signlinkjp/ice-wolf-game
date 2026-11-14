@@ -430,7 +430,7 @@ def source_of(name):
 
 ring_test = source_of('v0.6.9 Circular Rescue Meter test')
 for needle in ('RescueHoldMeterDiameter', 'RescueHoldMeterCircumference', 'RescueHoldMeterDash',
-               'RescueHoldMeterPercent', "'ring'", 'the arc is drawn half way', 'a full ring is ready'):
+               'RescueHoldMeterPercent', "'ring'", 'the arc follows the percentage', 'a full ring is ready'):
     check(needle in ring_test, f'ring test marker missing: {needle}')
 
 sound_test = source_of('v0.6.9 Sound FX test')
