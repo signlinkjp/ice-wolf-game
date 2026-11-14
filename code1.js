@@ -195,9 +195,15 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects3= [];
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects4= [];
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects5= [];
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects6= [];
+gdjs.FROST_32LABCode.GDCountTextObjects1= [];
+gdjs.FROST_32LABCode.GDCountTextObjects2= [];
+gdjs.FROST_32LABCode.GDCountTextObjects3= [];
+gdjs.FROST_32LABCode.GDCountTextObjects4= [];
+gdjs.FROST_32LABCode.GDCountTextObjects5= [];
+gdjs.FROST_32LABCode.GDCountTextObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xa2e220 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xff82f0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -325,12 +331,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa2e220(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xff82f0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa149e0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x101be88 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -834,7 +840,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa149e0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x101be88(runtimeScene);
 
 }
 
@@ -944,7 +950,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x1288908 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb612d0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1013,7 +1019,7 @@ gdjs.FROST_32LABCode.eventsList4 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1288908(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb612d0(runtimeScene);
 
 }
 
@@ -1690,10 +1696,283 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
+};gdjs.FROST_32LABCode.userFunc0x118dbd8 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const phase = vars.get('RoundPhase').getAsString();
+const v065TestMode = runtimeScene.__iceWolfV065TestMode === true;
+const playing = phase === 'Active' || v065TestMode;
+const frozenStates = ['Frozen', 'FrozenWolfCandidate'];
+const players = runtimeScene.getObjects('Player');
+const player = players.length ? players[0] : null;
+const actors = runtimeScene.getObjects('Actor');
+const px = player ? player.getCenterXInScene() : 0;
+const py = player ? player.getCenterYInScene() : 0;
+let aliveHumans = 0;
+let frozenCount = 0;
+let nearbyFrozen = 0;
+const everybody = player ? [player].concat(actors) : actors.slice();
+for (const obj of everybody) {
+  const ov = obj.getVariables();
+  const role = ov.get('Role').getAsString();
+  const state = ov.get('State').getAsString();
+  const isFrozen = frozenStates.indexOf(state) !== -1;
+  if (isFrozen) {
+    frozenCount += 1;
+  } else if (role !== 'Wolf') {
+    aliveHumans += 1;
+  }
+  if (obj !== player && isFrozen && role === 'Human') {
+    const dx = obj.getCenterXInScene() - px;
+    const dy = obj.getCenterYInScene() - py;
+    if (Math.sqrt(dx * dx + dy * dy) <= 140) nearbyFrozen += 1;
+  }
+}
+vars.get('AliveHumans').setNumber(aliveHumans);
+vars.get('FrozenHumans').setNumber(frozenCount);
+vars.get('NearbyFrozenCount').setNumber(nearbyFrozen);
+for (const obj of runtimeScene.getObjects('CountText')) {
+  if (typeof obj.setString === 'function') obj.setString(playing ? '生存: ' + aliveHumans + ' / 凍結: ' + frozenCount : '');
+  if (typeof obj.hide === 'function') obj.hide(!playing);
+}
+};
+gdjs.FROST_32LABCode.userFunc0x118dcb0 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const phase = vars.get('RoundPhase').getAsString();
+const v065TestMode = runtimeScene.__iceWolfV065TestMode === true;
+const playing = phase === 'Active' || v065TestMode;
+const aliveHumans = vars.get('AliveHumans').getAsNumber();
+if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
+  vars.get('GameOver').setBoolean(true);
+  for (const obj of runtimeScene.getObjects('WinText')) {
+    if (typeof obj.setString === 'function') obj.setString('人狼の勝利');
+    if (typeof obj.hide === 'function') obj.hide(false);
+  }
+  for (const obj of runtimeScene.getObjects('ActionFeedbackText')) {
+    if (typeof obj.setString === 'function') obj.setString('全員凍結！人狼の勝利');
+    if (typeof obj.hide === 'function') obj.hide(false);
+  }
+  vars.get('FeedbackLeft').setNumber(1.6);
+  vars.get('WolfRolePickOpen').setBoolean(false);
+}
+};
+gdjs.FROST_32LABCode.userFunc0x118dda0 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const pickedId = vars.get('WolfRolePickTarget').getAsString();
+if (pickedId) {
+  vars.get('WolfRolePickTarget').setString('');
+  vars.get('WolfRolePickOpen').setBoolean(false);
+  const players = runtimeScene.getObjects('Player');
+  const player = players.length ? players[0] : null;
+  const canSet = player !== null
+    && !vars.get('GameOver').getAsBoolean()
+    && !vars.get('InfectionUsed').getAsBoolean()
+    && player.getVariables().get('Role').getAsString() === 'Wolf'
+    && player.getVariables().get('State').getAsString() === 'Active';
+  if (canSet) {
+    const actor = runtimeScene.getObjects('Actor').find((candidate) => {
+      const idVar = candidate.getVariables().get('DisplayId');
+      return idVar !== undefined && idVar !== null && idVar.getAsString() === pickedId;
+    });
+    if (actor) {
+      const actorVars = actor.getVariables();
+      if (actorVars.get('Role').getAsString() === 'Human' && actorVars.get('State').getAsString() === 'Frozen') {
+        actorVars.get('State').setString('FrozenWolfCandidate');
+        vars.get('InfectionUsed').setBoolean(true);
+        for (const obj of runtimeScene.getObjects('ActionFeedbackText')) {
+          if (typeof obj.setString === 'function') obj.setString('「' + pickedId + '」を人狼役に設定（正体は秘密）');
+          if (typeof obj.hide === 'function') obj.hide(false);
+        }
+        vars.get('FeedbackLeft').setNumber(1.5);
+      }
+    }
+  }
+}
+};
+gdjs.FROST_32LABCode.userFunc0x118de68 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const phase = vars.get('RoundPhase').getAsString();
+const v065TestMode = runtimeScene.__iceWolfV065TestMode === true;
+const playing = phase === 'Active' || v065TestMode;
+let open = vars.get('WolfRolePickOpen').getAsBoolean();
+if (!playing || vars.get('GameOver').getAsBoolean() || vars.get('InfectionUsed').getAsBoolean()) {
+  open = false;
+}
+vars.get('WolfRolePickOpen').setBoolean(open);
+if (typeof document === 'undefined') {
+  vars.get('WolfRolePickCount').setNumber(0);
+} else {
+  if (!runtimeScene.__iceWolfV065WolfPickUi) {
+    for (const old of document.querySelectorAll('[data-ice-wolf-v065-wolfpick="1"]')) old.remove();
+    const root = document.createElement('div');
+    root.dataset.iceWolfV065Wolfpick = '1';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-label', '人狼役に設定する凍結者を選ぶ');
+    root.style.position = 'fixed';
+    root.style.left = '206px';
+    root.style.right = '10px';
+    root.style.bottom = '10px';
+    root.style.zIndex = '2147482900';
+    root.style.display = 'none';
+    root.style.flexDirection = 'column';
+    root.style.gap = '7px';
+    root.style.padding = '9px 11px 11px';
+    root.style.boxSizing = 'border-box';
+    root.style.borderRadius = '18px';
+    root.style.border = '1.5px solid rgba(255,190,70,0.78)';
+    root.style.background = 'rgba(6,22,36,0.92)';
+    root.style.boxShadow = '0 6px 22px rgba(0,0,0,0.45)';
+    root.style.color = '#fff';
+    root.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+    root.style.touchAction = 'manipulation';
+    root.style.userSelect = 'none';
+    root.style.webkitUserSelect = 'none';
+    root.style.webkitTapHighlightColor = 'transparent';
+    const head = document.createElement('div');
+    head.style.display = 'flex';
+    head.style.alignItems = 'center';
+    head.style.justifyContent = 'space-between';
+    head.style.gap = '10px';
+    const title = document.createElement('div');
+    title.textContent = '人狼役にする凍結者を選ぶ';
+    title.style.fontSize = '16px';
+    title.style.fontWeight = '800';
+    title.style.color = '#ffd98a';
+    title.style.letterSpacing = '0.4px';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'とじる';
+    close.style.minHeight = '34px';
+    close.style.padding = '0 14px';
+    close.style.borderRadius = '11px';
+    close.style.border = '1.5px solid rgba(255,255,255,0.55)';
+    close.style.background = 'rgba(24,60,88,0.92)';
+    close.style.color = '#fff';
+    close.style.fontSize = '14px';
+    close.style.fontWeight = '800';
+    close.style.touchAction = 'manipulation';
+    close.style.webkitTapHighlightColor = 'transparent';
+    close.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('WolfRolePickOpen').setBoolean(false);
+    }, { passive: false });
+    const list = document.createElement('div');
+    list.style.display = 'flex';
+    list.style.flexWrap = 'nowrap';
+    list.style.gap = '8px';
+    head.appendChild(title);
+    head.appendChild(close);
+    root.appendChild(head);
+    root.appendChild(list);
+    document.body.appendChild(root);
+    runtimeScene.__iceWolfV065WolfPickUi = { root, list, key: '' };
+  }
+  const ui = runtimeScene.__iceWolfV065WolfPickUi;
+  if (open) {
+    const players = runtimeScene.getObjects('Player');
+    const player = players.length ? players[0] : null;
+    const px = player ? player.getCenterXInScene() : 0;
+    const py = player ? player.getCenterYInScene() : 0;
+    const entries = [];
+    for (const actor of runtimeScene.getObjects('Actor')) {
+      const actorVars = actor.getVariables();
+      if (actorVars.get('Role').getAsString() !== 'Human') continue;
+      if (actorVars.get('State').getAsString() !== 'Frozen') continue;
+      const idVar = actorVars.get('DisplayId');
+      const id = idVar ? idVar.getAsString() : '';
+      const dx = actor.getCenterXInScene() - px;
+      const dy = actor.getCenterYInScene() - py;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 420) continue;
+      entries.push({ id, dist });
+    }
+    entries.sort((a, b) => a.dist - b.dist);
+    vars.get('WolfRolePickCount').setNumber(entries.length);
+    if (!entries.length) {
+      vars.get('WolfRolePickOpen').setBoolean(false);
+      ui.root.style.display = 'none';
+      ui.key = '';
+    } else {
+      const key = entries.map((entry) => entry.id).join('|');
+      if (key !== ui.key) {
+        ui.key = key;
+        for (const child of Array.from(ui.list.children)) ui.list.removeChild(child);
+        for (const entry of entries) {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.textContent = entry.id;
+          card.setAttribute('aria-label', entry.id + ' を人狼役に設定');
+          card.style.flex = '1 1 0';
+          card.style.minHeight = '58px';
+          card.style.minWidth = '54px';
+          card.style.borderRadius = '15px';
+          card.style.border = '1.5px solid rgba(87,214,255,0.62)';
+          card.style.background = 'linear-gradient(180deg,rgba(15,79,111,0.96),rgba(5,43,68,0.98))';
+          card.style.color = '#fff';
+          card.style.fontSize = '26px';
+          card.style.fontWeight = '900';
+          card.style.letterSpacing = '1px';
+          card.style.touchAction = 'manipulation';
+          card.style.webkitTapHighlightColor = 'transparent';
+          card.addEventListener('pointerdown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            vars.get('WolfRolePickTarget').setString(entry.id);
+          }, { passive: false });
+          ui.list.appendChild(card);
+        }
+      }
+      ui.root.style.display = 'flex';
+    }
+  } else {
+    ui.root.style.display = 'none';
+    ui.key = '';
+    vars.get('WolfRolePickCount').setNumber(0);
+  }
+}
+};
+gdjs.FROST_32LABCode.eventsList13 = function(runtimeScene) {
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x118dbd8(runtimeScene);
+
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x118dcb0(runtimeScene);
+
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x118dda0(runtimeScene);
+
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x118de68(runtimeScene);
+
+}
+
+
 };gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.eventsList13 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList14 = function(runtimeScene) {
 
 {
 
@@ -1737,7 +2016,7 @@ gdjs.copyArray(runtimeScene.getObjects("ActionFeedbackText"), gdjs.FROST_32LABCo
 }
 
 
-};gdjs.FROST_32LABCode.eventsList14 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList15 = function(runtimeScene) {
 
 {
 
@@ -1756,7 +2035,7 @@ gdjs.FROST_32LABCode.GDActorObjects2.length = k;
 if (isConditionTrue_0) {
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList13(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList14(runtimeScene);} //End of subevents
 }
 
 }
@@ -1767,7 +2046,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.eventsList15 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList16 = function(runtimeScene) {
 {
 
 let elseEventsChainSatisfied = false;
@@ -1871,7 +2150,9 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xe25d18 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
+gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
+gdjs.FROST_32LABCode.userFunc0x94f748 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -1919,7 +2200,7 @@ if (player) {
   }
 }
 };
-gdjs.FROST_32LABCode.eventsList16 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList17 = function(runtimeScene) {
 {
 
 let elseEventsChainSatisfied = false;
@@ -1992,15 +2273,15 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe25d18(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x94f748(runtimeScene);
 
 }
 
 }
 
-};gdjs.FROST_32LABCode.eventsList17 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList18 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0xc9f828 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x918320 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2012,7 +2293,7 @@ for (const actor of runtimeScene.getObjects('Actor')) {
   actor.__iceWolfPrimaryCPUWolf = false;
 }
 };
-gdjs.FROST_32LABCode.eventsList18 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList19 = function(runtimeScene) {
 
 {
 
@@ -2044,12 +2325,12 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc9f828(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x918320(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList19 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList20 = function(runtimeScene) {
 {
 
 let elseEventsChainSatisfied = false;
@@ -2240,7 +2521,7 @@ isConditionTrue_0 = false;
 if (isConditionTrue_0) {
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList14(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList15(runtimeScene);} //End of subevents
 }
 
 }
@@ -2462,7 +2743,7 @@ if (isConditionTrue_0) {
 }
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList15(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList16(runtimeScene);} //End of subevents
 }
 
 }
@@ -2628,6 +2909,11 @@ for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDActorObjects2.length;i<l;++i) 
     }
 }
 gdjs.FROST_32LABCode.GDActorObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+{isConditionTrue_0 = (runtimeScene.getScene().getVariables().getFromIndex(30).getAsNumber() <= 1);
+}
+}
 }
 }
 }
@@ -2648,7 +2934,7 @@ gdjs.copyArray(runtimeScene.getObjects("ActionFeedbackText"), gdjs.FROST_32LABCo
 {runtimeScene.getScene().getVariables().getFromIndex(1).setBoolean(true);
 }
 {for(var i = 0, len = gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2[i].getBehavior("Text").setText("感染させた（正体は秘密）");
+    gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2[i].getBehavior("Text").setText("人狼役に設定（正体は秘密）");
 }
 }
 {for(var i = 0, len = gdjs.FROST_32LABCode.GDActionFeedbackTextObjects2.length ;i < len;++i) {
@@ -2656,6 +2942,93 @@ gdjs.copyArray(runtimeScene.getObjects("ActionFeedbackText"), gdjs.FROST_32LABCo
 }
 }
 {runtimeScene.getScene().getVariables().getFromIndex(13).setNumber(1.15);
+}
+}
+
+}
+
+
+{
+
+gdjs.copyArray(runtimeScene.getObjects("Actor"), gdjs.FROST_32LABCode.GDActorObjects2);
+gdjs.copyArray(runtimeScene.getObjects("InfectButton"), gdjs.FROST_32LABCode.GDInfectButtonObjects2);
+gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
+
+let isConditionTrue_0 = false;
+isConditionTrue_0 = false;
+for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDInfectButtonObjects2.length;i<l;++i) {
+    if ( gdjs.FROST_32LABCode.GDInfectButtonObjects2[i].getBehavior("ButtonFSM").IsClicked(null) ) {
+        isConditionTrue_0 = true;
+        gdjs.FROST_32LABCode.GDInfectButtonObjects2[k] = gdjs.FROST_32LABCode.GDInfectButtonObjects2[i];
+        ++k;
+    }
+}
+gdjs.FROST_32LABCode.GDInfectButtonObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+{isConditionTrue_0 = !runtimeScene.getScene().getVariables().getFromIndex(0).getAsBoolean();
+}
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+{isConditionTrue_0 = !runtimeScene.getScene().getVariables().getFromIndex(1).getAsBoolean();
+}
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
+    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getVariableString(gdjs.FROST_32LABCode.GDPlayerObjects2[i].getVariables().getFromIndex(1)) == "Wolf" ) {
+        isConditionTrue_0 = true;
+        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
+        ++k;
+    }
+}
+gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
+    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getVariableString(gdjs.FROST_32LABCode.GDPlayerObjects2[i].getVariables().getFromIndex(0)) == "Active" ) {
+        isConditionTrue_0 = true;
+        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
+        ++k;
+    }
+}
+gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+isConditionTrue_0 = gdjs.evtTools.object.distanceTest(gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects, gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects, 140, false);
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDActorObjects2.length;i<l;++i) {
+    if ( gdjs.FROST_32LABCode.GDActorObjects2[i].getVariableString(gdjs.FROST_32LABCode.GDActorObjects2[i].getVariables().getFromIndex(1)) == "Human" ) {
+        isConditionTrue_0 = true;
+        gdjs.FROST_32LABCode.GDActorObjects2[k] = gdjs.FROST_32LABCode.GDActorObjects2[i];
+        ++k;
+    }
+}
+gdjs.FROST_32LABCode.GDActorObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDActorObjects2.length;i<l;++i) {
+    if ( gdjs.FROST_32LABCode.GDActorObjects2[i].getVariableString(gdjs.FROST_32LABCode.GDActorObjects2[i].getVariables().getFromIndex(0)) == "Frozen" ) {
+        isConditionTrue_0 = true;
+        gdjs.FROST_32LABCode.GDActorObjects2[k] = gdjs.FROST_32LABCode.GDActorObjects2[i];
+        ++k;
+    }
+}
+gdjs.FROST_32LABCode.GDActorObjects2.length = k;
+if (isConditionTrue_0) {
+isConditionTrue_0 = false;
+{isConditionTrue_0 = (runtimeScene.getScene().getVariables().getFromIndex(30).getAsNumber() >= 2);
+}
+}
+}
+}
+}
+}
+}
+}
+}
+if (isConditionTrue_0) {
+{runtimeScene.getScene().getVariables().getFromIndex(31).setBoolean(true);
 }
 }
 
@@ -2679,7 +3052,7 @@ gdjs.FROST_32LABCode.GDTestRoleButtonObjects2.length = k;
 if (isConditionTrue_0) {
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList16(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList17(runtimeScene);} //End of subevents
 }
 
 }
@@ -2743,14 +3116,14 @@ gdjs.copyArray(runtimeScene.getObjects("WinText"), gdjs.FROST_32LABCode.GDWinTex
 {/* Mismatched object type - skipped. */}
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList18(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList19(runtimeScene);} //End of subevents
 }
 
 }
 
 }
 
-};gdjs.FROST_32LABCode.eventsList20 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList21 = function(runtimeScene) {
 
 {
 
@@ -2772,7 +3145,7 @@ gdjs.copyArray(runtimeScene.getObjects("ActionFeedbackText"), gdjs.FROST_32LABCo
 }
 
 
-};gdjs.FROST_32LABCode.eventsList21 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList22 = function(runtimeScene) {
 
 {
 
@@ -2803,7 +3176,7 @@ if (isConditionTrue_0) {
 }
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList20(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList21(runtimeScene);} //End of subevents
 }
 
 }
@@ -3060,7 +3433,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.eventsList22 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList23 = function(runtimeScene) {
 
 {
 
@@ -3125,7 +3498,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x947d38 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc08ff0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -3163,17 +3536,17 @@ for (const player of runtimeScene.getObjects('Player')) {
   else setSolidColor(player, 0xffffff);
 }
 };
-gdjs.FROST_32LABCode.eventsList23 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList24 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x947d38(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc08ff0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x947f48 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc09158 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -3507,7 +3880,7 @@ if (!gameOver) {
 };
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDWallObjects2Objects = Hashtable.newFrom({"Wall": gdjs.FROST_32LABCode.GDWallObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDBarrierObjects2Objects = Hashtable.newFrom({"Barrier": gdjs.FROST_32LABCode.GDBarrierObjects2});
-gdjs.FROST_32LABCode.eventsList24 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList25 = function(runtimeScene) {
 
 {
 
@@ -3613,12 +3986,12 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.eventsList25 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x947f48(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc09158(runtimeScene);
 
 }
 
@@ -3661,14 +4034,14 @@ if (isConditionTrue_0) {
 }
 
 { //Subevents: 
-gdjs.FROST_32LABCode.eventsList24(runtimeScene);} //Subevents end.
+gdjs.FROST_32LABCode.eventsList25(runtimeScene);} //Subevents end.
 }
 }
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc35be0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa5a740 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3712,17 +4085,17 @@ if (player && actors.length >= 6) {
   wolf.__iceWolfDiagnosticHoldLeft = 0;
 }
 };
-gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList27 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc35be0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa5a740(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList27 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList28 = function(runtimeScene) {
 
 {
 
@@ -3778,7 +4151,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa16250 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x914390 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -3856,17 +4229,17 @@ if (!idsAreValid) {
   }
 }
 };
-gdjs.FROST_32LABCode.eventsList28 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa16250(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x914390(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa16460 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9144c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -3987,7 +4360,8 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       .iw-card:before{left:-118px;top:-118px}.iw-card:after{right:-118px;bottom:-118px}
       .iw-brand{text-align:center;position:relative;z-index:1}.iw-wolf{width:min(220px,30vw);margin:auto;filter:drop-shadow(0 0 18px rgba(86,223,255,.8))}.iw-title{font-size:clamp(54px,7vw,92px);font-weight:950;letter-spacing:2px;line-height:.92;margin:10px 0 12px;background:linear-gradient(#effcff,#77ddff 60%,#c4f2ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(59,196,255,.22)}
       .iw-tag{font-size:clamp(17px,2vw,26px);font-weight:650;margin:0 0 6px}.iw-jp{font-size:clamp(14px,1.65vw,20px);color:#9bbbd0;margin:0}.iw-menu{display:flex;flex-direction:column;gap:13px;position:relative;z-index:1}.iw-btn{width:100%;min-height:64px;border-radius:20px;border:1.5px solid rgba(62,203,255,.56);background:linear-gradient(180deg,rgba(15,79,111,.94),rgba(5,43,68,.98));box-shadow:inset 0 1px rgba(255,255,255,.12),0 5px 16px rgba(0,0,0,.24);color:#fff;font-size:clamp(20px,2.5vw,31px);font-weight:900;letter-spacing:.5px;cursor:pointer;touch-action:manipulation}.iw-btn:active{transform:scale(.985)}.iw-primary{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 21px rgba(255,207,70,.35),inset 0 1px rgba(255,255,255,.55)}
-      .iw-version{text-align:center;color:#7395aa;font-size:14px;margin-top:5px}.iw-modal{width:min(700px,92vw);border:1px solid rgba(78,213,255,.55);border-radius:24px;background:rgba(3,27,46,.97);box-shadow:0 0 34px rgba(0,173,255,.22);padding:28px 30px;box-sizing:border-box;text-align:left}.iw-modal h2{font-size:clamp(30px,5vw,52px);margin:0 0 18px;text-align:center}.iw-modal p,.iw-modal li{font-size:clamp(16px,2.1vw,22px);line-height:1.55;color:#d8edf7}.iw-modal ul{padding-left:24px}.iw-back{margin-top:18px}.iw-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.iw-kpi div{background:rgba(24,85,115,.48);border:1px solid rgba(80,211,255,.28);border-radius:15px;padding:14px;text-align:center}.iw-kpi b{display:block;font-size:28px}.iw-reveal{text-align:center}.iw-role{font-size:clamp(52px,10vw,108px);font-weight:950;margin:10px 0}.iw-role.wolf{color:#ff8585}.iw-role.human{color:#80f4dd}.iw-count{font-size:clamp(90px,20vw,220px);font-weight:950;text-shadow:0 0 32px rgba(95,224,255,.7)}.iw-result-title{font-size:clamp(42px,8vw,82px);font-weight:950;text-align:center;margin:0 0 20px}.iw-row{display:flex;gap:12px}.iw-row .iw-btn{flex:1}.iw-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border-radius:16px;background:rgba(24,85,115,.35);margin:12px 0}.iw-setting span{font-size:19px}.iw-small{font-size:14px!important;color:#8fb1c4!important}
+      .iw-version{text-align:center;color:#7395aa;font-size:14px;margin-top:5px}.iw-modal{width:min(700px,92vw);border:1px solid rgba(78,213,255,.55);border-radius:24px;background:rgba(3,27,46,.97);box-shadow:0 0 34px rgba(0,173,255,.22);padding:28px 30px;box-sizing:border-box;text-align:left}.iw-modal h2{font-size:clamp(30px,5vw,52px);margin:0 0 18px;text-align:center}.iw-modal p,.iw-modal li{font-size:clamp(16px,2.1vw,22px);line-height:1.55;color:#d8edf7}.iw-modal ul{padding-left:24px}.iw-back{margin-top:18px}.iw-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.iw-kpi div{background:rgba(24,85,115,.48);border:1px solid rgba(80,211,255,.28);border-radius:15px;padding:14px;text-align:center}.iw-kpi b{display:block;font-size:28px}.iw-reveal{text-align:center}.iw-role{font-size:clamp(52px,10vw,108px);font-weight:950;margin:10px 0}.iw-role.wolf{color:#ff8585}.iw-role.human{color:#80f4dd}.iw-count{font-size:clamp(90px,20vw,220px);font-weight:950;text-shadow:0 0 32px rgba(95,224,255,.7)}.iw-result-title{font-size:clamp(42px,8vw,82px);font-weight:950;text-align:center;margin:0 0 20px}
+      .iw-result-note{font-size:clamp(15px,2vw,21px);font-weight:700;text-align:center;color:#9fc6dc;letter-spacing:.4px;margin:-12px 0 22px}.iw-row{display:flex;gap:12px}.iw-row .iw-btn{flex:1}.iw-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border-radius:16px;background:rgba(24,85,115,.35);margin:12px 0}.iw-setting span{font-size:19px}.iw-small{font-size:14px!important;color:#8fb1c4!important}
       @media (orientation:portrait),(max-width:720px){.iw-card{grid-template-columns:1fr;gap:18px;padding:22px;min-height:auto}.iw-wolf{width:min(165px,36vw)}.iw-title{font-size:clamp(48px,13vw,76px)}.iw-btn{min-height:58px}.iw-menu{gap:10px}}
     </style>
     <div class="iw-screen" data-screen="menu"><div class="iw-card">
@@ -3997,12 +4371,12 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       </div>
       <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.5</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>元の人狼だけが1試合に1度、凍った人間へ秘密の「感染」を仕込める。</li><li>感染した氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2><div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div><div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div><p class="iw-small">Sound and additional accessibility settings will be expanded in a later version. Current gameplay audio remains unchanged.</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="reveal"><div class="iw-modal iw-reveal"><h2>YOUR ROLE</h2><div class="iw-role" data-role-text>WOLF</div><p data-role-copy></p></div></div>
     <div class="iw-screen" data-screen="countdown"><div class="iw-count" data-count>3</div></div>
-    <div class="iw-screen" data-screen="result"><div class="iw-modal"><div class="iw-result-title" data-result-title>RESULT</div><div class="iw-row"><button class="iw-btn iw-primary" data-action="newRound">NEW ROUND</button><button class="iw-btn" data-action="mainMenu">MAIN MENU</button></div></div></div>`;
+    <div class="iw-screen" data-screen="result"><div class="iw-modal"><div class="iw-result-title" data-result-title>RESULT</div><p class="iw-result-note" data-result-note></p><div class="iw-row"><button class="iw-btn iw-primary" data-action="newRound">NEW ROUND</button><button class="iw-btn" data-action="mainMenu">MAIN MENU</button></div></div></div>`;
   document.body.appendChild(root);
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
   const showOnly = (name) => {
@@ -4126,6 +4500,7 @@ if (ui && ui.lastPhase !== currentPhase) {
     const wins = runtimeScene.getObjects('WinText');
     if (wins.length && typeof wins[0].getString === 'function' && wins[0].getString()) text = wins[0].getString();
     const title = ui.root.querySelector('[data-result-title]'); if (title) title.textContent=text;
+    const note = ui.root.querySelector('[data-result-note]'); if (note) note.textContent = text.indexOf('人狼') >= 0 ? '全員凍結で決着' : '時間切れで決着';
     ui.showOnly('result');
   }
 }
@@ -4136,17 +4511,17 @@ if (ui && currentPhase === 'Countdown') {
 }
 for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.5-DIAG');
 };
-gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
+gdjs.FROST_32LABCode.eventsList30 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa16460(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9144c8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList30 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
 
 {
 
@@ -4200,14 +4575,14 @@ gdjs.FROST_32LABCode.eventsList12(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.eventsList19(runtimeScene);
+gdjs.FROST_32LABCode.eventsList13(runtimeScene);
 }
 
 
 {
 
 
-gdjs.FROST_32LABCode.eventsList21(runtimeScene);
+gdjs.FROST_32LABCode.eventsList20(runtimeScene);
 }
 
 
@@ -4228,7 +4603,14 @@ gdjs.FROST_32LABCode.eventsList23(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.eventsList25(runtimeScene);
+gdjs.FROST_32LABCode.eventsList24(runtimeScene);
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.eventsList26(runtimeScene);
 }
 
 
@@ -4249,16 +4631,9 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects1.length = k;
 if (isConditionTrue_0) {
 
 { //Subevents
-gdjs.FROST_32LABCode.eventsList26(runtimeScene);} //End of subevents
+gdjs.FROST_32LABCode.eventsList27(runtimeScene);} //End of subevents
 }
 
-}
-
-
-{
-
-
-gdjs.FROST_32LABCode.eventsList27(runtimeScene);
 }
 
 
@@ -4273,6 +4648,13 @@ gdjs.FROST_32LABCode.eventsList28(runtimeScene);
 
 
 gdjs.FROST_32LABCode.eventsList29(runtimeScene);
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.eventsList30(runtimeScene);
 }
 
 
@@ -4431,8 +4813,14 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects3.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects4.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects5.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects6.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects6.length = 0;
 
-gdjs.FROST_32LABCode.eventsList30(runtimeScene);
+gdjs.FROST_32LABCode.eventsList31(runtimeScene);
 gdjs.FROST_32LABCode.GDFloorObjects1.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects2.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects3.length = 0;
@@ -4583,6 +4971,12 @@ gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects3.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects4.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects5.length = 0;
 gdjs.FROST_32LABCode.GDCpuWolfTestButtonObjects6.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDCountTextObjects6.length = 0;
 
 
 return;

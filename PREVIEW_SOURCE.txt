@@ -1,6 +1,6 @@
-ICE WOLF v0.6.5 preview
+ICE WOLF v0.6.5 preview (survivor counter + instant wolf win + wolf role pick)
 source branch: feature/v065-production-round-start
-source commit: e046f0b4910c723b8ed31d45ba4ced2e6b162586
+source commit: 461eccd5c22564d7176df70826a7b49329ba928a
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-feedback: 5-second Wolf Mode multi-freeze
+features: live 生存/凍結 HUD, instant 全員凍結 wolf victory with Result reason, selectable 人狼役 among frozen captures
