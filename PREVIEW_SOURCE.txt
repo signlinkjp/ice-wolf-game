@@ -1,6 +1,6 @@
-ICE WOLF v0.6.9 preview (circular thaw ring + two-lane speed pads + compact labels + Web Audio cues)
+ICE WOLF v0.6.10 preview (hero start screen + 11px head labels + concealed identity: red ears only in wolf mode)
 source branch: feature/v065-production-round-start
-source commit: d42651533f9032d21350767cafa53055dfd60c15
+source commit: 381fb2e9b480a8cce8e4d25afe16cb75f11a4f14
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-features: thaw = 1.2s hold filling a 68px circular SVG ring (cyan circumference,  0n the middle, 解凍！ when full), 2 speed pads on the wide north/south lanes (1.45x for 2.5s), one warp pad pair (5s cooldown), 14px head labels, chase camera 600/53 deg, and synthesised Web Audio cues (freeze/thaw/warp/speed/countdown/start/win/lose) with a SETTINGS sound ON/OFF toggle stored in localStorage
+features: the start screen now leads with the menu_hero.png key visual (320x320, rounded neon cyan/red frame) and the HUD text behind the menu is masked so nothing bleeds through the title, head labels shrunk to an 11px plate (line height 13px, 16px/24px min width, 1px 4px padding, 5px radius, 1px frame) so the 3D characters stay the star of the screen, and every character - wolf included - wears the identical human look (white body + cyan cap + cyan visor) while the wolf is lurking; the red ears, red visor and red body appear only while that character is actually in wolf mode (Player: WolfModeLeft > 0, Actor: AIWolfModeLeft > 0), with the frozen ice shell unchanged

@@ -215,7 +215,7 @@ gdjs.FROST_32LABCode.GDWarpPadObjects5= [];
 gdjs.FROST_32LABCode.GDWarpPadObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xd15a20 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xd29160 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -343,12 +343,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xd15a20(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd29160(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc13e40 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa11028 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const timeManager = runtimeScene.getTimeManager();
@@ -432,12 +432,12 @@ gdjs.FROST_32LABCode.eventsList1 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc13e40(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa11028(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9e0990 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x935e28 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -941,7 +941,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9e0990(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x935e28(runtimeScene);
 
 }
 
@@ -1051,7 +1051,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb50b10 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa960a0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1120,7 +1120,7 @@ gdjs.FROST_32LABCode.eventsList5 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb50b10(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa960a0(runtimeScene);
 
 }
 
@@ -1797,7 +1797,7 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa50838 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1294010 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1837,7 +1837,7 @@ for (const obj of runtimeScene.getObjects('CountText')) {
   if (typeof obj.hide === 'function') obj.hide(!playing);
 }
 };
-gdjs.FROST_32LABCode.userFunc0xa50920 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x11f8388 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1858,7 +1858,7 @@ if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
   vars.get('WolfRolePickOpen').setBoolean(false);
 }
 };
-gdjs.FROST_32LABCode.userFunc0xbec190 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x11f87f8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const pickedId = vars.get('WolfRolePickTarget').getAsString();
@@ -1892,7 +1892,7 @@ if (pickedId) {
   }
 }
 };
-gdjs.FROST_32LABCode.userFunc0xa71af0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x1273480 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -2041,7 +2041,7 @@ gdjs.FROST_32LABCode.eventsList14 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa50838(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1294010(runtimeScene);
 
 }
 
@@ -2049,7 +2049,7 @@ gdjs.FROST_32LABCode.userFunc0xa50838(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa50920(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x11f8388(runtimeScene);
 
 }
 
@@ -2057,7 +2057,7 @@ gdjs.FROST_32LABCode.userFunc0xa50920(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xbec190(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x11f87f8(runtimeScene);
 
 }
 
@@ -2065,14 +2065,14 @@ gdjs.FROST_32LABCode.userFunc0xbec190(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa71af0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1273480(runtimeScene);
 
 }
 
 
 };gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xca83b0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x11dea30 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const duration = Math.max(0.2, vars.get('RescueHoldDuration').getAsNumber());
@@ -2362,7 +2362,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xca83b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x11dea30(runtimeScene);
 
 }
 
@@ -2553,7 +2553,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0x131ee90 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xe4d480 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2674,7 +2674,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x131ee90(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe4d480(runtimeScene);
 
 }
 
@@ -2682,7 +2682,7 @@ gdjs.FROST_32LABCode.userFunc0x131ee90(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList20 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0xae3ae8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xacc658 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2726,7 +2726,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xae3ae8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xacc658(runtimeScene);
 
 }
 
@@ -3892,12 +3892,13 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa909e8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xae53d8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
 const getState = (obj) => obj.getVariables().get('State').getAsString();
 const ICE_TINT = 0x5ee7ff;
+const WOLF_BODY = 0x8b0000;
 const iceTextureUrl = (() => {
   try {
     const game = runtimeScene.getGame();
@@ -3959,13 +3960,16 @@ for (const actor of runtimeScene.getObjects('Actor')) {
   const aiWolfModeLeft = av.get('AIWolfModeLeft').getAsNumber();
   const isFrozen = state === 'Frozen' || state === 'FrozenWolfCandidate';
   if (isFrozen) setSolidColor(actor, ICE_TINT, true);
-  else if (role === 'Wolf' && aiWolfModeLeft > 0) setSolidColor(actor, 0x0077ff, false);
+  else if (role === 'Wolf' && aiWolfModeLeft > 0) setSolidColor(actor, WOLF_BODY, false);
   else setSolidColor(actor, 0xffffff, false);
 }
 for (const player of runtimeScene.getObjects('Player')) {
+  const pv = player.getVariables();
   const state = getState(player);
+  const roleVar = pv.get('Role');
+  const role = roleVar ? roleVar.getAsString() : 'Human';
   if (state === 'Frozen') setSolidColor(player, ICE_TINT, true);
-  else if (wolfModeLeft > 0) setSolidColor(player, 0x8b0000, false);
+  else if (role === 'Wolf' && wolfModeLeft > 0) setSolidColor(player, WOLF_BODY, false);
   else setSolidColor(player, 0xffffff, false);
 }
 };
@@ -3974,12 +3978,12 @@ gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa909e8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xae53d8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa98700 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1210b70 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -4424,7 +4428,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa98700(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1210b70(runtimeScene);
 
 }
 
@@ -4474,7 +4478,7 @@ gdjs.FROST_32LABCode.eventsList27(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa6bf70 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb8dac0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4523,7 +4527,7 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa6bf70(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb8dac0(runtimeScene);
 
 }
 
@@ -4584,7 +4588,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xac3ba0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xef85d8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4592,8 +4596,23 @@ const actors = runtimeScene.getObjects('Actor');
 const player = players.length ? players[0] : null;
 const targets = player ? [player, ...actors] : [];
 const expectedIds = ['YOU', 'A', 'B', 'C', 'D', 'E', 'F'];
-const LABEL_FONT_SIZE = 14;
+const LABEL_FONT_SIZE = 11;
+const LABEL_LINE_HEIGHT = 13;
+const LABEL_MIN_WIDTH = 16;
+const LABEL_MIN_WIDTH_YOU = 24;
+const LABEL_PADDING_X = 4;
+const LABEL_PADDING_Y = 1;
+const LABEL_RADIUS = 5;
+const LABEL_BORDER_WIDTH = 1;
+const LABEL_OFFSET_Y = 13;
 vars.get('ActorIdLabelFontSize').setNumber(LABEL_FONT_SIZE);
+vars.get('ActorIdLabelLineHeight').setNumber(LABEL_LINE_HEIGHT);
+vars.get('ActorIdLabelMinWidth').setNumber(LABEL_MIN_WIDTH);
+vars.get('ActorIdLabelMinWidthYou').setNumber(LABEL_MIN_WIDTH_YOU);
+vars.get('ActorIdLabelPaddingX').setNumber(LABEL_PADDING_X);
+vars.get('ActorIdLabelRadius').setNumber(LABEL_RADIUS);
+vars.get('ActorIdLabelBorderWidth').setNumber(LABEL_BORDER_WIDTH);
+vars.get('ActorIdLabelOffsetY').setNumber(LABEL_OFFSET_Y);
 const idsAreValid = targets.length === expectedIds.length && targets.every((obj, index) => obj.getVariables().get('DisplayId').getAsString() === expectedIds[index]);
 if (!idsAreValid) {
   vars.get('ActorIdLabelsReady').setBoolean(false);
@@ -4619,16 +4638,16 @@ if (!idsAreValid) {
         el.style.pointerEvents = 'none';
         el.style.userSelect = 'none';
         el.style.webkitUserSelect = 'none';
-        el.style.minWidth = id === 'YOU' ? '30px' : '19px';
-        el.style.padding = '1px 5px';
-        el.style.borderRadius = '7px';
-        el.style.border = '1.5px solid rgba(255,255,255,0.9)';
+        el.style.minWidth = (id === 'YOU' ? LABEL_MIN_WIDTH_YOU : LABEL_MIN_WIDTH) + 'px';
+        el.style.padding = LABEL_PADDING_Y + 'px ' + LABEL_PADDING_X + 'px';
+        el.style.borderRadius = LABEL_RADIUS + 'px';
+        el.style.border = LABEL_BORDER_WIDTH + 'px solid rgba(255,255,255,0.88)';
         el.style.background = 'rgba(0,0,0,0.7)';
         el.style.color = '#ffffff';
         el.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
         el.style.fontSize = LABEL_FONT_SIZE + 'px';
         el.style.fontWeight = '800';
-        el.style.lineHeight = '17px';
+        el.style.lineHeight = LABEL_LINE_HEIGHT + 'px';
         el.style.textAlign = 'center';
         el.style.textShadow = '0 1px 2px rgba(0,0,0,0.85)';
         document.body.appendChild(el);
@@ -4654,7 +4673,7 @@ if (!idsAreValid) {
         continue;
       }
       const screenX = rect.left + (projected.x * 0.5 + 0.5) * rect.width;
-      const screenY = rect.top + (-projected.y * 0.5 + 0.5) * rect.height - 16;
+      const screenY = rect.top + (-projected.y * 0.5 + 0.5) * rect.height - LABEL_OFFSET_Y;
       el.style.display = 'block';
       el.style.left = `${screenX}px`;
       el.style.top = `${screenY}px`;
@@ -4669,12 +4688,12 @@ gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xac3ba0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xef85d8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xcdaed8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xef87e8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4788,6 +4807,15 @@ const readRecord = () => {
 };
 const writeRecord = (record) => safeStorageSet('iceWolfRecordV1', JSON.stringify(record));
 const preferredOverview = () => safeStorageGet('iceWolfDefaultOverview', '0') === '1';
+const assetBase = (() => {
+  try {
+    const game = runtimeScene.getGame();
+    return game && typeof game.getAssetPath === 'function' ? (game.getAssetPath() || '') : '';
+  } catch (_) {
+    return '';
+  }
+})();
+const MENU_HERO_FILE = 'assets/menu_hero.png';
 
 if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) {
   for (const old of document.querySelectorAll('[data-ice-wolf-v065-production="1"]')) old.remove();
@@ -4796,25 +4824,25 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
   root.innerHTML = `
     <style>
       [data-ice-wolf-v065-production="1"]{position:fixed;inset:0;z-index:2147483400;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}
-      .iw-screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;pointer-events:auto;background:radial-gradient(circle at 50% 18%,rgba(17,123,178,.32),rgba(2,16,31,.96) 52%,rgba(0,7,16,.995));overflow:auto}
+      .iw-screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;pointer-events:auto;background:linear-gradient(rgba(1,9,17,.975),rgba(0,6,14,.99)),radial-gradient(circle at 50% 14%,rgba(20,132,190,.34),rgba(2,16,31,.95) 54%,rgba(0,6,14,.992));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);overflow:auto}
       .iw-screen.iw-show{display:flex}
       .iw-card{width:min(960px,96vw);min-height:min(610px,92vh);box-sizing:border-box;border:1px solid rgba(78,213,255,.48);border-radius:28px;background:linear-gradient(145deg,rgba(8,46,72,.94),rgba(2,20,37,.97));box-shadow:0 0 34px rgba(0,177,255,.20),inset 0 0 42px rgba(78,213,255,.06);padding:26px 34px;display:grid;grid-template-columns:minmax(250px,1fr) minmax(300px,1.05fr);gap:30px;align-items:center;position:relative;overflow:hidden}
       .iw-card:before,.iw-card:after{content:"";position:absolute;width:180px;height:180px;border:2px solid rgba(135,231,255,.15);transform:rotate(45deg);border-radius:18px}
       .iw-card:before{left:-118px;top:-118px}.iw-card:after{right:-118px;bottom:-118px}
-      .iw-brand{text-align:center;position:relative;z-index:1}.iw-wolf{width:min(220px,30vw);margin:auto;filter:drop-shadow(0 0 18px rgba(86,223,255,.8))}.iw-title{font-size:clamp(54px,7vw,92px);font-weight:950;letter-spacing:2px;line-height:.92;margin:10px 0 12px;background:linear-gradient(#effcff,#77ddff 60%,#c4f2ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(59,196,255,.22)}
-      .iw-tag{font-size:clamp(17px,2vw,26px);font-weight:650;margin:0 0 6px}.iw-jp{font-size:clamp(14px,1.65vw,20px);color:#9bbbd0;margin:0}.iw-menu{display:flex;flex-direction:column;gap:13px;position:relative;z-index:1}.iw-btn{width:100%;min-height:64px;border-radius:20px;border:1.5px solid rgba(62,203,255,.56);background:linear-gradient(180deg,rgba(15,79,111,.94),rgba(5,43,68,.98));box-shadow:inset 0 1px rgba(255,255,255,.12),0 5px 16px rgba(0,0,0,.24);color:#fff;font-size:clamp(20px,2.5vw,31px);font-weight:900;letter-spacing:.5px;cursor:pointer;touch-action:manipulation}.iw-btn:active{transform:scale(.985)}.iw-primary{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 21px rgba(255,207,70,.35),inset 0 1px rgba(255,255,255,.55)}
+      .iw-brand{text-align:center;position:relative;z-index:1}.iw-hero{position:relative;width:min(248px,38vw);aspect-ratio:1/1;margin:4px auto 14px;border-radius:26px;padding:3px;background:linear-gradient(140deg,rgba(95,233,255,.96),rgba(255,79,96,.94));box-shadow:0 0 26px rgba(86,223,255,.45),0 0 46px rgba(255,79,96,.32),inset 0 0 22px rgba(6,26,44,.55)}.iw-hero:after{content:"";position:absolute;inset:-10px;border-radius:34px;pointer-events:none;background:radial-gradient(circle at 26% 20%,rgba(95,233,255,.30),transparent 58%),radial-gradient(circle at 78% 84%,rgba(255,79,96,.30),transparent 60%);filter:blur(7px);z-index:-1}.iw-hero-img{display:block;width:100%;height:100%;border-radius:23px;object-fit:cover;background:#05101c}.iw-title{font-size:clamp(54px,7vw,92px);font-weight:950;letter-spacing:2px;line-height:.92;margin:10px 0 12px;background:linear-gradient(#effcff,#77ddff 60%,#c4f2ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 20px rgba(59,196,255,.32),0 0 34px rgba(255,79,96,.30)}
+      .iw-rule{width:min(190px,54%);height:3px;margin:0 auto 12px;border-radius:2px;background:linear-gradient(90deg,rgba(255,79,96,0),#ff4f60,rgba(53,210,255,.15),#35d2ff,rgba(53,210,255,0));box-shadow:0 0 12px rgba(255,79,96,.35)}.iw-tag{font-size:clamp(17px,2vw,26px);font-weight:650;margin:0 0 6px;color:#eaf8ff;text-shadow:0 0 14px rgba(255,79,96,.30)}.iw-jp{font-size:clamp(14px,1.65vw,20px);color:#9bbbd0;margin:0}.iw-menu{display:flex;flex-direction:column;gap:13px;position:relative;z-index:1}.iw-btn{width:100%;min-height:64px;border-radius:20px;border:1.5px solid rgba(62,203,255,.56);background:linear-gradient(180deg,rgba(15,79,111,.94),rgba(5,43,68,.98));box-shadow:inset 0 1px rgba(255,255,255,.12),0 5px 16px rgba(0,0,0,.24);color:#fff;font-size:clamp(20px,2.5vw,31px);font-weight:900;letter-spacing:.5px;cursor:pointer;touch-action:manipulation;transition:transform .12s ease,box-shadow .18s ease,border-color .18s ease}.iw-btn:hover{border-color:rgba(255,112,124,.70);box-shadow:inset 0 1px rgba(255,255,255,.16),0 0 18px rgba(255,79,96,.22)}.iw-btn:active{transform:scale(.985)}.iw-primary{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 21px rgba(255,207,70,.35),0 0 30px rgba(255,79,96,.22),inset 0 1px rgba(255,255,255,.55)}
       .iw-version{text-align:center;color:#7395aa;font-size:14px;margin-top:5px}.iw-modal{width:min(700px,92vw);border:1px solid rgba(78,213,255,.55);border-radius:24px;background:rgba(3,27,46,.97);box-shadow:0 0 34px rgba(0,173,255,.22);padding:28px 30px;box-sizing:border-box;text-align:left}.iw-modal h2{font-size:clamp(30px,5vw,52px);margin:0 0 18px;text-align:center}.iw-modal p,.iw-modal li{font-size:clamp(16px,2.1vw,22px);line-height:1.55;color:#d8edf7}.iw-modal ul{padding-left:24px}.iw-back{margin-top:18px}.iw-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.iw-kpi div{background:rgba(24,85,115,.48);border:1px solid rgba(80,211,255,.28);border-radius:15px;padding:14px;text-align:center}.iw-kpi b{display:block;font-size:28px}.iw-reveal{text-align:center}.iw-role{font-size:clamp(52px,10vw,108px);font-weight:950;margin:10px 0}.iw-role.wolf{color:#ff8585}.iw-role.human{color:#80f4dd}.iw-count{font-size:clamp(90px,20vw,220px);font-weight:950;text-shadow:0 0 32px rgba(95,224,255,.7)}.iw-result-title{font-size:clamp(42px,8vw,82px);font-weight:950;text-align:center;margin:0 0 20px}
       .iw-result-note{font-size:clamp(15px,2vw,21px);font-weight:700;text-align:center;color:#9fc6dc;letter-spacing:.4px;margin:-12px 0 22px}.iw-row{display:flex;gap:12px}.iw-row .iw-btn{flex:1}.iw-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border-radius:16px;background:rgba(24,85,115,.35);margin:12px 0}.iw-setting span{font-size:19px}.iw-small{font-size:14px!important;color:#8fb1c4!important}.iw-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1}.iw-chip{width:auto;flex:1 1 86px;max-width:150px;min-height:50px;padding:0 8px;border-radius:14px;font-size:15px;letter-spacing:0}.iw-chip.iw-on{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 16px rgba(255,207,70,.32)}
-      @media (orientation:portrait),(max-width:720px){.iw-card{grid-template-columns:1fr;gap:18px;padding:22px;min-height:auto}.iw-wolf{width:min(165px,36vw)}.iw-title{font-size:clamp(48px,13vw,76px)}.iw-btn{min-height:58px}.iw-menu{gap:10px}.iw-setting{gap:10px;padding:12px}.iw-chip{flex:1 1 70px;max-width:none;min-height:46px;font-size:14px}}
+      @media (orientation:portrait),(max-width:720px){.iw-card{grid-template-columns:1fr;gap:18px;padding:22px;min-height:auto}.iw-hero{width:min(188px,46vw);margin-bottom:8px}.iw-title{font-size:clamp(48px,13vw,76px)}.iw-btn{min-height:58px}.iw-menu{gap:10px}.iw-setting{gap:10px;padding:12px}.iw-chip{flex:1 1 70px;max-width:none;min-height:46px;font-size:14px}}
     </style>
     <div class="iw-screen" data-screen="menu"><div class="iw-card">
       <div class="iw-brand">
-        <svg class="iw-wolf" viewBox="0 0 240 220" aria-label="ICE WOLF emblem" role="img"><defs><linearGradient id="iceg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfdff"/><stop offset=".42" stop-color="#70e3ff"/><stop offset="1" stop-color="#1593d1"/></linearGradient></defs><g fill="url(#iceg)" stroke="#d9fbff" stroke-width="2"><path d="M27 18 91 53 120 32 149 53 213 18 190 105 166 174 120 211 74 174 50 105Z"/><path d="M27 18 49 96 92 53Z" opacity=".62"/><path d="M213 18 191 96 148 53Z" opacity=".62"/><path d="M91 53 120 32 120 150 74 174 50 105Z" opacity=".42"/><path d="M149 53 120 32 120 150 166 174 190 105Z" opacity=".23"/></g><path d="M68 102 108 112 86 130Z" fill="#fff"/><path d="M172 102 132 112 154 130Z" fill="#fff"/><path d="m105 158 15-8 15 8-15 17Z" fill="#e9fcff"/></svg>
-        <div class="iw-title">ICE WOLF</div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
+        <div class="iw-hero"><img class="iw-hero-img" data-menu-hero="1" alt="ICE WOLF キービジュアル" src="${assetBase}${MENU_HERO_FILE}"></div>
+        <div class="iw-title">ICE WOLF</div><div class="iw-rule"></div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
       </div>
-      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.9</div></div>
+      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.10</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。円形ゲージが一周すると解凍できる。</li><li>⚡スピード床（緑）は広い直線通路に2枚。踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>見た目は全員同じ。人狼も潜伏中は人間と区別がつかない（人狼モード中だけ赤い耳と赤い姿になる）。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。円形ゲージが一周すると解凍できる。</li><li>⚡スピード床（緑）は広い直線通路に2枚。踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2>
     <div class="iw-setting"><span>役割</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="roleRandom">おまかせ</button><button class="iw-btn iw-chip" data-action="roleWolf">人狼で遊ぶ</button><button class="iw-btn iw-chip" data-action="roleHuman">人間で逃げる</button></div></div>
@@ -4828,6 +4856,18 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
     <div class="iw-screen" data-screen="countdown"><div class="iw-count" data-count>3</div></div>
     <div class="iw-screen" data-screen="result"><div class="iw-modal"><div class="iw-result-title" data-result-title>RESULT</div><p class="iw-result-note" data-result-note></p><div class="iw-row"><button class="iw-btn iw-primary" data-action="newRound">NEW ROUND</button><button class="iw-btn" data-action="mainMenu">MAIN MENU</button></div></div></div>`;
   document.body.appendChild(root);
+  const heroImage = typeof root.querySelector === 'function' ? root.querySelector('[data-menu-hero]') : null;
+  vars.get('MenuHeroReady').setBoolean(!!heroImage);
+  let heroSource = '';
+  if (heroImage) {
+    try { heroSource = String((typeof heroImage.getAttribute === 'function' && heroImage.getAttribute('src')) || heroImage.src || ''); } catch (_) { heroSource = ''; }
+  }
+  vars.get('MenuHeroSource').setString(heroSource);
+  vars.get('MenuHeroLoaded').setBoolean(false);
+  if (heroImage && typeof heroImage.addEventListener === 'function') {
+    heroImage.addEventListener('load', () => { vars.get('MenuHeroLoaded').setBoolean(true); }, { once: true });
+    heroImage.addEventListener('error', () => { vars.get('MenuHeroLoaded').setBoolean(false); }, { once: true });
+  }
   const screen = (name) => root.querySelector(`[data-screen="${name}"]`);
   const showOnly = (name) => {
     for (const el of root.querySelectorAll('.iw-screen')) el.classList.toggle('iw-show', el.dataset.screen === name);
@@ -4985,6 +5025,8 @@ if (typeof document !== 'undefined') {
   if (runtimeScene.__iceWolfV062IdLabels) {
     for (const el of runtimeScene.__iceWolfV062IdLabels.values()) if (el) el.style.visibility = activeForUi ? 'visible' : 'hidden';
   }
+  vars.get('MenuHudMasked').setBoolean(!activeForUi);
+  for (const hudName of ['RoleText', 'StatusText', 'BuildText', 'ActionFeedbackText', 'WinText']) setObjVisible(hudName, activeForUi);
 }
 if (ui && ui.lastPhase !== currentPhase) {
   ui.lastPhase = currentPhase;
@@ -5012,19 +5054,19 @@ if (ui && currentPhase === 'Countdown') {
   const count = ui.root.querySelector('[data-count]');
   if (count) count.textContent = left > 2.1 ? '3' : left > 1.1 ? '2' : left > 0.1 ? '1' : 'START';
 }
-for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.9');
+for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.10');
 };
 gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xcdaed8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xef87e8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xcdb0e8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9ab108 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -5055,12 +5097,12 @@ gdjs.FROST_32LABCode.eventsList33 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xcdb0e8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9ab108(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9f84c8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9ab318 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -5232,12 +5274,12 @@ gdjs.FROST_32LABCode.eventsList34 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9f84c8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9ab318(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9f86d8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9ab4f0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const Three = (typeof THREE !== 'undefined' && THREE) ? THREE : null;
@@ -5245,14 +5287,18 @@ const characters = [];
 const players = runtimeScene.getObjects('Player');
 if (players.length) characters.push(players[0]);
 for (const actor of runtimeScene.getObjects('Actor')) characters.push(actor);
+const playerObject = players.length ? players[0] : null;
+const wolfModeLeftVar = vars.get('WolfModeLeft');
+const playerWolfModeLeft = wolfModeLeftVar ? wolfModeLeftVar.getAsNumber() : 0;
 let built = 0;
 let meshTotal = 0;
 let frozenTotal = 0;
+let transformedTotal = 0;
+let lurkingTotal = 0;
 const frameIndex = (runtimeScene.__iceWolfV068RigFrame || 0) + 1;
 runtimeScene.__iceWolfV068RigFrame = frameIndex;
 const attemptsAllowed = frameIndex <= 30 || frameIndex % 30 === 0;
 const COLOR = {
-  wolfHead: 0x39435f,
   wolfEar: 0xff4f60,
   humanHead: 0xf8fbff,
   humanCap: 0x35d2ff,
@@ -5324,24 +5370,29 @@ const buildRig = (obj) => {
   rig.ice.visible = false;
   return rig;
 };
-const applyRigState = (obj, rig) => {
+const applyRigState = (obj, rig, isPlayer) => {
   const objectVars = obj.getVariables();
   const roleVar = objectVars.get('Role');
   const stateVar = objectVars.get('State');
   const role = roleVar ? roleVar.getAsString() : 'Human';
   const state = stateVar ? stateVar.getAsString() : 'Active';
   const frozen = state === 'Frozen' || state === 'FrozenWolfCandidate';
-  const key = role + '|' + frozen;
-  if (rig.key === key) return frozen;
-  rig.key = key;
+  const aiWolfVar = isPlayer ? null : objectVars.get('AIWolfModeLeft');
+  const modeLeft = isPlayer ? playerWolfModeLeft : aiWolfVar ? aiWolfVar.getAsNumber() : 0;
   const isWolf = role === 'Wolf';
-  rig.headMat.color.setHex(isWolf ? COLOR.wolfHead : COLOR.humanHead);
-  rig.visorMat.color.setHex(isWolf ? COLOR.visorWolf : COLOR.visorHuman);
-  rig.cap.visible = !isWolf;
-  rig.earL.visible = isWolf;
-  rig.earR.visible = isWolf;
-  rig.ice.visible = frozen;
-  return frozen;
+  const transformed = isWolf && !frozen && modeLeft > 0;
+  const lurking = isWolf && !transformed && !frozen;
+  const key = role + '|' + frozen + '|' + (transformed ? 'wolf' : 'human');
+  if (rig.key !== key) {
+    rig.key = key;
+    rig.headMat.color.setHex(COLOR.humanHead);
+    rig.visorMat.color.setHex(transformed ? COLOR.visorWolf : COLOR.visorHuman);
+    rig.cap.visible = !transformed;
+    rig.earL.visible = transformed;
+    rig.earR.visible = transformed;
+    rig.ice.visible = frozen;
+  }
+  return { frozen: frozen, transformed: transformed, lurking: lurking };
 };
 for (const obj of characters) {
   let rig = obj.__iceWolfV068Rig || null;
@@ -5359,12 +5410,17 @@ for (const obj of characters) {
   built += 1;
   meshTotal += rig.parts.length;
   try {
-    if (applyRigState(obj, rig)) frozenTotal += 1;
+    const view = applyRigState(obj, rig, obj === playerObject);
+    if (view.frozen) frozenTotal += 1;
+    if (view.transformed) transformedTotal += 1;
+    if (view.lurking) lurkingTotal += 1;
   } catch (error) {}
 }
 vars.get('CharacterRigCount').setNumber(built);
 vars.get('CharacterRigMeshes').setNumber(meshTotal);
 vars.get('CharacterRigFrozen').setNumber(frozenTotal);
+vars.get('CharacterRigTransformed').setNumber(transformedTotal);
+vars.get('CharacterRigLurking').setNumber(lurkingTotal);
 const total = characters.length;
 vars.get('CharacterRigMode').setString(
   total === 0 ? '' : built === total ? 'built' : built > 0 ? 'partial' : 'unavailable'
@@ -5376,12 +5432,12 @@ gdjs.FROST_32LABCode.eventsList35 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9f86d8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9ab4f0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9f88b0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1092688 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const STORAGE_KEY = 'iceWolfSoundEnabled';
@@ -5612,7 +5668,7 @@ gdjs.FROST_32LABCode.eventsList36 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9f88b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1092688(runtimeScene);
 
 }
 
