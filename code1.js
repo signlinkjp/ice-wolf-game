@@ -203,7 +203,7 @@ gdjs.FROST_32LABCode.GDCountTextObjects5= [];
 gdjs.FROST_32LABCode.GDCountTextObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xff68c8 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xaba560 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -331,12 +331,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xff68c8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xaba560(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9189f8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x92f9e0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -840,7 +840,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9189f8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x92f9e0(runtimeScene);
 
 }
 
@@ -950,7 +950,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x923140 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9240e0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1019,7 +1019,7 @@ gdjs.FROST_32LABCode.eventsList4 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x923140(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9240e0(runtimeScene);
 
 }
 
@@ -1696,7 +1696,7 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x91d6a8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x125caf0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1736,7 +1736,7 @@ for (const obj of runtimeScene.getObjects('CountText')) {
   if (typeof obj.hide === 'function') obj.hide(!playing);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x91d790 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x125cba0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1757,7 +1757,7 @@ if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
   vars.get('WolfRolePickOpen').setBoolean(false);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x91d880 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xe6dbf0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const pickedId = vars.get('WolfRolePickTarget').getAsString();
@@ -1791,7 +1791,7 @@ if (pickedId) {
   }
 }
 };
-gdjs.FROST_32LABCode.userFunc0x91d948 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xe6dca0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1940,7 +1940,7 @@ gdjs.FROST_32LABCode.eventsList13 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x91d6a8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x125caf0(runtimeScene);
 
 }
 
@@ -1948,7 +1948,7 @@ gdjs.FROST_32LABCode.userFunc0x91d6a8(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x91d790(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x125cba0(runtimeScene);
 
 }
 
@@ -1956,7 +1956,7 @@ gdjs.FROST_32LABCode.userFunc0x91d790(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x91d880(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe6dbf0(runtimeScene);
 
 }
 
@@ -1964,7 +1964,7 @@ gdjs.FROST_32LABCode.userFunc0x91d880(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x91d948(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xe6dca0(runtimeScene);
 
 }
 
@@ -2154,7 +2154,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0x1035848 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa61728 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2275,7 +2275,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1035848(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa61728(runtimeScene);
 
 }
 
@@ -2283,7 +2283,7 @@ gdjs.FROST_32LABCode.userFunc0x1035848(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList18 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0x11d1590 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xafc3c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2327,7 +2327,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x11d1590(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xafc3c8(runtimeScene);
 
 }
 
@@ -3500,7 +3500,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9131a0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x913bb0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -3582,12 +3582,12 @@ gdjs.FROST_32LABCode.eventsList24 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9131a0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x913bb0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9133b0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x916db0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -4032,7 +4032,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9133b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x916db0(runtimeScene);
 
 }
 
@@ -4082,7 +4082,7 @@ gdjs.FROST_32LABCode.eventsList25(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x919fb0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x919340 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4131,7 +4131,7 @@ gdjs.FROST_32LABCode.eventsList27 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x919fb0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x919340(runtimeScene);
 
 }
 
@@ -4192,7 +4192,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb6d3b0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x938498 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4275,12 +4275,12 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb6d3b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x938498(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb6d5c0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x93c4c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4329,7 +4329,8 @@ const resetRound = (forcedRole = '') => {
   vars.get('OverviewCameraEnabled').setBoolean(false);
   const pv = player.getVariables();
   pv.get('State').setString('Active');
-  const role = forcedRole || (Math.random() < 0.5 ? 'Wolf' : 'Human');
+  const rolePreference = vars.get('RolePreference').getAsString();
+  const role = forcedRole || (rolePreference === 'Wolf' ? 'Wolf' : rolePreference === 'Human' ? 'Human' : (Math.random() < 0.5 ? 'Wolf' : 'Human'));
   pv.get('Role').setString(role);
   vars.get('RoundRole').setString(role);
   player.setX(0);
@@ -4402,19 +4403,25 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       .iw-brand{text-align:center;position:relative;z-index:1}.iw-wolf{width:min(220px,30vw);margin:auto;filter:drop-shadow(0 0 18px rgba(86,223,255,.8))}.iw-title{font-size:clamp(54px,7vw,92px);font-weight:950;letter-spacing:2px;line-height:.92;margin:10px 0 12px;background:linear-gradient(#effcff,#77ddff 60%,#c4f2ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(59,196,255,.22)}
       .iw-tag{font-size:clamp(17px,2vw,26px);font-weight:650;margin:0 0 6px}.iw-jp{font-size:clamp(14px,1.65vw,20px);color:#9bbbd0;margin:0}.iw-menu{display:flex;flex-direction:column;gap:13px;position:relative;z-index:1}.iw-btn{width:100%;min-height:64px;border-radius:20px;border:1.5px solid rgba(62,203,255,.56);background:linear-gradient(180deg,rgba(15,79,111,.94),rgba(5,43,68,.98));box-shadow:inset 0 1px rgba(255,255,255,.12),0 5px 16px rgba(0,0,0,.24);color:#fff;font-size:clamp(20px,2.5vw,31px);font-weight:900;letter-spacing:.5px;cursor:pointer;touch-action:manipulation}.iw-btn:active{transform:scale(.985)}.iw-primary{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 21px rgba(255,207,70,.35),inset 0 1px rgba(255,255,255,.55)}
       .iw-version{text-align:center;color:#7395aa;font-size:14px;margin-top:5px}.iw-modal{width:min(700px,92vw);border:1px solid rgba(78,213,255,.55);border-radius:24px;background:rgba(3,27,46,.97);box-shadow:0 0 34px rgba(0,173,255,.22);padding:28px 30px;box-sizing:border-box;text-align:left}.iw-modal h2{font-size:clamp(30px,5vw,52px);margin:0 0 18px;text-align:center}.iw-modal p,.iw-modal li{font-size:clamp(16px,2.1vw,22px);line-height:1.55;color:#d8edf7}.iw-modal ul{padding-left:24px}.iw-back{margin-top:18px}.iw-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.iw-kpi div{background:rgba(24,85,115,.48);border:1px solid rgba(80,211,255,.28);border-radius:15px;padding:14px;text-align:center}.iw-kpi b{display:block;font-size:28px}.iw-reveal{text-align:center}.iw-role{font-size:clamp(52px,10vw,108px);font-weight:950;margin:10px 0}.iw-role.wolf{color:#ff8585}.iw-role.human{color:#80f4dd}.iw-count{font-size:clamp(90px,20vw,220px);font-weight:950;text-shadow:0 0 32px rgba(95,224,255,.7)}.iw-result-title{font-size:clamp(42px,8vw,82px);font-weight:950;text-align:center;margin:0 0 20px}
-      .iw-result-note{font-size:clamp(15px,2vw,21px);font-weight:700;text-align:center;color:#9fc6dc;letter-spacing:.4px;margin:-12px 0 22px}.iw-row{display:flex;gap:12px}.iw-row .iw-btn{flex:1}.iw-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border-radius:16px;background:rgba(24,85,115,.35);margin:12px 0}.iw-setting span{font-size:19px}.iw-small{font-size:14px!important;color:#8fb1c4!important}
-      @media (orientation:portrait),(max-width:720px){.iw-card{grid-template-columns:1fr;gap:18px;padding:22px;min-height:auto}.iw-wolf{width:min(165px,36vw)}.iw-title{font-size:clamp(48px,13vw,76px)}.iw-btn{min-height:58px}.iw-menu{gap:10px}}
+      .iw-result-note{font-size:clamp(15px,2vw,21px);font-weight:700;text-align:center;color:#9fc6dc;letter-spacing:.4px;margin:-12px 0 22px}.iw-row{display:flex;gap:12px}.iw-row .iw-btn{flex:1}.iw-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border-radius:16px;background:rgba(24,85,115,.35);margin:12px 0}.iw-setting span{font-size:19px}.iw-small{font-size:14px!important;color:#8fb1c4!important}.iw-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1}.iw-chip{width:auto;flex:1 1 86px;max-width:150px;min-height:50px;padding:0 8px;border-radius:14px;font-size:15px;letter-spacing:0}.iw-chip.iw-on{border-color:#ffe28a;background:linear-gradient(180deg,#ffe991,#ffc73e);color:#06233b;box-shadow:0 0 16px rgba(255,207,70,.32)}
+      @media (orientation:portrait),(max-width:720px){.iw-card{grid-template-columns:1fr;gap:18px;padding:22px;min-height:auto}.iw-wolf{width:min(165px,36vw)}.iw-title{font-size:clamp(48px,13vw,76px)}.iw-btn{min-height:58px}.iw-menu{gap:10px}.iw-setting{gap:10px;padding:12px}.iw-chip{flex:1 1 70px;max-width:none;min-height:46px;font-size:14px}}
     </style>
     <div class="iw-screen" data-screen="menu"><div class="iw-card">
       <div class="iw-brand">
         <svg class="iw-wolf" viewBox="0 0 240 220" aria-label="ICE WOLF emblem" role="img"><defs><linearGradient id="iceg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfdff"/><stop offset=".42" stop-color="#70e3ff"/><stop offset="1" stop-color="#1593d1"/></linearGradient></defs><g fill="url(#iceg)" stroke="#d9fbff" stroke-width="2"><path d="M27 18 91 53 120 32 149 53 213 18 190 105 166 174 120 211 74 174 50 105Z"/><path d="M27 18 49 96 92 53Z" opacity=".62"/><path d="M213 18 191 96 148 53Z" opacity=".62"/><path d="M91 53 120 32 120 150 74 174 50 105Z" opacity=".42"/><path d="M149 53 120 32 120 150 166 174 190 105Z" opacity=".23"/></g><path d="M68 102 108 112 86 130Z" fill="#fff"/><path d="M172 102 132 112 154 130Z" fill="#fff"/><path d="m105 158 15-8 15 8-15 17Z" fill="#e9fcff"/></svg>
         <div class="iw-title">ICE WOLF</div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
       </div>
-      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.6</div></div>
+      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.7</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、3:30を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
-    <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2><div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div><div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div><p class="iw-small">Sound and additional accessibility settings will be expanded in a later version. Current gameplay audio remains unchanged.</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2>
+    <div class="iw-setting"><span>役割</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="roleRandom">おまかせ</button><button class="iw-btn iw-chip" data-action="roleWolf">人狼で遊ぶ</button><button class="iw-btn iw-chip" data-action="roleHuman">人間で逃げる</button></div></div>
+    <div class="iw-setting"><span>試合時間</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="time120">2分</button><button class="iw-btn iw-chip" data-action="time180">3分</button><button class="iw-btn iw-chip" data-action="time300">5分</button></div></div>
+    <p class="iw-small" data-settings-note></p>
+    <div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div>
+    <div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div>
+    <p class="iw-small">Sound and additional accessibility settings will be expanded in a later version. Current gameplay audio remains unchanged.</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="reveal"><div class="iw-modal iw-reveal"><h2>YOUR ROLE</h2><div class="iw-role" data-role-text>WOLF</div><p data-role-copy></p></div></div>
     <div class="iw-screen" data-screen="countdown"><div class="iw-count" data-count>3</div></div>
     <div class="iw-screen" data-screen="result"><div class="iw-modal"><div class="iw-result-title" data-result-title>RESULT</div><p class="iw-result-note" data-result-note></p><div class="iw-row"><button class="iw-btn iw-primary" data-action="newRound">NEW ROUND</button><button class="iw-btn" data-action="mainMenu">MAIN MENU</button></div></div></div>`;
@@ -4431,6 +4438,19 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
   const updateCameraPrefUi = () => {
     const el=root.querySelector('[data-action="cameraPref"]'); if(el) el.textContent=preferredOverview()?'TOP':'CAM';
   };
+  const updateSettingsUi = () => {
+    const role = vars.get('RolePreference').getAsString();
+    const duration = vars.get('DurationPreference').getAsNumber();
+    const mark = (action, on) => { const el = root.querySelector(`[data-action="${action}"]`); if (el) el.classList.toggle('iw-on', on); };
+    mark('roleRandom', role !== 'Wolf' && role !== 'Human');
+    mark('roleWolf', role === 'Wolf');
+    mark('roleHuman', role === 'Human');
+    mark('time120', duration === 120);
+    mark('time180', duration === 180);
+    mark('time300', duration === 300);
+    const note = root.querySelector('[data-settings-note]');
+    if (note) note.textContent = (duration === 120 || duration === 180 || duration === 300) ? `試合時間: ${Math.round(duration / 60)}分（次の試合から反映）` : '試合時間: 3:30（初期値）。2分/3分/5分を選ぶと次の試合から反映されます。';
+  };
   for (const button of root.querySelectorAll('[data-action]')) {
     button.addEventListener('pointerdown', (event) => {
       event.preventDefault(); event.stopPropagation();
@@ -4440,12 +4460,23 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       else if (action === 'mainMenu') vars.get('RoundCommand').setString('Menu');
       else if (action === 'how') showOnly('how');
       else if (action === 'record') { updateRecordUi(); showOnly('record'); }
-      else if (action === 'settings') { updateCameraPrefUi(); showOnly('settings'); }
+      else if (action === 'settings') { updateCameraPrefUi(); updateSettingsUi(); showOnly('settings'); }
       else if (action === 'back') showOnly('menu');
       else if (action === 'cameraPref') { safeStorageSet('iceWolfDefaultOverview', preferredOverview()?'0':'1'); updateCameraPrefUi(); }
+      else if (action === 'roleRandom') { vars.get('RolePreference').setString('Random'); safeStorageSet('iceWolfRolePreference', 'random'); updateSettingsUi(); }
+      else if (action === 'roleWolf') { vars.get('RolePreference').setString('Wolf'); safeStorageSet('iceWolfRolePreference', 'wolf'); updateSettingsUi(); }
+      else if (action === 'roleHuman') { vars.get('RolePreference').setString('Human'); safeStorageSet('iceWolfRolePreference', 'human'); updateSettingsUi(); }
+      else if (action === 'time120') { vars.get('DurationPreference').setNumber(120); vars.get('MatchDuration').setNumber(120); safeStorageSet('iceWolfMatchDuration', '120'); updateSettingsUi(); }
+      else if (action === 'time180') { vars.get('DurationPreference').setNumber(180); vars.get('MatchDuration').setNumber(180); safeStorageSet('iceWolfMatchDuration', '180'); updateSettingsUi(); }
+      else if (action === 'time300') { vars.get('DurationPreference').setNumber(300); vars.get('MatchDuration').setNumber(300); safeStorageSet('iceWolfMatchDuration', '300'); updateSettingsUi(); }
     }, {passive:false});
   }
-  runtimeScene.__iceWolfV065ProductionUi = { root, screen, showOnly, updateRecordUi, updateCameraPrefUi, lastPhase:'' };
+  const storedRole = safeStorageGet('iceWolfRolePreference', '');
+  if (storedRole === 'wolf') vars.get('RolePreference').setString('Wolf');
+  else if (storedRole === 'human') vars.get('RolePreference').setString('Human');
+  const storedDuration = Number(safeStorageGet('iceWolfMatchDuration', '0'));
+  if (storedDuration === 120 || storedDuration === 180 || storedDuration === 300) vars.get('DurationPreference').setNumber(storedDuration);
+  runtimeScene.__iceWolfV065ProductionUi = { root, screen, showOnly, updateRecordUi, updateCameraPrefUi, updateSettingsUi, lastPhase:'' };
   vars.get('ProductionMenuReady').setBoolean(true);
 }
 const ui = runtimeScene.__iceWolfV065ProductionUi;
@@ -4464,6 +4495,24 @@ if (command) {
     vars.get('RoundPhase').setString('Active');
     vars.get('RoundPhaseLeft').setNumber(0);
     vars.get('GameOver').setBoolean(false);
+  } else if (command === 'TestStartPreference') {
+    runtimeScene.__iceWolfV065TestMode = true;
+    resetRound('');
+    vars.get('RoundPhase').setString('Active');
+    vars.get('RoundPhaseLeft').setNumber(0);
+    vars.get('GameOver').setBoolean(false);
+  } else if (command === 'Restart') {
+    resetRound('');
+    vars.get('RestartConfirmOpen').setBoolean(false);
+    if (testMode) {
+      vars.get('RoundPhase').setString('Active');
+      vars.get('RoundPhaseLeft').setNumber(0);
+      vars.get('GameOver').setBoolean(false);
+    } else {
+      vars.get('RoundPhase').setString('RoleReveal');
+      vars.get('RoundPhaseLeft').setNumber(2.4);
+      vars.get('GameOver').setBoolean(true);
+    }
   } else if (command === 'Start') {
     runtimeScene.__iceWolfV065TestMode = false;
     resetRound('');
@@ -4550,19 +4599,19 @@ if (ui && currentPhase === 'Countdown') {
   const count = ui.root.querySelector('[data-count]');
   if (count) count.textContent = left > 2.1 ? '3' : left > 1.1 ? '2' : left > 0.1 ? '1' : 'START';
 }
-for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.5-DIAG');
+for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.7');
 };
 gdjs.FROST_32LABCode.eventsList30 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb6d5c0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x93c4c8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x11d1850 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x93c7e0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -4593,12 +4642,189 @@ gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x11d1850(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x93c7e0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb014c8 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const phase = vars.get('RoundPhase').getAsString();
+const gameOver = vars.get('GameOver').getAsBoolean();
+const durationPreference = vars.get('DurationPreference').getAsNumber();
+const wantedDuration = (durationPreference === 120 || durationPreference === 180 || durationPreference === 300) ? durationPreference : 210;
+if (vars.get('MatchDuration').getAsNumber() !== wantedDuration) {
+  vars.get('MatchDuration').setNumber(wantedDuration);
+}
+const playing = phase === 'Active' && !gameOver;
+if (typeof document === 'undefined') {
+  vars.get('RestartUiReady').setBoolean(false);
+  vars.get('RestartUiVisible').setBoolean(false);
+  vars.get('RestartConfirmVisible').setBoolean(false);
+  vars.get('RestartConfirmOpen').setBoolean(false);
+} else {
+  if (!runtimeScene.__iceWolfV067RestartUi) {
+    for (const old of document.querySelectorAll('[data-ice-wolf-v067-restart="1"],[data-ice-wolf-v067-confirm="1"]')) old.remove();
+    const button = document.createElement('button');
+    button.dataset.iceWolfV067Restart = '1';
+    button.type = 'button';
+    button.setAttribute('aria-label', 'やり直し・メニュー');
+    button.textContent = 'MENU';
+    button.style.position = 'fixed';
+    button.style.width = '58px';
+    button.style.height = '34px';
+    button.style.padding = '0';
+    button.style.borderRadius = '12px';
+    button.style.border = '2px solid rgba(255,255,255,0.92)';
+    button.style.background = 'rgba(18,24,32,0.82)';
+    button.style.color = '#ffffff';
+    button.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+    button.style.fontSize = '12px';
+    button.style.fontWeight = '800';
+    button.style.letterSpacing = '0.5px';
+    button.style.boxShadow = '0 3px 10px rgba(0,0,0,0.30)';
+    button.style.zIndex = '2147482820';
+    button.style.touchAction = 'none';
+    button.style.userSelect = 'none';
+    button.style.webkitUserSelect = 'none';
+    button.style.webkitTapHighlightColor = 'transparent';
+    button.style.display = 'none';
+    button.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('RestartConfirmOpen').setBoolean(true);
+      vars.get('JoystickActive').setBoolean(false);
+      vars.get('JoystickX').setNumber(0);
+      vars.get('JoystickY').setNumber(0);
+    }, { passive: false });
+
+    const modal = document.createElement('div');
+    modal.dataset.iceWolfV067Confirm = '1';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-label', 'やり直しますか');
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
+    modal.style.display = 'none';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.padding = '18px';
+    modal.style.boxSizing = 'border-box';
+    modal.style.background = 'rgba(2,10,20,0.72)';
+    modal.style.zIndex = '2147482960';
+    modal.style.touchAction = 'manipulation';
+
+    const card = document.createElement('div');
+    card.style.width = 'min(460px,88vw)';
+    card.style.boxSizing = 'border-box';
+    card.style.border = '1.5px solid rgba(78,213,255,0.62)';
+    card.style.borderRadius = '22px';
+    card.style.background = 'rgba(4,30,50,0.98)';
+    card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+    card.style.padding = '20px';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.gap = '10px';
+    card.style.color = '#fff';
+    card.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+
+    const title = document.createElement('div');
+    title.textContent = 'やり直しますか？';
+    title.style.fontSize = '20px';
+    title.style.fontWeight = '900';
+    title.style.textAlign = 'center';
+    title.style.marginBottom = '2px';
+
+    const hint = document.createElement('div');
+    hint.textContent = 'まちがえたときは「つづける」';
+    hint.style.fontSize = '13px';
+    hint.style.color = '#8fb1c4';
+    hint.style.textAlign = 'center';
+    hint.style.marginBottom = '6px';
+
+    const makeChoice = (label, strong) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.textContent = label;
+      el.style.minHeight = '54px';
+      el.style.borderRadius = '16px';
+      el.style.border = strong ? '1.5px solid #ffe28a' : '1.5px solid rgba(62,203,255,0.6)';
+      el.style.background = strong ? 'linear-gradient(180deg,#ffe991,#ffc73e)' : 'linear-gradient(180deg,rgba(15,79,111,0.96),rgba(5,43,68,0.98))';
+      el.style.color = strong ? '#06233b' : '#fff';
+      el.style.fontSize = '18px';
+      el.style.fontWeight = '900';
+      el.style.touchAction = 'manipulation';
+      el.style.webkitTapHighlightColor = 'transparent';
+      return el;
+    };
+
+    const restartChoice = makeChoice('最初からやり直す', true);
+    restartChoice.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('RestartConfirmOpen').setBoolean(false);
+      vars.get('RoundCommand').setString('Restart');
+    }, { passive: false });
+    const menuChoice = makeChoice('メインメニューへ', false);
+    menuChoice.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('RestartConfirmOpen').setBoolean(false);
+      vars.get('RoundCommand').setString('Menu');
+    }, { passive: false });
+    const resumeChoice = makeChoice('つづける', false);
+    resumeChoice.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('RestartConfirmOpen').setBoolean(false);
+    }, { passive: false });
+
+    card.appendChild(title);
+    card.appendChild(hint);
+    card.appendChild(restartChoice);
+    card.appendChild(menuChoice);
+    card.appendChild(resumeChoice);
+    modal.appendChild(card);
+    document.body.appendChild(button);
+    document.body.appendChild(modal);
+    runtimeScene.__iceWolfV067RestartUi = { button, modal, restartChoice, menuChoice, resumeChoice, positioned: false, lastLayoutAt: -10000 };
+  }
+  const ui = runtimeScene.__iceWolfV067RestartUi;
+  let open = vars.get('RestartConfirmOpen').getAsBoolean();
+  if (!playing) open = false;
+  vars.get('RestartConfirmOpen').setBoolean(open);
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const canvas = document.querySelector('canvas');
+  if (canvas && (!ui.positioned || now - ui.lastLayoutAt >= 1000)) {
+    const rect = canvas.getBoundingClientRect();
+    ui.button.style.left = `${Math.max(rect.left + 8, rect.right - 136)}px`;
+    ui.button.style.top = `${rect.top + 108}px`;
+    ui.positioned = true;
+    ui.lastLayoutAt = now;
+  }
+  ui.button.style.display = playing ? 'block' : 'none';
+  ui.modal.style.display = open ? 'flex' : 'none';
+  vars.get('RestartUiReady').setBoolean(ui.positioned === true);
+  vars.get('RestartUiVisible').setBoolean(playing);
+  vars.get('RestartConfirmVisible').setBoolean(open);
+  if (open) {
+    vars.get('JoystickActive').setBoolean(false);
+    vars.get('JoystickX').setNumber(0);
+    vars.get('JoystickY').setNumber(0);
+  }
+}
+};
+gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0xb014c8(runtimeScene);
+
+}
+
+
+};gdjs.FROST_32LABCode.eventsList33 = function(runtimeScene) {
 
 {
 
@@ -4739,6 +4965,13 @@ gdjs.FROST_32LABCode.eventsList30(runtimeScene);
 
 
 gdjs.FROST_32LABCode.eventsList31(runtimeScene);
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.eventsList32(runtimeScene);
 }
 
 
@@ -4904,7 +5137,7 @@ gdjs.FROST_32LABCode.GDCountTextObjects4.length = 0;
 gdjs.FROST_32LABCode.GDCountTextObjects5.length = 0;
 gdjs.FROST_32LABCode.GDCountTextObjects6.length = 0;
 
-gdjs.FROST_32LABCode.eventsList32(runtimeScene);
+gdjs.FROST_32LABCode.eventsList33(runtimeScene);
 gdjs.FROST_32LABCode.GDFloorObjects1.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects2.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects3.length = 0;

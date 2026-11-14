@@ -1,6 +1,6 @@
-ICE WOLF v0.6.6 preview (ice-lab visuals + secret second-wolf notice)
+ICE WOLF v0.6.7 preview (role choice + match length + in-play restart)
 source branch: feature/v065-production-round-start
-source commit: fa2ca83392af3825610466fb0081a0675bec7f4b
+source commit: de28bd35b288ab5cf09db07534a60802c3479eef
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-features: frost-lab floor/wall textures, ice-cyan frozen blocks with ice texture, 人狼役にする label, ⚠️ 誰かが人狼に染まった…！ secret notice
+features: SETTINGS role (おまかせ/人狼で遊ぶ/人間で逃げる), SETTINGS match length (2分/3分/5分), in-play MENU button beside CAM with 最初からやり直す / メインメニューへ / つづける, frost-lab visuals
