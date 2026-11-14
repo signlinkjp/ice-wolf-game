@@ -215,9 +215,9 @@ jobs:
         run: |
           set -euo pipefail
           missing=""
-          [ -z "$KEY_ID" ] && missing="$missing ASC_ADMIN_AB_KEY_ID"
-          [ -z "$ISSUER_ID" ] && missing="$missing ASC_ADMIN_AB_ISSUER_ID"
-          [ -z "$KEY_P8" ] && missing="$missing ASC_ADMIN_AB_KEY_P8_BASE64"
+          if [ -z "$KEY_ID" ]; then missing="$missing ASC_ADMIN_AB_KEY_ID"; fi
+          if [ -z "$ISSUER_ID" ]; then missing="$missing ASC_ADMIN_AB_ISSUER_ID"; fi
+          if [ -z "$KEY_P8" ]; then missing="$missing ASC_ADMIN_AB_KEY_P8_BASE64"; fi
           if [ -n "$missing" ]; then
             echo "STOP: missing repository secret(s):$missing" >&2
             echo "Add them in Settings > Secrets and variables > Actions (same names as the other signlinkjp repos)." >&2
