@@ -9,6 +9,8 @@ Outputs (all seamlessly tileable, small enough for the HTML5 build):
     assets/floor_frostlab.png   256x256  tiled ice-lab floor
     assets/wall_frostlab.png    256x256  tiled tech panel wall
     assets/ice_freeze.png       256x256  cracked ice used by frozen actors
+    assets/pad_speed.png        128x128  glowing speed-pad tile (arrows)
+    assets/pad_warp.png         128x128  warp-pad tile (portal rings)
 
 Everything is deterministic (fixed seed) so re-running the script produces the
 same bytes and the repository stays diff-stable.
@@ -225,12 +227,88 @@ def build_ice() -> Image.Image:
     return image.filter(ImageFilter.SMOOTH)
 
 
+PAD_SIZE = 128
+
+
+def _pad_base(base, edge):
+    """Dark plate with a bevel so the pad reads as a floor device from above."""
+    image = Image.new("RGB", (PAD_SIZE, PAD_SIZE), base)
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([0, 0, PAD_SIZE - 1, PAD_SIZE - 1], outline=edge, width=5)
+    draw.rectangle([7, 7, PAD_SIZE - 8, PAD_SIZE - 8], outline=tuple(max(0, c - 26) for c in base), width=2)
+    for cx, cy in ((12, 12), (PAD_SIZE - 13, 12), (12, PAD_SIZE - 13), (PAD_SIZE - 13, PAD_SIZE - 13)):
+        draw.ellipse([cx - 3, cy - 3, cx + 3, cy + 3], fill=tuple(min(255, c + 40) for c in base))
+    return image
+
+
+def build_pad_speed() -> Image.Image:
+    """Cyan-green tile with two stacked chevrons: 'run faster here'."""
+    image = _pad_base((10, 46, 52), (74, 236, 196))
+    glow = Image.new("RGB", (PAD_SIZE, PAD_SIZE), (0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    for index, top in enumerate((44, 74)):
+        points = [
+            (PAD_SIZE // 2, top),
+            (PAD_SIZE - 26, top + 24),
+            (PAD_SIZE - 40, top + 32),
+            (PAD_SIZE // 2, top + 14),
+            (40, top + 32),
+            (26, top + 24),
+        ]
+        glow_draw.polygon(points, fill=(92, 255, 214))
+    glow = glow.filter(ImageFilter.GaussianBlur(4.2))
+    image = ImageChops.add(image, glow, scale=1.15)
+    draw = ImageDraw.Draw(image)
+    for top in (44, 74):
+        draw.polygon(
+            [
+                (PAD_SIZE // 2, top),
+                (PAD_SIZE - 26, top + 24),
+                (PAD_SIZE - 40, top + 32),
+                (PAD_SIZE // 2, top + 14),
+                (40, top + 32),
+                (26, top + 24),
+            ],
+            fill=(214, 255, 245),
+        )
+    return image.filter(ImageFilter.SMOOTH)
+
+
+def build_pad_warp() -> Image.Image:
+    """Violet tile with concentric portal rings and four corner nodes."""
+    image = _pad_base((36, 14, 62), (176, 118, 255))
+    glow = Image.new("RGB", (PAD_SIZE, PAD_SIZE), (0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    center = PAD_SIZE // 2
+    for radius in (46, 32, 18):
+        glow_draw.ellipse(
+            [center - radius, center - radius, center + radius, center + radius],
+            outline=(186, 132, 255),
+            width=6,
+        )
+    glow = glow.filter(ImageFilter.GaussianBlur(4.6))
+    image = ImageChops.add(image, glow, scale=1.2)
+    draw = ImageDraw.Draw(image)
+    for radius in (46, 32, 18):
+        draw.ellipse(
+            [center - radius, center - radius, center + radius, center + radius],
+            outline=(236, 224, 255),
+            width=2,
+        )
+    draw.ellipse([center - 7, center - 7, center + 7, center + 7], fill=(255, 255, 255))
+    for cx, cy in ((16, 16), (PAD_SIZE - 17, 16), (16, PAD_SIZE - 17), (PAD_SIZE - 17, PAD_SIZE - 17)):
+        draw.ellipse([cx - 4, cy - 4, cx + 4, cy + 4], fill=(212, 170, 255))
+    return image.filter(ImageFilter.SMOOTH)
+
+
 def main() -> None:
     os.makedirs(ASSETS, exist_ok=True)
     for name, builder in (
         ("floor_frostlab.png", build_floor),
         ("wall_frostlab.png", build_wall),
         ("ice_freeze.png", build_ice),
+        ("pad_speed.png", build_pad_speed),
+        ("pad_warp.png", build_pad_warp),
     ):
         path = os.path.join(ASSETS, name)
         image = builder()
