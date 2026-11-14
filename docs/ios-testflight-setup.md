@@ -108,11 +108,18 @@ Brief のご指摘どおり、ここは踏みやすい罠なので明記しま�
 1. Safari で <https://github.com/signlinkjp/ice-wolf-game> を開く。
 2. **Add file** → **Create new file**。
 3. ファイル名に `.github/workflows/ios-testflight.yml` と入力。
-4. リポジトリ内の `docs/ios-testflight-workflow.yml` を開いて **Raw** を表示し、全選択してコピー → エディタに貼り付け。
-   （`docs/ios-testflight-workflow.yml` はこのコミットで追加済みなので、`main` 上のファイルとして読めます）
+4. 次の URL を Safari で開くと、コミット済みのワークフローがそのまま表示されます（コピー用）。
+
+   ```
+   https://raw.githubusercontent.com/signlinkjp/ice-wolf-game/feature/v065-production-round-start/docs/ios-testflight-workflow.yml
+   ```
+
+   全選択（長押し → すべてを選択）→ コピー → GitHub のエディタに貼り付け。
+   （迷ったら、リポジトリのブランチを `feature/v065-production-round-start` に切り替えて `docs/ios-testflight-workflow.yml` を開き、**Raw** を表示してコピーでも同じです）
 5. **Commit changes** → 「Commit directly to the **main** branch」を選んでコミット。
 
 > `main` に置くのは、GitHub の「Run workflow」ボタンがデフォルトブランチのワークフローにしか出ないためです。ワークフローは入力 `source_ref`（既定 `feature/v065-production-round-start`）のブランチを自分でチェックアウトしてビルドするので、`main` に置いても最新のゲームを焼けます。
+> PR #16 を `main` にマージした後は、`source_ref` に `main` を指定すれば OK です（既定値を変える場合はワークフロー内の `default:` を 1 行修正）。
 
 ---
 
