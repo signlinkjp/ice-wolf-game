@@ -22,7 +22,7 @@ ICE WOLF を iPhone のアプリとして配信するための土台です。GDe
 
 ### バージョン
 
-- Marketing Version（表示バージョン）: **0.6.10**
+- Marketing Version（表示バージョン）: **0.6.11**
 - Build Number: **1**（`ios/App/App.xcodeproj` の `CURRENT_PROJECT_VERSION`。CI 実行時に上書きできます）
 - 表示名: **ICE WOLF** / Bundle ID: **jp.signlink.IceWolf** / Team ID: **TGBNH8WJV6**
 
@@ -134,10 +134,10 @@ Brief のご指摘どおり、ここは踏みやすい罠なので明記しま�
 | confirmation | ✅ チェック | ✅ チェック |
 | upload_to_testflight | ⬜ オフ（ビルドのみ） | ✅ オン |
 | build_number | `1` | `1`（同じで OK。まだ Apple に送っていないため） |
-| marketing_version | `0.6.10` | `0.6.10` |
+| marketing_version | `0.6.11` | `0.6.11` |
 | source_ref | `feature/v065-production-round-start` | 同じ |
 
-3. 1 回目が緑になったら、ジョブ `iOS archive, sign and TestFlight` のログ末尾に IPA の SHA-256 と `manifest.json` が出ます。Actions の Artifacts から `icewolf-ios-0.6.10-1` を取得すると、署名済み IPA と `manifest.json`（コミット SHA・game.json の SHA-256・IPA の SHA-256）が残ります。
+3. 1 回目が緑になったら、ジョブ `iOS archive, sign and TestFlight` のログ末尾に IPA の SHA-256 と `manifest.json` が出ます。Actions の Artifacts から `icewolf-ios-0.6.11-1` を取得すると、署名済み IPA と `manifest.json`（コミット SHA・game.json の SHA-256・IPA の SHA-256）が残ります。
 4. 問題なければ 2 回目を `upload_to_testflight` オンで実行 → 「TESTFLIGHT_UPLOAD=submitted」で完了です。Apple 側の処理に 5〜30 分かかり、その後 TestFlight アプリに ICE WOLF が現れます。
 
 > ビルド番号は **同じ Marketing Version の中で必ず増やしてください**。Apple は同じ番号の再アップロードを拒否します。アップロード前のチェックが `ICEWOLF_BUILD_ALREADY_PRESENT` で止めるので、そのときは `build_number` を 2 に上げて実行します。0.6.11 のようにバージョンを上げたときは 1 に戻して構いません（実際は増やし続けるのが安全です）。
