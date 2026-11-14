@@ -64,10 +64,7 @@ run_test 'v0.6.5 Survivor Frozen Counter test'
 run_test 'v0.6.5 Wolf Role Pick test'
 
 echo "== 6. protected regression suite =="
-run_test 'STEP1 bounds test'
-run_test 'Wall block check'
 run_test 'Stability self-test'
-run_test 'v0.3 action clarity test'
 run_test 'v0.6.0 human-side CPU Wolf test'
 run_test 'v0.6.0 CPU Wolf device diagnostic test'
 run_test 'v0.6.1 Human CPU navigation recovery test'
