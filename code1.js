@@ -215,7 +215,7 @@ gdjs.FROST_32LABCode.GDWarpPadObjects5= [];
 gdjs.FROST_32LABCode.GDWarpPadObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xab3d48 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xd15a20 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -343,12 +343,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xab3d48(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd15a20(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xacd0f8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc13e40 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const timeManager = runtimeScene.getTimeManager();
@@ -432,12 +432,12 @@ gdjs.FROST_32LABCode.eventsList1 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xacd0f8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc13e40(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa59bf8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9e0990 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -941,7 +941,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa59bf8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9e0990(runtimeScene);
 
 }
 
@@ -1051,7 +1051,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x92f7c8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xb50b10 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1120,7 +1120,7 @@ gdjs.FROST_32LABCode.eventsList5 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x92f7c8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xb50b10(runtimeScene);
 
 }
 
@@ -1138,7 +1138,7 @@ isConditionTrue_0 = false;
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-{gdjs.evtsExt__ThirdPersonCamera__LookFromDistanceAtObject3D.func(runtimeScene, gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects, "Object3D", 650, 0, 55, "", null);
+{gdjs.evtsExt__ThirdPersonCamera__LookFromDistanceAtObject3D.func(runtimeScene, gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects, "Object3D", 600, 0, 53, "", null);
 }
 }
 
@@ -1797,7 +1797,7 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc8f2f0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa50838 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1837,7 +1837,7 @@ for (const obj of runtimeScene.getObjects('CountText')) {
   if (typeof obj.hide === 'function') obj.hide(!playing);
 }
 };
-gdjs.FROST_32LABCode.userFunc0xc8f3a0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa50920 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1858,7 +1858,7 @@ if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
   vars.get('WolfRolePickOpen').setBoolean(false);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x965aa8 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xbec190 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const pickedId = vars.get('WolfRolePickTarget').getAsString();
@@ -1892,7 +1892,7 @@ if (pickedId) {
   }
 }
 };
-gdjs.FROST_32LABCode.userFunc0x965b58 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa71af0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -2041,7 +2041,7 @@ gdjs.FROST_32LABCode.eventsList14 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc8f2f0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa50838(runtimeScene);
 
 }
 
@@ -2049,7 +2049,7 @@ gdjs.FROST_32LABCode.userFunc0xc8f2f0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc8f3a0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa50920(runtimeScene);
 
 }
 
@@ -2057,7 +2057,7 @@ gdjs.FROST_32LABCode.userFunc0xc8f3a0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x965aa8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xbec190(runtimeScene);
 
 }
 
@@ -2065,14 +2065,14 @@ gdjs.FROST_32LABCode.userFunc0x965aa8(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x965b58(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa71af0(runtimeScene);
 
 }
 
 
 };gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xcc2900 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xca83b0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const duration = Math.max(0.2, vars.get('RescueHoldDuration').getAsNumber());
@@ -2083,71 +2083,120 @@ const progress = ready ? 1 : Math.min(1, held / duration);
 vars.get('RescueHoldProgress').setNumber(progress);
 const visible = active || ready;
 vars.get('RescueHoldBarVisible').setBoolean(visible);
-if (typeof document === 'undefined') {
+const RING_DIAMETER = 68;
+const RING_STROKE = 7;
+const RING_RADIUS = (RING_DIAMETER - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const percent = Math.round(progress * 100);
+const dashOffset = Math.round(RING_CIRCUMFERENCE * (1 - progress) * 1000) / 1000;
+vars.get('RescueHoldMeterDiameter').setNumber(RING_DIAMETER);
+vars.get('RescueHoldMeterCircumference').setNumber(Math.round(RING_CIRCUMFERENCE * 1000) / 1000);
+vars.get('RescueHoldMeterDash').setNumber(dashOffset);
+vars.get('RescueHoldMeterPercent').setNumber(percent);
+vars.get('RescueHoldMeterVisible').setBoolean(visible);
+if (typeof document === 'undefined' || typeof document.createElementNS !== 'function') {
+  vars.get('RescueHoldMeterMode').setString('unavailable');
+  vars.get('RescueHoldMeterReady').setBoolean(false);
   vars.get('RescueHoldBarReady').setBoolean(false);
 } else {
-  if (!runtimeScene.__iceWolfV068HoldBar) {
-    for (const old of document.querySelectorAll('[data-ice-wolf-v068-holdbar="1"]')) old.remove();
-    const bar = document.createElement('div');
-    bar.dataset.iceWolfV068Holdbar = '1';
-    bar.setAttribute('role', 'progressbar');
-    bar.setAttribute('aria-label', '解凍ゲージ');
-    bar.style.position = 'fixed';
-    bar.style.left = '50%';
-    bar.style.bottom = '104px';
-    bar.style.transform = 'translateX(-50%)';
-    bar.style.width = 'min(272px,56vw)';
-    bar.style.height = '46px';
-    bar.style.boxSizing = 'border-box';
-    bar.style.borderRadius = '16px';
-    bar.style.border = '2px solid rgba(120,244,255,0.86)';
-    bar.style.background = 'rgba(4,26,40,0.86)';
-    bar.style.boxShadow = '0 5px 18px rgba(0,0,0,0.38)';
-    bar.style.overflow = 'hidden';
-    bar.style.zIndex = '2147482860';
-    bar.style.display = 'none';
-    bar.style.pointerEvents = 'none';
-    bar.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-    const fill = document.createElement('div');
-    fill.style.position = 'absolute';
-    fill.style.left = '0';
-    fill.style.top = '0';
-    fill.style.bottom = '0';
-    fill.style.width = '0%';
-    fill.style.background = 'linear-gradient(90deg,rgba(58,214,255,0.92),rgba(146,255,232,0.96))';
-    fill.style.transition = 'width 60ms linear';
-    const label = document.createElement('div');
-    label.style.position = 'relative';
-    label.style.height = '100%';
-    label.style.display = 'flex';
-    label.style.alignItems = 'center';
-    label.style.justifyContent = 'center';
-    label.style.fontSize = '15px';
-    label.style.fontWeight = '900';
-    label.style.letterSpacing = '0.4px';
-    label.style.color = '#04222f';
-    label.style.textShadow = '0 1px 0 rgba(255,255,255,0.45)';
-    bar.appendChild(fill);
-    bar.appendChild(label);
-    document.body.appendChild(bar);
-    runtimeScene.__iceWolfV068HoldBar = { bar, fill, label, text: '', width: -1 };
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  if (!runtimeScene.__iceWolfV069Ring) {
+    for (const old of document.querySelectorAll('[data-ice-wolf-v069-ring="1"]')) old.remove();
+    const wrap = document.createElement('div');
+    wrap.dataset.iceWolfV069Ring = '1';
+    wrap.setAttribute('role', 'progressbar');
+    wrap.setAttribute('aria-label', '解凍ゲージ');
+    wrap.style.position = 'fixed';
+    wrap.style.left = '50%';
+    wrap.style.bottom = '104px';
+    wrap.style.width = RING_DIAMETER + 'px';
+    wrap.style.height = RING_DIAMETER + 'px';
+    wrap.style.transform = 'translateX(-50%)';
+    wrap.style.zIndex = '2147482860';
+    wrap.style.display = 'none';
+    wrap.style.pointerEvents = 'none';
+    wrap.style.transition = 'opacity 90ms linear';
+    wrap.style.opacity = '1';
+    wrap.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('width', String(RING_DIAMETER));
+    svg.setAttribute('height', String(RING_DIAMETER));
+    svg.setAttribute('viewBox', '0 0 ' + RING_DIAMETER + ' ' + RING_DIAMETER);
+    svg.style.display = 'block';
+    svg.style.transform = 'rotate(-90deg)';
+    const track = document.createElementNS(SVG_NS, 'circle');
+    track.setAttribute('cx', String(RING_DIAMETER / 2));
+    track.setAttribute('cy', String(RING_DIAMETER / 2));
+    track.setAttribute('r', String(RING_RADIUS));
+    track.setAttribute('fill', 'none');
+    track.setAttribute('stroke', 'rgba(120,244,255,0.20)');
+    track.setAttribute('stroke-width', String(RING_STROKE));
+    const arc = document.createElementNS(SVG_NS, 'circle');
+    arc.setAttribute('cx', String(RING_DIAMETER / 2));
+    arc.setAttribute('cy', String(RING_DIAMETER / 2));
+    arc.setAttribute('r', String(RING_RADIUS));
+    arc.setAttribute('fill', 'none');
+    arc.setAttribute('stroke', '#5fe9ff');
+    arc.setAttribute('stroke-width', String(RING_STROKE));
+    arc.setAttribute('stroke-linecap', 'round');
+    arc.setAttribute('stroke-dasharray', String(Math.round(RING_CIRCUMFERENCE * 100) / 100));
+    arc.setAttribute('stroke-dashoffset', String(Math.round(RING_CIRCUMFERENCE * 100) / 100));
+    arc.style.transition = 'stroke-dashoffset 70ms linear, stroke 120ms linear';
+    const text = document.createElement('div');
+    text.style.position = 'absolute';
+    text.style.inset = '0';
+    text.style.display = 'flex';
+    text.style.alignItems = 'center';
+    text.style.justifyContent = 'center';
+    text.style.fontSize = '15px';
+    text.style.fontWeight = '900';
+    text.style.letterSpacing = '0.3px';
+    text.style.color = '#eafcff';
+    text.style.textShadow = '0 1px 3px rgba(0,0,0,0.65)';
+    text.textContent = '0%';
+    svg.appendChild(track);
+    svg.appendChild(arc);
+    wrap.appendChild(svg);
+    wrap.appendChild(text);
+    document.body.appendChild(wrap);
+    runtimeScene.__iceWolfV069Ring = {
+      wrap: wrap,
+      arc: arc,
+      text: text,
+      circumference: Math.round(RING_CIRCUMFERENCE * 100) / 100,
+      shown: null,
+      label: '',
+      dash: -1,
+      done: null,
+    };
   }
-  const ui = runtimeScene.__iceWolfV068HoldBar;
-  ui.bar.style.display = visible ? 'block' : 'none';
-  const percent = Math.round(progress * 100);
-  const text = ready ? '解凍！' : '解凍中... ' + percent + '%';
-  if (ui.text !== text) {
-    ui.text = text;
-    ui.label.textContent = text;
+  const ui = runtimeScene.__iceWolfV069Ring;
+  if (ui.shown !== visible) {
+    ui.shown = visible;
+    ui.wrap.style.display = visible ? 'block' : 'none';
+    ui.wrap.style.opacity = visible ? '1' : '0';
   }
-  if (ui.width !== percent) {
-    ui.width = percent;
-    ui.fill.style.width = percent + '%';
+  if (ui.dash !== dashOffset) {
+    ui.dash = dashOffset;
+    ui.arc.setAttribute('stroke-dashoffset', String(dashOffset));
   }
-  ui.bar.setAttribute('aria-valuenow', String(percent));
+  if (ui.done !== ready) {
+    ui.done = ready;
+    ui.arc.setAttribute('stroke', ready ? '#9dffe9' : '#5fe9ff');
+    ui.wrap.style.filter = ready ? 'drop-shadow(0 0 10px rgba(157,255,233,0.85))' : 'drop-shadow(0 2px 8px rgba(0,0,0,0.45))';
+  }
+  const label = ready ? '解凍！' : percent + '%';
+  if (ui.label !== label) {
+    ui.label = label;
+    ui.text.textContent = label;
+    ui.text.style.fontSize = ready ? '14px' : '15px';
+  }
+  ui.wrap.setAttribute('aria-valuenow', String(percent));
+  ui.wrap.setAttribute('aria-valuetext', ready ? '解凍完了' : '解凍中 ' + percent + '%');
+  vars.get('RescueHoldMeterMode').setString('ring');
+  vars.get('RescueHoldMeterReady').setBoolean(true);
   vars.get('RescueHoldBarReady').setBoolean(true);
 }
-
 };
 gdjs.FROST_32LABCode.eventsList15 = function(runtimeScene) {
 {
@@ -2313,7 +2362,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xcc2900(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xca83b0(runtimeScene);
 
 }
 
@@ -2504,7 +2553,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xcfd828 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x131ee90 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2625,7 +2674,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xcfd828(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x131ee90(runtimeScene);
 
 }
 
@@ -2633,7 +2682,7 @@ gdjs.FROST_32LABCode.userFunc0xcfd828(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList20 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0x9e4258 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xae3ae8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2677,7 +2726,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9e4258(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xae3ae8(runtimeScene);
 
 }
 
@@ -3843,7 +3892,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9b1e00 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa909e8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -3925,12 +3974,12 @@ gdjs.FROST_32LABCode.eventsList26 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9b1e00(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa909e8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x9b2010 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa98700 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -4375,7 +4424,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9b2010(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa98700(runtimeScene);
 
 }
 
@@ -4425,7 +4474,7 @@ gdjs.FROST_32LABCode.eventsList27(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xc430f8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa6bf70 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4474,7 +4523,7 @@ gdjs.FROST_32LABCode.eventsList29 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xc430f8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa6bf70(runtimeScene);
 
 }
 
@@ -4535,7 +4584,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xec05e0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xac3ba0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4543,6 +4592,8 @@ const actors = runtimeScene.getObjects('Actor');
 const player = players.length ? players[0] : null;
 const targets = player ? [player, ...actors] : [];
 const expectedIds = ['YOU', 'A', 'B', 'C', 'D', 'E', 'F'];
+const LABEL_FONT_SIZE = 14;
+vars.get('ActorIdLabelFontSize').setNumber(LABEL_FONT_SIZE);
 const idsAreValid = targets.length === expectedIds.length && targets.every((obj, index) => obj.getVariables().get('DisplayId').getAsString() === expectedIds[index]);
 if (!idsAreValid) {
   vars.get('ActorIdLabelsReady').setBoolean(false);
@@ -4568,18 +4619,18 @@ if (!idsAreValid) {
         el.style.pointerEvents = 'none';
         el.style.userSelect = 'none';
         el.style.webkitUserSelect = 'none';
-        el.style.minWidth = id === 'YOU' ? '38px' : '24px';
-        el.style.padding = '2px 6px';
-        el.style.borderRadius = '8px';
-        el.style.border = '2px solid rgba(255,255,255,0.96)';
-        el.style.background = 'rgba(0,0,0,0.78)';
+        el.style.minWidth = id === 'YOU' ? '30px' : '19px';
+        el.style.padding = '1px 5px';
+        el.style.borderRadius = '7px';
+        el.style.border = '1.5px solid rgba(255,255,255,0.9)';
+        el.style.background = 'rgba(0,0,0,0.7)';
         el.style.color = '#ffffff';
         el.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-        el.style.fontSize = '18px';
+        el.style.fontSize = LABEL_FONT_SIZE + 'px';
         el.style.fontWeight = '800';
-        el.style.lineHeight = '22px';
+        el.style.lineHeight = '17px';
         el.style.textAlign = 'center';
-        el.style.textShadow = '0 1px 2px #000,1px 0 1px #000,-1px 0 1px #000,0 -1px 1px #000';
+        el.style.textShadow = '0 1px 2px rgba(0,0,0,0.85)';
         document.body.appendChild(el);
         runtimeScene.__iceWolfV062IdLabels.set(obj, el);
       }
@@ -4618,12 +4669,12 @@ gdjs.FROST_32LABCode.eventsList31 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xec05e0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xac3ba0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xe33e50 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xcdaed8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4761,17 +4812,18 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
         <svg class="iw-wolf" viewBox="0 0 240 220" aria-label="ICE WOLF emblem" role="img"><defs><linearGradient id="iceg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfdff"/><stop offset=".42" stop-color="#70e3ff"/><stop offset="1" stop-color="#1593d1"/></linearGradient></defs><g fill="url(#iceg)" stroke="#d9fbff" stroke-width="2"><path d="M27 18 91 53 120 32 149 53 213 18 190 105 166 174 120 211 74 174 50 105Z"/><path d="M27 18 49 96 92 53Z" opacity=".62"/><path d="M213 18 191 96 148 53Z" opacity=".62"/><path d="M91 53 120 32 120 150 74 174 50 105Z" opacity=".42"/><path d="M149 53 120 32 120 150 166 174 190 105Z" opacity=".23"/></g><path d="M68 102 108 112 86 130Z" fill="#fff"/><path d="M172 102 132 112 154 130Z" fill="#fff"/><path d="m105 158 15-8 15 8-15 17Z" fill="#e9fcff"/></svg>
         <div class="iw-title">ICE WOLF</div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
       </div>
-      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.8</div></div>
+      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.9</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。ゲージが満タンになると解凍できる。</li><li>⚡スピード床（緑）を踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。円形ゲージが一周すると解凍できる。</li><li>⚡スピード床（緑）は広い直線通路に2枚。踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2>
     <div class="iw-setting"><span>役割</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="roleRandom">おまかせ</button><button class="iw-btn iw-chip" data-action="roleWolf">人狼で遊ぶ</button><button class="iw-btn iw-chip" data-action="roleHuman">人間で逃げる</button></div></div>
     <div class="iw-setting"><span>試合時間</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="time120">2分</button><button class="iw-btn iw-chip" data-action="time180">3分</button><button class="iw-btn iw-chip" data-action="time300">5分</button></div></div>
     <p class="iw-small" data-settings-note></p>
+    <div class="iw-setting"><span>サウンド</span><button class="iw-btn" style="width:120px;min-height:50px" data-action="soundToggle" data-ice-wolf-v069-sound="1" aria-label="サウンド ON">ON</button></div>
     <div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div>
     <div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div>
-    <p class="iw-small">Sound and additional accessibility settings will be expanded in a later version. Current gameplay audio remains unchanged.</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <p class="iw-small">サウンドは効果音のみ（凍結・解凍・ワープ・スピード・カウントダウン・勝敗）。ON/OFFはこの画面ですぐ切り替わります。</p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="reveal"><div class="iw-modal iw-reveal"><h2>YOUR ROLE</h2><div class="iw-role" data-role-text>WOLF</div><p data-role-copy></p></div></div>
     <div class="iw-screen" data-screen="countdown"><div class="iw-count" data-count>3</div></div>
     <div class="iw-screen" data-screen="result"><div class="iw-modal"><div class="iw-result-title" data-result-title>RESULT</div><p class="iw-result-note" data-result-note></p><div class="iw-row"><button class="iw-btn iw-primary" data-action="newRound">NEW ROUND</button><button class="iw-btn" data-action="mainMenu">MAIN MENU</button></div></div></div>`;
@@ -4787,6 +4839,15 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
   };
   const updateCameraPrefUi = () => {
     const el=root.querySelector('[data-action="cameraPref"]'); if(el) el.textContent=preferredOverview()?'TOP':'CAM';
+  };
+  const soundPref = () => safeStorageGet('iceWolfSoundEnabled', '1') !== '0';
+  const updateSoundUi = () => {
+    const el = root.querySelector('[data-ice-wolf-v069-sound="1"]');
+    if (!el) return;
+    const on = soundPref();
+    el.textContent = on ? 'ON' : 'OFF';
+    if (el.classList && typeof el.classList.toggle === 'function') el.classList.toggle('iw-on', on);
+    if (typeof el.setAttribute === 'function') el.setAttribute('aria-label', 'サウンド ' + (on ? 'ON' : 'OFF'));
   };
   const updateSettingsUi = () => {
     const role = vars.get('RolePreference').getAsString();
@@ -4810,8 +4871,9 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       else if (action === 'mainMenu') vars.get('RoundCommand').setString('Menu');
       else if (action === 'how') showOnly('how');
       else if (action === 'record') { updateRecordUi(); showOnly('record'); }
-      else if (action === 'settings') { updateCameraPrefUi(); updateSettingsUi(); showOnly('settings'); }
+      else if (action === 'settings') { updateCameraPrefUi(); updateSoundUi(); updateSettingsUi(); showOnly('settings'); }
       else if (action === 'back') showOnly('menu');
+      else if (action === 'soundToggle') { vars.get('SoundToggleRequest').setBoolean(true); }
       else if (action === 'cameraPref') { safeStorageSet('iceWolfDefaultOverview', preferredOverview()?'0':'1'); updateCameraPrefUi(); }
       else if (action === 'roleRandom') { vars.get('RolePreference').setString('Random'); safeStorageSet('iceWolfRolePreference', 'random'); updateSettingsUi(); }
       else if (action === 'roleWolf') { vars.get('RolePreference').setString('Wolf'); safeStorageSet('iceWolfRolePreference', 'wolf'); updateSettingsUi(); }
@@ -4826,7 +4888,8 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
   else if (storedRole === 'human') vars.get('RolePreference').setString('Human');
   const storedDuration = Number(safeStorageGet('iceWolfMatchDuration', '0'));
   if (storedDuration === 120 || storedDuration === 180 || storedDuration === 300) vars.get('DurationPreference').setNumber(storedDuration);
-  runtimeScene.__iceWolfV065ProductionUi = { root, screen, showOnly, updateRecordUi, updateCameraPrefUi, updateSettingsUi, lastPhase:'' };
+  runtimeScene.__iceWolfV065ProductionUi = { root, screen, showOnly, updateRecordUi, updateCameraPrefUi, updateSoundUi, updateSettingsUi, lastPhase:'' };
+  updateSoundUi();
   vars.get('ProductionMenuReady').setBoolean(true);
 }
 const ui = runtimeScene.__iceWolfV065ProductionUi;
@@ -4949,19 +5012,19 @@ if (ui && currentPhase === 'Countdown') {
   const count = ui.root.querySelector('[data-count]');
   if (count) count.textContent = left > 2.1 ? '3' : left > 1.1 ? '2' : left > 0.1 ? '1' : 'START';
 }
-for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.8');
+for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.9');
 };
 gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe33e50(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xcdaed8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xe34060 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xcdb0e8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -4992,12 +5055,12 @@ gdjs.FROST_32LABCode.eventsList33 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe34060(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xcdb0e8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x1043d80 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9f84c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -5169,12 +5232,12 @@ gdjs.FROST_32LABCode.eventsList34 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1043d80(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9f84c8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xe3b058 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9f86d8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const Three = (typeof THREE !== 'undefined' && THREE) ? THREE : null;
@@ -5313,12 +5376,248 @@ gdjs.FROST_32LABCode.eventsList35 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe3b058(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9f86d8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList36 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x9f88b0 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+const vars = runtimeScene.getVariables();
+const STORAGE_KEY = 'iceWolfSoundEnabled';
+const readPref = () => {
+  try {
+    if (typeof localStorage === 'undefined' || !localStorage) return null;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === null || stored === undefined) return null;
+    return String(stored) !== '0';
+  } catch (error) {
+    return null;
+  }
+};
+const writePref = (enabled) => {
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage) localStorage.setItem(STORAGE_KEY, enabled ? '1' : '0');
+  } catch (error) {}
+};
+const AudioCtor = (typeof AudioContext !== 'undefined' && AudioContext)
+  ? AudioContext
+  : (typeof webkitAudioContext !== 'undefined' && webkitAudioContext ? webkitAudioContext : null);
+if (!runtimeScene.__iceWolfV069Audio) {
+  runtimeScene.__iceWolfV069Audio = {
+    ctx: null,
+    master: null,
+    supported: typeof AudioCtor === 'function',
+    enabled: readPref() !== false,
+    played: 0,
+    toggles: 0,
+    last: '',
+    unlockBound: false,
+    lastStates: new Map(),
+    lastSeen: { warps: 0, pads: 0, countLabel: '', gameOver: false, phase: '' },
+    ui: null,
+    uiFrame: 0,
+  };
+}
+const audio = runtimeScene.__iceWolfV069Audio;
+const pref = readPref();
+if (pref !== null) audio.enabled = pref;
+if (vars.get('SoundToggleRequest').getAsBoolean()) {
+  audio.enabled = !audio.enabled;
+  audio.toggles += 1;
+  writePref(audio.enabled);
+  vars.get('SoundToggleRequest').setBoolean(false);
+}
+const ensureContext = () => {
+  if (!audio.supported) return null;
+  if (audio.ctx) {
+    try {
+      if (audio.ctx.state === 'suspended' && typeof audio.ctx.resume === 'function') audio.ctx.resume();
+    } catch (error) {}
+    return audio.ctx;
+  }
+  try {
+    audio.ctx = new AudioCtor();
+    audio.master = audio.ctx.createGain();
+    audio.master.gain.value = 0.28;
+    audio.master.connect(audio.ctx.destination);
+  } catch (error) {
+    audio.ctx = null;
+    audio.master = null;
+    audio.supported = false;
+    return null;
+  }
+  return audio.ctx;
+};
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function' && !audio.unlockBound) {
+  audio.unlockBound = true;
+  const unlock = () => {
+    const ctx = ensureContext();
+    if (ctx && typeof ctx.resume === 'function') {
+      try { ctx.resume(); } catch (error) {}
+    }
+  };
+  for (const type of ['pointerdown', 'touchstart', 'keydown']) {
+    document.addEventListener(type, unlock, { capture: true, passive: true });
+  }
+}
+const tone = (freq, startAt, dur, type, peak, endFreq) => {
+  const ctx = audio.ctx;
+  if (!ctx || !audio.master || typeof ctx.createOscillator !== 'function') return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startAt);
+  if (endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(30, endFreq), startAt + dur);
+  const attack = Math.min(0.02, Math.max(0.004, dur * 0.25));
+  const level = Math.max(0.0002, peak);
+  gain.gain.setValueAtTime(0.0001, startAt);
+  gain.gain.exponentialRampToValueAtTime(level, startAt + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + Math.max(attack + 0.01, dur));
+  osc.connect(gain);
+  gain.connect(audio.master);
+  osc.start(startAt);
+  osc.stop(startAt + dur + 0.03);
+};
+const SFX = {
+  freeze: (t) => {
+    tone(1240, t, 0.09, 'triangle', 0.20, 620);
+    tone(540, t + 0.05, 0.15, 'sine', 0.16, 190);
+  },
+  thaw: (t) => {
+    tone(430, t, 0.17, 'sine', 0.15, 970);
+    tone(960, t + 0.11, 0.15, 'triangle', 0.12, 1520);
+  },
+  warp: (t) => {
+    tone(310, t, 0.11, 'square', 0.09, 1480);
+    tone(1480, t + 0.11, 0.15, 'sine', 0.10, 330);
+  },
+  speed: (t) => {
+    tone(660, t, 0.09, 'triangle', 0.12);
+    tone(990, t + 0.055, 0.09, 'triangle', 0.12);
+    tone(1320, t + 0.11, 0.11, 'triangle', 0.11);
+  },
+  count: (t) => tone(880, t, 0.08, 'square', 0.09),
+  start: (t) => {
+    tone(660, t, 0.11, 'triangle', 0.15);
+    tone(990, t + 0.10, 0.15, 'triangle', 0.15);
+    tone(1320, t + 0.19, 0.20, 'sine', 0.13);
+  },
+  win: (t) => {
+    tone(523, t, 0.24, 'triangle', 0.15);
+    tone(659, t + 0.11, 0.24, 'triangle', 0.15);
+    tone(784, t + 0.22, 0.24, 'triangle', 0.15);
+    tone(1047, t + 0.33, 0.30, 'sine', 0.14);
+  },
+  lose: (t) => {
+    tone(392, t, 0.26, 'sine', 0.15);
+    tone(330, t + 0.14, 0.26, 'sine', 0.15);
+    tone(262, t + 0.28, 0.32, 'sine', 0.14);
+  },
+};
+const play = (name) => {
+  if (!audio.enabled) return false;
+  audio.played += 1;
+  audio.last = name;
+  const ctx = ensureContext();
+  if (!ctx || typeof ctx.createOscillator !== 'function') return false;
+  try {
+    const voice = SFX[name];
+    if (voice) voice(ctx.currentTime + 0.01);
+  } catch (error) {}
+  return true;
+};
+runtimeScene.__iceWolfV069PlaySound = play;
+const phase = vars.get('RoundPhase').getAsString();
+const gameOver = vars.get('GameOver').getAsBoolean();
+const playing = phase === 'Active' && !gameOver;
+const characters = [];
+for (const runner of runtimeScene.getObjects('Player')) characters.push(runner);
+for (const actor of runtimeScene.getObjects('Actor')) characters.push(actor);
+for (const obj of characters) {
+  let state = 'Active';
+  try {
+    state = obj.getVariables().get('State').getAsString();
+  } catch (error) {
+    state = 'Active';
+  }
+  const previous = audio.lastStates.get(obj);
+  audio.lastStates.set(obj, state);
+  if (previous === undefined || previous === state || !playing) continue;
+  const wasFrozen = previous === 'Frozen' || previous === 'FrozenWolfCandidate';
+  const isFrozen = state === 'Frozen' || state === 'FrozenWolfCandidate';
+  if (isFrozen && !wasFrozen) play('freeze');
+  else if (wasFrozen && !isFrozen) play('thaw');
+}
+const warps = vars.get('WarpCount').getAsNumber();
+if (warps > audio.lastSeen.warps && playing) play('warp');
+audio.lastSeen.warps = warps;
+const padTriggers = vars.get('SpeedPadTriggers').getAsNumber();
+if (padTriggers > audio.lastSeen.pads && playing) play('speed');
+audio.lastSeen.pads = padTriggers;
+let countLabel = '';
+if (phase === 'Countdown') {
+  const left = vars.get('RoundPhaseLeft').getAsNumber();
+  countLabel = left > 2.1 ? '3' : left > 1.1 ? '2' : left > 0.1 ? '1' : 'START';
+}
+if (countLabel && countLabel !== audio.lastSeen.countLabel) {
+  play(countLabel === 'START' ? 'start' : 'count');
+}
+if (audio.lastSeen.phase === 'Countdown' && phase === 'Active' && audio.lastSeen.countLabel !== 'START') {
+  play('start');
+}
+audio.lastSeen.countLabel = countLabel;
+audio.lastSeen.phase = phase;
+if (gameOver && !audio.lastSeen.gameOver) {
+  let resultText = '';
+  const wins = runtimeScene.getObjects('WinText');
+  if (wins.length && typeof wins[0].getString === 'function') resultText = wins[0].getString() || '';
+  let playerRole = 'Human';
+  const players = runtimeScene.getObjects('Player');
+  if (players.length) {
+    try { playerRole = players[0].getVariables().get('Role').getAsString(); } catch (error) {}
+  }
+  if (resultText) {
+    const wolfWon = resultText.indexOf('人狼') >= 0;
+    const humanWon = resultText.indexOf('人間') >= 0;
+    if ((wolfWon && playerRole === 'Wolf') || (humanWon && playerRole === 'Human')) play('win');
+    else if (wolfWon || humanWon) play('lose');
+  }
+}
+audio.lastSeen.gameOver = gameOver;
+if (typeof document !== 'undefined' && typeof document.querySelector === 'function') {
+  audio.uiFrame += 1;
+  if (!audio.ui || audio.uiFrame % 45 === 0) {
+    audio.ui = document.querySelector('[data-ice-wolf-v069-sound="1"]');
+  }
+  if (audio.ui) {
+    const label = audio.enabled ? 'ON' : 'OFF';
+    if (audio.ui.textContent !== label) audio.ui.textContent = label;
+    if (typeof audio.ui.setAttribute === 'function') audio.ui.setAttribute('aria-label', 'サウンド ' + label);
+    if (audio.ui.classList && typeof audio.ui.classList.toggle === 'function') audio.ui.classList.toggle('iw-on', audio.enabled);
+  }
+}
+vars.get('SoundEnabled').setBoolean(audio.enabled);
+vars.get('SoundSupported').setBoolean(audio.supported);
+vars.get('SoundContextState').setString(audio.ctx && audio.ctx.state ? audio.ctx.state : 'none');
+vars.get('SoundUnlocked').setBoolean(!!audio.ctx && audio.ctx.state === 'running');
+vars.get('SoundPlayCount').setNumber(audio.played);
+vars.get('SoundToggleCount').setNumber(audio.toggles);
+vars.get('SoundLast').setString(audio.last);
+vars.get('SoundMode').setString(!audio.supported ? 'unavailable' : audio.ctx ? 'ready' : 'idle');
+vars.get('SoundEngineReady').setBoolean(true);
+};
+gdjs.FROST_32LABCode.eventsList36 = function(runtimeScene) {
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0x9f88b0(runtimeScene);
+
+}
+
+
+};gdjs.FROST_32LABCode.eventsList37 = function(runtimeScene) {
 
 {
 
@@ -5487,6 +5786,13 @@ gdjs.FROST_32LABCode.eventsList34(runtimeScene);
 
 
 gdjs.FROST_32LABCode.eventsList35(runtimeScene);
+}
+
+
+{
+
+
+gdjs.FROST_32LABCode.eventsList36(runtimeScene);
 }
 
 
@@ -5664,7 +5970,7 @@ gdjs.FROST_32LABCode.GDWarpPadObjects4.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects5.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects6.length = 0;
 
-gdjs.FROST_32LABCode.eventsList36(runtimeScene);
+gdjs.FROST_32LABCode.eventsList37(runtimeScene);
 gdjs.FROST_32LABCode.GDFloorObjects1.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects2.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects3.length = 0;

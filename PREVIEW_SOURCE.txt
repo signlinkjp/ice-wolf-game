@@ -1,6 +1,6 @@
-ICE WOLF v0.6.8 preview (hold-to-thaw + speed pads + warp + 3D mini characters)
+ICE WOLF v0.6.9 preview (circular thaw ring + two-lane speed pads + compact labels + Web Audio cues)
 source branch: feature/v065-production-round-start
-source commit: 2383cdbad4b4ab6194c78fcfdc561780a1eec5c8
+source commit: d42651533f9032d21350767cafa53055dfd60c15
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-features: rescue = 1.2s hold with an on-screen gauge, 3 speed pads (1.45x for 2.5s), one warp pad pair (5s cooldown), 3D mini character rigs (head/visor/cap or wolf ears/ice shell) on top of unchanged 17x17x32 hitboxes
+features: thaw = 1.2s hold filling a 68px circular SVG ring (cyan circumference,  0n the middle, 解凍！ when full), 2 speed pads on the wide north/south lanes (1.45x for 2.5s), one warp pad pair (5s cooldown), 14px head labels, chase camera 600/53 deg, and synthesised Web Audio cues (freeze/thaw/warp/speed/countdown/start/win/lose) with a SETTINGS sound ON/OFF toggle stored in localStorage
