@@ -1,6 +1,6 @@
-ICE WOLF v0.6.7 preview (role choice + match length + in-play restart)
+ICE WOLF v0.6.8 preview (hold-to-thaw + speed pads + warp + 3D mini characters)
 source branch: feature/v065-production-round-start
-source commit: de28bd35b288ab5cf09db07534a60802c3479eef
+source commit: 2383cdbad4b4ab6194c78fcfdc561780a1eec5c8
 baseline: 9c24143327abfb2bdd9a6a9b0d13cd2f1422eea1
 startup scene: FROST LAB
-features: SETTINGS role (おまかせ/人狼で遊ぶ/人間で逃げる), SETTINGS match length (2分/3分/5分), in-play MENU button beside CAM with 最初からやり直す / メインメニューへ / つづける, frost-lab visuals
+features: rescue = 1.2s hold with an on-screen gauge, 3 speed pads (1.45x for 2.5s), one warp pad pair (5s cooldown), 3D mini character rigs (head/visor/cap or wolf ears/ice shell) on top of unchanged 17x17x32 hitboxes
