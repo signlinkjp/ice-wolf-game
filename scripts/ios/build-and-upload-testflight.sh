@@ -259,6 +259,9 @@ if ! xcodebuild archive \
       -authenticationKeyIssuerID "$APPLE_ISSUER_ID" \
       DEVELOPMENT_TEAM="$TEAM_ID" \
       CODE_SIGN_STYLE=Automatic \
+      CODE_SIGN_IDENTITY="" \
+      CODE_SIGNING_REQUIRED=NO \
+      CODE_SIGNING_ALLOWED=NO \
       CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
       MARKETING_VERSION="$MARKETING_VERSION" >>"$LOG_FILE" 2>&1; then
   grep -E "error:|Error Domain" "$LOG_FILE" | tail -n 30 >&2 || true
