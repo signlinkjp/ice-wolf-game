@@ -10,7 +10,7 @@ gdjs.evtsExt__Raycaster3D__RaycastWithAngle.idToCallbackMap = new Map();
 gdjs.evtsExt__Raycaster3D__RaycastWithAngle.GDObjectObjects1= [];
 
 
-gdjs.evtsExt__Raycaster3D__RaycastWithAngle.userFunc0x12d3320 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
+gdjs.evtsExt__Raycaster3D__RaycastWithAngle.userFunc0x1315828 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
 "use strict";
 eventsFunctionContext.returnValue =
     gdjs.__raycaster3DExtension.raycaster.recastWithAngle(
@@ -32,7 +32,7 @@ gdjs.evtsExt__Raycaster3D__RaycastWithAngle.eventsList0 = function(runtimeScene,
 gdjs.copyArray(eventsFunctionContext.getObjects("Object"), gdjs.evtsExt__Raycaster3D__RaycastWithAngle.GDObjectObjects1);
 
 const objects = gdjs.evtsExt__Raycaster3D__RaycastWithAngle.GDObjectObjects1;
-gdjs.evtsExt__Raycaster3D__RaycastWithAngle.userFunc0x12d3320(runtimeScene, objects, eventsFunctionContext);
+gdjs.evtsExt__Raycaster3D__RaycastWithAngle.userFunc0x1315828(runtimeScene, objects, eventsFunctionContext);
 
 }
 

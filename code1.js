@@ -19,8 +19,6 @@ gdjs.FROST_32LABCode.GDDpad_9595SWObjects2_1final = [];
 
 gdjs.FROST_32LABCode.GDDpad_9595WObjects2_1final = [];
 
-gdjs.FROST_32LABCode.GDPlayerObjects1_1final = [];
-
 gdjs.FROST_32LABCode.forEachIndex2 = 0;
 
 gdjs.FROST_32LABCode.forEachIndex3 = 0;
@@ -213,9 +211,45 @@ gdjs.FROST_32LABCode.GDWarpPadObjects3= [];
 gdjs.FROST_32LABCode.GDWarpPadObjects4= [];
 gdjs.FROST_32LABCode.GDWarpPadObjects5= [];
 gdjs.FROST_32LABCode.GDWarpPadObjects6= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects1= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects2= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects3= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects4= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects5= [];
+gdjs.FROST_32LABCode.GDSwitchPadObjects6= [];
+gdjs.FROST_32LABCode.GDGatePadObjects1= [];
+gdjs.FROST_32LABCode.GDGatePadObjects2= [];
+gdjs.FROST_32LABCode.GDGatePadObjects3= [];
+gdjs.FROST_32LABCode.GDGatePadObjects4= [];
+gdjs.FROST_32LABCode.GDGatePadObjects5= [];
+gdjs.FROST_32LABCode.GDGatePadObjects6= [];
+gdjs.FROST_32LABCode.GDStairPadObjects1= [];
+gdjs.FROST_32LABCode.GDStairPadObjects2= [];
+gdjs.FROST_32LABCode.GDStairPadObjects3= [];
+gdjs.FROST_32LABCode.GDStairPadObjects4= [];
+gdjs.FROST_32LABCode.GDStairPadObjects5= [];
+gdjs.FROST_32LABCode.GDStairPadObjects6= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects1= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects2= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects3= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects4= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects5= [];
+gdjs.FROST_32LABCode.GDSwitchTextObjects6= [];
+gdjs.FROST_32LABCode.GDGateTextObjects1= [];
+gdjs.FROST_32LABCode.GDGateTextObjects2= [];
+gdjs.FROST_32LABCode.GDGateTextObjects3= [];
+gdjs.FROST_32LABCode.GDGateTextObjects4= [];
+gdjs.FROST_32LABCode.GDGateTextObjects5= [];
+gdjs.FROST_32LABCode.GDGateTextObjects6= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects1= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects2= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects3= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects4= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects5= [];
+gdjs.FROST_32LABCode.GDFloorTextObjects6= [];
 
 
-gdjs.FROST_32LABCode.userFunc0xe4cf00 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0x9ed0a0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const resetInput = () => {
@@ -343,12 +377,12 @@ gdjs.FROST_32LABCode.eventsList0 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xe4cf00(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x9ed0a0(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xbdbcd0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x1358c60 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const timeManager = runtimeScene.getTimeManager();
@@ -432,12 +466,12 @@ gdjs.FROST_32LABCode.eventsList1 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xbdbcd0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0x1358c60(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb97878 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xecb848 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (vars.get('JoystickActive').getAsBoolean()) {
@@ -941,7 +975,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb97878(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xecb848(runtimeScene);
 
 }
 
@@ -1051,7 +1085,7 @@ gdjs.copyArray(runtimeScene.getObjects("Wall"), gdjs.FROST_32LABCode.GDWallObjec
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa2da28 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc88460 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 if (typeof document === 'undefined') {
@@ -1120,7 +1154,7 @@ gdjs.FROST_32LABCode.eventsList5 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa2da28(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc88460(runtimeScene);
 
 }
 
@@ -1161,7 +1195,50 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 }
 
 
-};gdjs.FROST_32LABCode.eventsList7 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0x8bd2a0 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+/* ICE WOLF v0.7.0 — zone-aware playable bounds and failsafe.
+ *
+ * The 1F rectangle keeps the exact numbers the game shipped with. 2F is the same
+ * rectangle shifted +1600px on X, so a rider who takes the stairs is clamped and
+ * rescued by the same rules, and the two floors can never overlap. The gap
+ * between them (692..892) is not walkable: the zone is decided by the player's
+ * centre, so nothing can stand between the floors.
+ */
+const vars = runtimeScene.getVariables();
+const players = runtimeScene.getObjects('Player');
+const player = players.length ? players[0] : null;
+const FLOOR_GAP_LEFT = 792;
+if (player) {
+  const width = player.getWidth();
+  const height = player.getHeight();
+  let x = player.getX();
+  let y = player.getY();
+  const onSecondFloor = (x + width / 2) > FLOOR_GAP_LEFT;
+  const minX = onSecondFloor ? 892 : -708;
+  const maxX = onSecondFloor ? 2292 : 692;
+  const safeMinX = onSecondFloor ? 900 : -700;
+  const safeMaxX = onSecondFloor ? 2300 : 700;
+  if (x < minX) x = minX;
+  if (x > maxX) x = maxX;
+  if (y < -708) y = -708;
+  if (y > 692) y = 692;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  if (centerX > safeMinX && centerX < safeMaxX && centerY > -700 && centerY < 700) {
+    vars.get('SafeX').setNumber(x);
+    vars.get('SafeY').setNumber(y);
+  }
+  const farOut = onSecondFloor ? (x < 850 || x > 2350) : (x < -750 || x > 750);
+  if (farOut || y < -750 || y > 750) {
+    x = vars.get('SafeX').getAsNumber();
+    y = vars.get('SafeY').getAsNumber();
+  }
+  if (x !== player.getX()) player.setX(x);
+  if (y !== player.getY()) player.setY(y);
+}
+};
+gdjs.FROST_32LABCode.eventsList7 = function(runtimeScene) {
 
 {
 
@@ -1187,235 +1264,8 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 
 {
 
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
 
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getX() < -708 ) {
-        isConditionTrue_0 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects2 */
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects2.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects2[i].setX(-708);
-}
-}
-}
-
-}
-
-
-{
-
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getX() > 692 ) {
-        isConditionTrue_0 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects2 */
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects2.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects2[i].setX(692);
-}
-}
-}
-
-}
-
-
-{
-
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getY() < -708 ) {
-        isConditionTrue_0 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects2 */
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects2.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects2[i].setY(-708);
-}
-}
-}
-
-}
-
-
-{
-
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getY() > 692 ) {
-        isConditionTrue_0 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects2 */
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects2.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects2[i].setY(692);
-}
-}
-}
-
-}
-
-
-{
-
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-{isConditionTrue_0 = ((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterXInScene()) > -700);
-}
-if (isConditionTrue_0) {
-isConditionTrue_0 = false;
-{isConditionTrue_0 = ((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterXInScene()) < 700);
-}
-if (isConditionTrue_0) {
-isConditionTrue_0 = false;
-{isConditionTrue_0 = ((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterYInScene()) > -700);
-}
-if (isConditionTrue_0) {
-isConditionTrue_0 = false;
-{isConditionTrue_0 = ((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterYInScene()) < 700);
-}
-}
-}
-}
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects2 */
-{runtimeScene.getScene().getVariables().getFromIndex(10).setNumber((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterXInScene()));
-}
-{runtimeScene.getScene().getVariables().getFromIndex(9).setNumber((( gdjs.FROST_32LABCode.GDPlayerObjects2.length === 0 ) ? 0 :gdjs.FROST_32LABCode.GDPlayerObjects2[0].getCenterYInScene()));
-}
-}
-
-}
-
-
-{
-
-gdjs.FROST_32LABCode.GDPlayerObjects1.length = 0;
-
-
-let isConditionTrue_0 = false;
-isConditionTrue_0 = false;
-{gdjs.FROST_32LABCode.GDPlayerObjects1_1final.length = 0;
-let isConditionTrue_1 = false;
-isConditionTrue_0 = false;
-{
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getX() < -750 ) {
-        isConditionTrue_1 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if(isConditionTrue_1) {
-    isConditionTrue_0 = true;
-    for (let j = 0, jLen = gdjs.FROST_32LABCode.GDPlayerObjects2.length; j < jLen ; ++j) {
-        if ( gdjs.FROST_32LABCode.GDPlayerObjects1_1final.indexOf(gdjs.FROST_32LABCode.GDPlayerObjects2[j]) === -1 )
-            gdjs.FROST_32LABCode.GDPlayerObjects1_1final.push(gdjs.FROST_32LABCode.GDPlayerObjects2[j]);
-    }
-}
-}
-{
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getX() > 750 ) {
-        isConditionTrue_1 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if(isConditionTrue_1) {
-    isConditionTrue_0 = true;
-    for (let j = 0, jLen = gdjs.FROST_32LABCode.GDPlayerObjects2.length; j < jLen ; ++j) {
-        if ( gdjs.FROST_32LABCode.GDPlayerObjects1_1final.indexOf(gdjs.FROST_32LABCode.GDPlayerObjects2[j]) === -1 )
-            gdjs.FROST_32LABCode.GDPlayerObjects1_1final.push(gdjs.FROST_32LABCode.GDPlayerObjects2[j]);
-    }
-}
-}
-{
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getY() < -750 ) {
-        isConditionTrue_1 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if(isConditionTrue_1) {
-    isConditionTrue_0 = true;
-    for (let j = 0, jLen = gdjs.FROST_32LABCode.GDPlayerObjects2.length; j < jLen ; ++j) {
-        if ( gdjs.FROST_32LABCode.GDPlayerObjects1_1final.indexOf(gdjs.FROST_32LABCode.GDPlayerObjects2[j]) === -1 )
-            gdjs.FROST_32LABCode.GDPlayerObjects1_1final.push(gdjs.FROST_32LABCode.GDPlayerObjects2[j]);
-    }
-}
-}
-{
-gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerObjects2);
-for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDPlayerObjects2.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDPlayerObjects2[i].getY() > 750 ) {
-        isConditionTrue_1 = true;
-        gdjs.FROST_32LABCode.GDPlayerObjects2[k] = gdjs.FROST_32LABCode.GDPlayerObjects2[i];
-        ++k;
-    }
-}
-gdjs.FROST_32LABCode.GDPlayerObjects2.length = k;
-if(isConditionTrue_1) {
-    isConditionTrue_0 = true;
-    for (let j = 0, jLen = gdjs.FROST_32LABCode.GDPlayerObjects2.length; j < jLen ; ++j) {
-        if ( gdjs.FROST_32LABCode.GDPlayerObjects1_1final.indexOf(gdjs.FROST_32LABCode.GDPlayerObjects2[j]) === -1 )
-            gdjs.FROST_32LABCode.GDPlayerObjects1_1final.push(gdjs.FROST_32LABCode.GDPlayerObjects2[j]);
-    }
-}
-}
-{
-gdjs.copyArray(gdjs.FROST_32LABCode.GDPlayerObjects1_1final, gdjs.FROST_32LABCode.GDPlayerObjects1);
-}
-}
-if (isConditionTrue_0) {
-/* Reuse gdjs.FROST_32LABCode.GDPlayerObjects1 */
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects1.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects1[i].setX(runtimeScene.getScene().getVariables().getFromIndex(10).getAsNumber());
-}
-}
-{for(var i = 0, len = gdjs.FROST_32LABCode.GDPlayerObjects1.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDPlayerObjects1[i].setY(runtimeScene.getScene().getVariables().getFromIndex(9).getAsNumber());
-}
-}
-}
+gdjs.FROST_32LABCode.userFunc0x8bd2a0(runtimeScene);
 
 }
 
@@ -1797,7 +1647,7 @@ gdjs.FROST_32LABCode.localVariables.pop();
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x1075b80 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa54188 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1837,7 +1687,7 @@ for (const obj of runtimeScene.getObjects('CountText')) {
   if (typeof obj.hide === 'function') obj.hide(!playing);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x9780b0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa54260 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -1858,7 +1708,7 @@ if (playing && !vars.get('GameOver').getAsBoolean() && aliveHumans <= 0) {
   vars.get('WolfRolePickOpen').setBoolean(false);
 }
 };
-gdjs.FROST_32LABCode.userFunc0x9781a0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa54350 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const pickedId = vars.get('WolfRolePickTarget').getAsString();
@@ -1892,7 +1742,7 @@ if (pickedId) {
   }
 }
 };
-gdjs.FROST_32LABCode.userFunc0x978268 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xa54418 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -2041,7 +1891,7 @@ gdjs.FROST_32LABCode.eventsList14 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x1075b80(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa54188(runtimeScene);
 
 }
 
@@ -2049,7 +1899,7 @@ gdjs.FROST_32LABCode.userFunc0x1075b80(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9780b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa54260(runtimeScene);
 
 }
 
@@ -2057,7 +1907,7 @@ gdjs.FROST_32LABCode.userFunc0x9780b0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x9781a0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa54350(runtimeScene);
 
 }
 
@@ -2065,12 +1915,12 @@ gdjs.FROST_32LABCode.userFunc0x9781a0(runtimeScene);
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x978268(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa54418(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb92320 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xced6a0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -2156,14 +2006,14 @@ gdjs.FROST_32LABCode.eventsList15 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb92320(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xced6a0(runtimeScene);
 
 }
 
 
 };gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xaa5390 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xce7020 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const duration = Math.max(0.2, vars.get('RescueHoldDuration').getAsNumber());
@@ -2464,7 +2314,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xaa5390(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xce7020(runtimeScene);
 
 }
 
@@ -2655,7 +2505,7 @@ gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Obje
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDPlayerObjects2Objects = Hashtable.newFrom({"Player": gdjs.FROST_32LABCode.GDPlayerObjects2});
 gdjs.FROST_32LABCode.mapOfGDgdjs_9546FROST_959532LABCode_9546GDActorObjects2Objects = Hashtable.newFrom({"Actor": gdjs.FROST_32LABCode.GDActorObjects2});
-gdjs.FROST_32LABCode.userFunc0xbd74b0 = function GDJSInlineCode(runtimeScene) {
+gdjs.FROST_32LABCode.userFunc0xbcaab8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2776,7 +2626,7 @@ gdjs.copyArray(runtimeScene.getObjects("Player"), gdjs.FROST_32LABCode.GDPlayerO
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xbd74b0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xbcaab8(runtimeScene);
 
 }
 
@@ -2784,7 +2634,7 @@ gdjs.FROST_32LABCode.userFunc0xbd74b0(runtimeScene);
 
 };gdjs.FROST_32LABCode.eventsList21 = function(runtimeScene) {
 
-};gdjs.FROST_32LABCode.userFunc0xa83240 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xbe33e0 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 runtimeScene.getVariables().get('CpuWolfDiagPhase').setNumber(0);
 for (const actor of runtimeScene.getObjects('Actor')) {
@@ -2828,7 +2678,7 @@ if (true) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa83240(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xbe33e0(runtimeScene);
 
 }
 
@@ -4016,7 +3866,7 @@ if (isConditionTrue_0) {
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa789a0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xbfe528 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const sceneVars = runtimeScene.getVariables();
 const wolfModeLeft = sceneVars.get('WolfModeLeft').getAsNumber();
@@ -4102,12 +3952,12 @@ gdjs.FROST_32LABCode.eventsList27 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa789a0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xbfe528(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xa78bb0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xc77808 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
 const vars = runtimeScene.getVariables();
@@ -4261,6 +4111,16 @@ if (!gameOver) {
         vx = wolf.__iceWolfAIWolfDirX;
         vy = wolf.__iceWolfAIWolfDirY;
       }
+      // v0.7.0: a wolf whose prey is on the other floor takes the stairs instead of
+      // grinding along the border wall.
+      if (target && typeof runtimeScene.__iceWolfV070StairToward === 'function') {
+        const stairHop = runtimeScene.__iceWolfV070StairToward(wolf, target.getCenterXInScene());
+        if (stairHop) {
+          vx = stairHop.vx;
+          vy = stairHop.vy;
+          speed = modeLeft > 0 ? aiWolfChaseSpeed : aiWolfStalkSpeed;
+        }
+      }
       if (target && wolf.__iceWolfAIWolfBlockedFor >= aiWolfBlockedTrigger && wolf.__iceWolfAIWolfDetourLeft <= 0) {
         const previousSign = Number.isFinite(wolf.__iceWolfAIWolfDetourSign) ? wolf.__iceWolfAIWolfDetourSign : 0;
         wolf.__iceWolfAIWolfDetourSign = previousSign === 0 ? (Math.random() < 0.5 ? -1 : 1) : -previousSign;
@@ -4276,8 +4136,9 @@ if (!gameOver) {
         const sign = wolf.__iceWolfAIWolfDetourSign || 1;
         let dvx = fx * 0.35 + (-fy * sign) * 0.95;
         let dvy = fy * 0.35 + (fx * sign) * 0.95;
-        if (wx < -640) dvx += 0.85;
-        else if (wx > 640) dvx -= 0.85;
+        const wolfFloorOrigin = wx > 792 ? 1600 : 0;
+        if (wx - wolfFloorOrigin < -640) dvx += 0.85;
+        else if (wx - wolfFloorOrigin > 640) dvx -= 0.85;
         if (wy < -640) dvy += 0.85;
         else if (wy > 640) dvy -= 0.85;
         const dm = Math.max(Math.hypot(dvx, dvy), 1);
@@ -4286,8 +4147,13 @@ if (!gameOver) {
         speed = modeLeft > 0 ? aiWolfChaseSpeed : aiWolfStalkSpeed;
       }
       wolf.__iceWolfAIWolfLastExpectedMove = Math.max(0, speed * dt);
-      wolf.setX(Math.max(-708, Math.min(692, wolf.getX() + vx * speed * dt)));
-      wolf.setY(Math.max(-708, Math.min(692, wolf.getY() + vy * speed * dt)));
+      // v0.7.0: each floor clamps on its own rectangle, so a wolf that rode the stairs
+      // keeps patrolling 2F instead of being pulled back to the 1F border.
+      const wolfNextX = wolf.getX() + vx * speed * dt;
+      const wolfNextY = wolf.getY() + vy * speed * dt;
+      const wolfOnSecondFloor = (wolf.getX() + wolf.getWidth() / 2) > 792;
+      wolf.setX(Math.max(wolfOnSecondFloor ? 892 : -708, Math.min(wolfOnSecondFloor ? 2292 : 692, wolfNextX)));
+      wolf.setY(Math.max(-708, Math.min(692, wolfNextY)));
     }
 
     const visibleWolfThreat = (x, y) => {
@@ -4400,6 +4266,18 @@ if (!gameOver) {
           }
         }
       }
+      // v0.7.0: after fleeing and rescuing, a Human CPU works the nearest live switch
+      // (and rides the stairs when it is on the other floor).
+      if (!hasIntent && typeof runtimeScene.__iceWolfV070SwitchIntent === 'function') {
+        const switchIntent = runtimeScene.__iceWolfV070SwitchIntent(actor, ax, ay, dt);
+        if (switchIntent) {
+          vx = switchIntent.vx;
+          vy = switchIntent.vy;
+          speed = switchIntent.speed;
+          hasIntent = true;
+          actor.__iceWolfAITurnLeft = 0;
+        }
+      }
       if (!hasIntent) {
         if (!Number.isFinite(actor.__iceWolfAITurnLeft) || actor.__iceWolfAITurnLeft <= 0 || !Number.isFinite(actor.__iceWolfAIDirX) || !Number.isFinite(actor.__iceWolfAIDirY)) {
           const angle = Math.random() * Math.PI * 2;
@@ -4424,8 +4302,9 @@ if (!gameOver) {
         const humanDetourSign = actor.__iceWolfAIHumanDetourSign || 1;
         let humanDetourX = vx * 0.35 + (-vy * humanDetourSign) * 0.95;
         let humanDetourY = vy * 0.35 + (vx * humanDetourSign) * 0.95;
-        if (ax < -640) humanDetourX += 0.85;
-        else if (ax > 640) humanDetourX -= 0.85;
+        const humanFloorOrigin = ax > 792 ? 1600 : 0;
+        if (ax - humanFloorOrigin < -640) humanDetourX += 0.85;
+        else if (ax - humanFloorOrigin > 640) humanDetourX -= 0.85;
         if (ay < -640) humanDetourY += 0.85;
         else if (ay > 640) humanDetourY -= 0.85;
         const humanDetourMagnitude = Math.max(Math.hypot(humanDetourX, humanDetourY), 1);
@@ -4433,8 +4312,11 @@ if (!gameOver) {
         vy = humanDetourY / humanDetourMagnitude;
       }
       actor.__iceWolfAIHumanLastExpectedMove = Math.max(0, speed * dt);
-      actor.setX(Math.max(-708, Math.min(692, actor.getX() + vx * speed * dt)));
-      actor.setY(Math.max(-708, Math.min(692, actor.getY() + vy * speed * dt)));
+      const humanNextX = actor.getX() + vx * speed * dt;
+      const humanNextY = actor.getY() + vy * speed * dt;
+      const humanOnSecondFloor = (actor.getX() + actor.getWidth() / 2) > 792;
+      actor.setX(Math.max(humanOnSecondFloor ? 892 : -708, Math.min(humanOnSecondFloor ? 2292 : 692, humanNextX)));
+      actor.setY(Math.max(-708, Math.min(692, humanNextY)));
     }
   }
 }
@@ -4477,7 +4359,7 @@ gdjs.copyArray(gdjs.FROST_32LABCode.GDActorObjects2, gdjs.FROST_32LABCode.GDActo
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
 for (var i = 0, k = 0, l = gdjs.FROST_32LABCode.GDActorObjects3.length;i<l;++i) {
-    if ( gdjs.FROST_32LABCode.GDActorObjects3[i].getX() > 692 ) {
+    if ( gdjs.FROST_32LABCode.GDActorObjects3[i].getX() > 2292 ) {
         isConditionTrue_0 = true;
         gdjs.FROST_32LABCode.GDActorObjects3[k] = gdjs.FROST_32LABCode.GDActorObjects3[i];
         ++k;
@@ -4487,7 +4369,7 @@ gdjs.FROST_32LABCode.GDActorObjects3.length = k;
 if (isConditionTrue_0) {
 /* Reuse gdjs.FROST_32LABCode.GDActorObjects3 */
 {for(var i = 0, len = gdjs.FROST_32LABCode.GDActorObjects3.length ;i < len;++i) {
-    gdjs.FROST_32LABCode.GDActorObjects3[i].setX(692);
+    gdjs.FROST_32LABCode.GDActorObjects3[i].setX(2292);
 }
 }
 }
@@ -4552,7 +4434,7 @@ if (isConditionTrue_0) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xa78bb0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xc77808(runtimeScene);
 
 }
 
@@ -4602,7 +4484,7 @@ gdjs.FROST_32LABCode.eventsList28(runtimeScene);} //Subevents end.
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xbd0c48 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xd1cf08 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4651,7 +4533,7 @@ gdjs.FROST_32LABCode.eventsList30 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xbd0c48(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd1cf08(runtimeScene);
 
 }
 
@@ -4712,7 +4594,7 @@ gdjs.copyArray(runtimeScene.getObjects("StatusText"), gdjs.FROST_32LABCode.GDSta
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x12c9e28 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xd73378 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const players = runtimeScene.getObjects('Player');
@@ -4812,12 +4694,12 @@ gdjs.FROST_32LABCode.eventsList32 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x12c9e28(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd73378(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0x12ca028 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xd73568 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const dt = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
@@ -4862,6 +4744,8 @@ const resetRound = (forcedRole = '') => {
   vars.get('FeedbackLeft').setNumber(0);
   vars.get('CpuWolfDiagPhase').setNumber(0);
   vars.get('RoundResultRecorded').setBoolean(false);
+  // v0.7.0: every round re-deals the five switches and the three gates.
+  vars.get('V070ResetPending').setBoolean(true);
   vars.get('SpeedBoostLeft').setNumber(0);
   vars.get('SpeedFactor').setNumber(1);
   vars.get('WarpCooldownLeft').setNumber(0);
@@ -4964,14 +4848,17 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
         <div class="iw-hero"><img class="iw-hero-img" data-menu-hero="1" alt="ICE WOLF キービジュアル" src="${assetBase}${MENU_HERO_FILE}"></div>
         <div class="iw-title">ICE WOLF</div><div class="iw-rule"></div><p class="iw-tag">Find the wolf. Freeze or survive.</p><p class="iw-jp">人狼を見抜け。凍らせるか、生き残れ。</p>
       </div>
-      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.6.11</div></div>
+      <div class="iw-menu"><button class="iw-btn iw-primary" data-action="start">START GAME ›</button><button class="iw-btn" data-action="how">HOW TO PLAY</button><button class="iw-btn" data-action="record">RECORD</button><button class="iw-btn" data-action="settings">SETTINGS</button><div class="iw-version">❄ Prototype v0.7.0</div></div>
     </div></div>
-    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>見た目は全員同じ。人狼も潜伏中は人間と区別がつかない（人狼モード中だけ赤い耳と赤い姿になる）。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。円形ゲージが一周すると解凍できる。</li><li>⚡スピード床（緑）は広い直線通路に2枚。踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
+    <div class="iw-screen" data-screen="how"><div class="iw-modal"><h2>HOW TO PLAY</h2><ul><li>7人で戦う氷上の人狼ゲーム。最初の人狼は必ず1人。</li><li>人狼：5秒間の人狼モード中は、接触した人間を連続で凍らせられる。</li><li>見た目は全員同じ。人狼も潜伏中は人間と区別がつかない（人狼モード中だけ赤い耳と赤い姿になる）。</li><li>人間：凍った仲間を救助し、設定した試合時間（2分/3分/5分）を生き残る。</li><li>人狼だけが1試合に1度、捕まえた凍結者から「人狼役」を1人選べる（正体は秘密）。</li><li>人狼役の氷は普通の凍結と見た目が同じ。救助すると罠が発動する。</li><li>CAM/TOPで通常カメラと俯瞰カメラを切替可能。</li><li>SETTINGSで役割（おまかせ/人狼/人間）と試合時間（2分/3分/5分）を選べる。</li><li>プレイ中は右上のMENUから、やり直し・メインメニューへ戻れる。</li><li>救助は「救助」ボタンを約1.2秒長押し。円形ゲージが一周すると解凍できる。</li><li>⚡スピード床（緑）は広い直線通路に2枚。踏むと2.5秒だけ移動が1.45倍。🌀ワープパッド（紫）は一対で瞬間移動（5秒クールダウン）。</li><li>🪜階段（黄色）で1Fと2Fを行き来できる。2階は床と壁の色が違う。人間も人狼もCPUも使える。</li><li>スイッチ（水色）は5個。正解は3個で、長押し（約1.6秒・円形ゲージ）で起動する。</li><li>正解3個を起動すると、3つの閉鎖ゲートのうち1つだけがランダムに開く（開いた階を通知）。</li><li>開いたゲートに生存中の人間が触れると、その場で人間の勝利。残り2つのゲートは閉まったまま。</li><li>ダミーは押してもハズレ表示だけ。罠スイッチ（8人以上の試合、またはSETTINGSで常にON）を押した人間は3人目の人狼になる。</li><li>スイッチ脱出と罠スイッチはSETTINGSで切り替えられる。</li></ul><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="record"><div class="iw-modal"><h2>RECORD</h2><div class="iw-kpi"><div><b data-record="games">0</b>GAMES</div><div><b data-record="wolf">0</b>WOLF WINS</div><div><b data-record="human">0</b>HUMAN WINS</div></div><p style="text-align:center">Wolf win rate: <strong data-record="rate">0%</strong></p><button class="iw-btn iw-back" data-action="back">BACK</button></div></div>
     <div class="iw-screen" data-screen="settings"><div class="iw-modal"><h2>SETTINGS</h2>
     <div class="iw-setting"><span>役割</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="roleRandom">おまかせ</button><button class="iw-btn iw-chip" data-action="roleWolf">人狼で遊ぶ</button><button class="iw-btn iw-chip" data-action="roleHuman">人間で逃げる</button></div></div>
     <div class="iw-setting"><span>試合時間</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="time120">2分</button><button class="iw-btn iw-chip" data-action="time180">3分</button><button class="iw-btn iw-chip" data-action="time300">5分</button></div></div>
     <p class="iw-small" data-settings-note></p>
+    <div class="iw-setting"><span>スイッチ脱出</span><button class="iw-btn" style="width:120px;min-height:50px" data-action="switchEscape" aria-label="スイッチ脱出 ON">ON</button></div>
+    <div class="iw-setting"><span>罠スイッチ</span><div class="iw-chips"><button class="iw-btn iw-chip" data-action="trapAuto" style="font-size:13px">人数連動（8人〜）</button><button class="iw-btn iw-chip" data-action="trapAlways">常にON</button><button class="iw-btn iw-chip" data-action="trapOff">OFF</button></div></div>
+    <p class="iw-small" data-trap-note></p>
     <div class="iw-setting"><span>サウンド</span><button class="iw-btn" style="width:120px;min-height:50px" data-action="soundToggle" data-ice-wolf-v069-sound="1" aria-label="サウンド ON">ON</button></div>
     <div class="iw-setting"><span>Default camera</span><button class="iw-btn" style="width:180px;min-height:50px" data-action="cameraPref">CAM</button></div>
     <div class="iw-setting"><span>Movement</span><span>Compact virtual joystick</span></div>
@@ -5025,6 +4912,25 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
     mark('time300', duration === 300);
     const note = root.querySelector('[data-settings-note]');
     if (note) note.textContent = (duration === 120 || duration === 180 || duration === 300) ? `試合時間: ${Math.round(duration / 60)}分（次の試合から反映）` : '試合時間: 3:30（初期値）。2分/3分/5分を選ぶと次の試合から反映されます。';
+    const escapeOn = vars.get('SwitchEscapeEnabled').getAsBoolean();
+    mark('switchEscape', escapeOn);
+    const escapeButton = root.querySelector('[data-action="switchEscape"]');
+    if (escapeButton) {
+      escapeButton.textContent = escapeOn ? 'ON' : 'OFF';
+      if (typeof escapeButton.setAttribute === 'function') escapeButton.setAttribute('aria-label', 'スイッチ脱出 ' + (escapeOn ? 'ON' : 'OFF'));
+    }
+    const trapMode = vars.get('TrapSwitchMode').getAsString();
+    mark('trapAuto', trapMode !== 'AlwaysOn' && trapMode !== 'Off');
+    mark('trapAlways', trapMode === 'AlwaysOn');
+    mark('trapOff', trapMode === 'Off');
+    const trapNote = root.querySelector('[data-trap-note]');
+    if (trapNote) {
+      const players = 1 + runtimeScene.getObjects('Actor').length;
+      const active = trapMode === 'AlwaysOn' || (trapMode !== 'Off' && players >= 8);
+      trapNote.textContent = active
+        ? `罠スイッチ: 有効（正解3・ダミー1・罠1 / ${players}人）`
+        : `罠スイッチ: 無効（正解3・ダミー2 / ${players}人）。8人以上の試合で自動的に有効になります。`;
+    }
   };
   for (const button of root.querySelectorAll('[data-action]')) {
     button.addEventListener('pointerdown', (event) => {
@@ -5045,6 +4951,10 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
       else if (action === 'time120') { vars.get('DurationPreference').setNumber(120); vars.get('MatchDuration').setNumber(120); safeStorageSet('iceWolfMatchDuration', '120'); updateSettingsUi(); }
       else if (action === 'time180') { vars.get('DurationPreference').setNumber(180); vars.get('MatchDuration').setNumber(180); safeStorageSet('iceWolfMatchDuration', '180'); updateSettingsUi(); }
       else if (action === 'time300') { vars.get('DurationPreference').setNumber(300); vars.get('MatchDuration').setNumber(300); safeStorageSet('iceWolfMatchDuration', '300'); updateSettingsUi(); }
+      else if (action === 'switchEscape') { const next = !vars.get('SwitchEscapeEnabled').getAsBoolean(); vars.get('SwitchEscapeEnabled').setBoolean(next); safeStorageSet('iceWolfSwitchEscape', next ? '1' : '0'); updateSettingsUi(); }
+      else if (action === 'trapAuto') { vars.get('TrapSwitchMode').setString('Auto'); safeStorageSet('iceWolfTrapSwitchMode', 'auto'); updateSettingsUi(); }
+      else if (action === 'trapAlways') { vars.get('TrapSwitchMode').setString('AlwaysOn'); safeStorageSet('iceWolfTrapSwitchMode', 'always'); updateSettingsUi(); }
+      else if (action === 'trapOff') { vars.get('TrapSwitchMode').setString('Off'); safeStorageSet('iceWolfTrapSwitchMode', 'off'); updateSettingsUi(); }
     }, {passive:false});
   }
   const storedRole = safeStorageGet('iceWolfRolePreference', '');
@@ -5052,6 +4962,10 @@ if (typeof document !== 'undefined' && !runtimeScene.__iceWolfV065ProductionUi) 
   else if (storedRole === 'human') vars.get('RolePreference').setString('Human');
   const storedDuration = Number(safeStorageGet('iceWolfMatchDuration', '0'));
   if (storedDuration === 120 || storedDuration === 180 || storedDuration === 300) vars.get('DurationPreference').setNumber(storedDuration);
+  if (safeStorageGet('iceWolfSwitchEscape', '1') === '0') vars.get('SwitchEscapeEnabled').setBoolean(false);
+  const storedTrap = safeStorageGet('iceWolfTrapSwitchMode', '');
+  if (storedTrap === 'always') vars.get('TrapSwitchMode').setString('AlwaysOn');
+  else if (storedTrap === 'off') vars.get('TrapSwitchMode').setString('Off');
   runtimeScene.__iceWolfV065ProductionUi = { root, screen, showOnly, updateRecordUi, updateCameraPrefUi, updateSoundUi, updateSettingsUi, lastPhase:'' };
   updateSoundUi();
   vars.get('ProductionMenuReady').setBoolean(true);
@@ -5169,7 +5083,7 @@ if (ui && ui.lastPhase !== currentPhase) {
     const wins = runtimeScene.getObjects('WinText');
     if (wins.length && typeof wins[0].getString === 'function' && wins[0].getString()) text = wins[0].getString();
     const title = ui.root.querySelector('[data-result-title]'); if (title) title.textContent=text;
-    const note = ui.root.querySelector('[data-result-note]'); if (note) note.textContent = text.indexOf('人狼') >= 0 ? '全員凍結で決着' : '時間切れで決着';
+    const note = ui.root.querySelector('[data-result-note]'); if (note) note.textContent = vars.get('EscapeWonByGate').getAsBoolean() ? 'ゲート脱出で決着' : (text.indexOf('人狼') >= 0 ? '全員凍結で決着' : '時間切れで決着');
     ui.showOnly('result');
   }
 }
@@ -5178,19 +5092,19 @@ if (ui && currentPhase === 'Countdown') {
   const count = ui.root.querySelector('[data-count]');
   if (count) count.textContent = left > 2.1 ? '3' : left > 1.1 ? '2' : left > 0.1 ? '1' : 'START';
 }
-for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.6.11');
+for (const obj of runtimeScene.getObjects('BuildText')) if (typeof obj.setString === 'function') obj.setString('開発版 v0.7.0');
 };
 gdjs.FROST_32LABCode.eventsList33 = function(runtimeScene) {
 
 {
 
 
-gdjs.FROST_32LABCode.userFunc0x12ca028(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd73568(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xed18a0 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xd73778 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -5221,12 +5135,12 @@ gdjs.FROST_32LABCode.eventsList34 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xed18a0(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xd73778(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xed1a20 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa250a8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const phase = vars.get('RoundPhase').getAsString();
@@ -5398,12 +5312,12 @@ gdjs.FROST_32LABCode.eventsList35 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xed1a20(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa250a8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xed1bf8 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xa252c8 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const Three = (typeof THREE !== 'undefined' && THREE) ? THREE : null;
@@ -5556,12 +5470,12 @@ gdjs.FROST_32LABCode.eventsList36 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xed1bf8(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xa252c8(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.userFunc0xb39408 = function GDJSInlineCode(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xac4268 = function GDJSInlineCode(runtimeScene) {
 "use strict";
 const vars = runtimeScene.getVariables();
 const STORAGE_KEY = 'iceWolfSoundEnabled';
@@ -5694,6 +5608,28 @@ const SFX = {
     tone(330, t + 0.14, 0.26, 'sine', 0.15);
     tone(262, t + 0.28, 0.32, 'sine', 0.14);
   },
+  // v0.7.0 gimmick cues
+  switchOn: (t) => {
+    tone(760, t, 0.10, 'triangle', 0.16);
+    tone(1140, t + 0.09, 0.14, 'sine', 0.14);
+  },
+  switchDummy: (t) => {
+    tone(220, t, 0.16, 'square', 0.10);
+    tone(176, t + 0.14, 0.20, 'sine', 0.09);
+  },
+  switchTrap: (t) => {
+    tone(520, t, 0.12, 'sawtooth', 0.13, 260);
+    tone(260, t + 0.10, 0.26, 'square', 0.12, 120);
+  },
+  gateOpen: (t) => {
+    tone(523, t, 0.16, 'triangle', 0.14);
+    tone(784, t + 0.12, 0.18, 'triangle', 0.14);
+    tone(1047, t + 0.24, 0.26, 'sine', 0.13);
+  },
+  stair: (t) => {
+    tone(380, t, 0.10, 'triangle', 0.10, 700);
+    tone(700, t + 0.08, 0.12, 'sine', 0.10);
+  },
 };
 const play = (name) => {
   if (!audio.enabled) return false;
@@ -5708,6 +5644,19 @@ const play = (name) => {
   return true;
 };
 runtimeScene.__iceWolfV069PlaySound = play;
+// The gimmick cues (switch / gate / stair) are played on the same Web Audio graph but
+// deliberately stay out of the round cue log (SoundLast / SoundPlayCount), which
+// belongs to the freeze / thaw / warp / countdown / result chain.
+runtimeScene.__iceWolfV069PlayCue = (name) => {
+  if (!audio.enabled) return false;
+  const ctx = ensureContext();
+  if (!ctx || typeof ctx.createOscillator !== 'function') return false;
+  try {
+    const voice = SFX[name];
+    if (voice) voice(ctx.currentTime + 0.01);
+  } catch (error) {}
+  return true;
+};
 const phase = vars.get('RoundPhase').getAsString();
 const gameOver = vars.get('GameOver').getAsBoolean();
 const playing = phase === 'Active' && !gameOver;
@@ -5792,12 +5741,899 @@ gdjs.FROST_32LABCode.eventsList37 = function(runtimeScene) {
 {
 
 
-gdjs.FROST_32LABCode.userFunc0xb39408(runtimeScene);
+gdjs.FROST_32LABCode.userFunc0xac4268(runtimeScene);
 
 }
 
 
-};gdjs.FROST_32LABCode.eventsList38 = function(runtimeScene) {
+};gdjs.FROST_32LABCode.userFunc0xac4448 = function GDJSInlineCode(runtimeScene) {
+"use strict";
+/* ICE WOLF v0.7.0 — two floors, stair warps, 5 switches, 3 gates.
+ *
+ * Everything this round adds lives here so the older blocks keep their behaviour:
+ *  - 1F stays exactly where it was; 2F is a second, non-overlapping floor at +1600px
+ *    on X, with its own border, a closed ring block, two bars and four pillars.
+ *  - Two stair pairs join the floors. The player, every Actor (Human CPU and Wolf
+ *    CPU) can ride them; each rider keeps its own cooldown so nobody ping-pongs.
+ *  - Five switch pads are drawn from ten safe floor spots at every round start:
+ *    three correct, and either dummy x2 (7 or fewer characters) or dummy x1 + trap x1
+ *    (8+ characters, or the trap forced on in SETTINGS).
+ *    A correct switch is started by holding the hold button 1.6s with the round ring.
+ *  - Three locked gates are placed from the start. The third correct switch opens
+ *    exactly one of them (chosen at random); a living Human who touches it wins.
+ */
+const vars = runtimeScene.getVariables();
+const elapsed = gdjs.evtTools.runtimeScene.getElapsedTimeInSeconds(runtimeScene);
+const dt = Math.max(0, Math.min(0.1, Number.isFinite(elapsed) ? elapsed : 0.016));
+const phase = vars.get('RoundPhase').getAsString();
+const gameOver = vars.get('GameOver').getAsBoolean();
+const testMode = runtimeScene.__iceWolfV065TestMode === true;
+const playing = (phase === 'Active' || testMode) && !gameOver;
+const FLOOR_SHIFT = 1600;
+const SWITCH_SIZE = 84;
+const GATE_SIZE = 96;
+const SWITCH_RANGE = 96;
+const SWITCH_HOLD = 1.6;
+const STAIR_COOLDOWN = 2.4;
+const FLOOR_GAP_LEFT = 792;
+const Y_MIN = -708;
+const Y_MAX = 692;
+const X_MIN_1F = -708;
+const X_MAX_1F = 692;
+const X_MIN_2F = 892;
+const X_MAX_2F = 2292;
+const floorNameFor = (centerX) => (centerX <= FLOOR_GAP_LEFT ? '1F' : '2F');
+const xRangeFor = (centerX) => (centerX <= FLOOR_GAP_LEFT ? [X_MIN_1F, X_MAX_1F] : [X_MIN_2F, X_MAX_2F]);
+
+const SWITCH_SPOTS = [
+  [-660, 480], [0, 600], [600, 300], [-620, 0], [-40, -600], [520, -60],
+  [920, 600], [1560, 400], [1560, -400], [2180, 40]
+];
+const GATE_SPOTS = [
+  [-650, -650], [590, 590], [-48, -48], [300, -600], [580, -300],
+  [930, -300], [2180, 300], [1558, 580], [980, -620], [2150, -60]
+];
+
+if (!runtimeScene.__iceWolfV070) {
+  runtimeScene.__iceWolfV070 = {
+    switches: [],
+    gates: [],
+    layoutReady: false,
+    holdIndex: -1,
+    holdTime: 0,
+    gateOpenIndex: -1,
+    ui: null,
+    labels: new Map(),
+    cueCount: 0,
+    painted: new Set()
+  };
+}
+const W = runtimeScene.__iceWolfV070;
+
+const objects = (name) => runtimeScene.getObjects(name);
+const firstObject = (name) => {
+  const list = objects(name);
+  return list.length ? list[0] : null;
+};
+const setText = (obj, text) => {
+  if (obj && typeof obj.setString === 'function') obj.setString(text);
+};
+const showObject = (obj, visible) => {
+  if (obj && typeof obj.hide === 'function') obj.hide(!visible);
+};
+const feedback = (text, seconds) => {
+  for (const obj of objects('ActionFeedbackText')) {
+    if (typeof obj.setString === 'function') obj.setString(text);
+    if (typeof obj.hide === 'function') obj.hide(false);
+  }
+  vars.get('FeedbackLeft').setNumber(Math.max(0.8, seconds));
+};
+const cue = (name) => {
+  W.cueCount += 1;
+  vars.get('SwitchSoundCount').setNumber(vars.get('SwitchSoundCount').getAsNumber() + 1);
+  if (typeof runtimeScene.__iceWolfV069PlayCue === 'function') {
+    try { runtimeScene.__iceWolfV069PlayCue(name); } catch (_) {}
+  }
+};
+const shuffle = (source) => {
+  const out = source.slice();
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const swap = out[i];
+    out[i] = out[j];
+    out[j] = swap;
+  }
+  return out;
+};
+const rectOf = (obj, margin) => {
+  const m = margin || 0;
+  return {
+    left: obj.getX() - m,
+    top: obj.getY() - m,
+    right: obj.getX() + obj.getWidth() + m,
+    bottom: obj.getY() + obj.getHeight() + m
+  };
+};
+const insideRect = (obj, rect, margin) => {
+  const m = margin || 0;
+  const cx = obj.getCenterXInScene();
+  const cy = obj.getCenterYInScene();
+  return cx >= rect.left - m && cx <= rect.right + m && cy >= rect.top - m && cy <= rect.bottom + m;
+};
+const paint = (obj, hex, key) => {
+  const paintKey = key + ':' + hex;
+  if (obj.__iceWolfV070Paint === paintKey) return;
+  obj.__iceWolfV070Paint = paintKey;
+  if (typeof THREE === 'undefined') return;
+  let mesh = null;
+  try { mesh = obj.get3DRendererObject ? obj.get3DRendererObject() : null; } catch (_) { mesh = null; }
+  if (!mesh || !mesh.material) return;
+  try {
+    const many = Array.isArray(mesh.material);
+    const source = many ? mesh.material : [mesh.material];
+    const painted = source.map((material) => {
+      if (!material) return material;
+      const copy = typeof material.clone === 'function' ? material.clone() : material;
+      if (copy.map !== undefined) copy.map = null;
+      if (copy.color && typeof copy.color.setHex === 'function') copy.color.setHex(hex);
+      copy.needsUpdate = true;
+      return copy;
+    });
+    mesh.material = many ? painted : painted[0];
+  } catch (_) {}
+};
+const tinted = (obj, hex, key) => {
+  const paintKey = key + ':' + hex;
+  if (obj.__iceWolfV070Tint === paintKey) return;
+  obj.__iceWolfV070Tint = paintKey;
+  if (typeof THREE === 'undefined') return;
+  let mesh = null;
+  try { mesh = obj.get3DRendererObject ? obj.get3DRendererObject() : null; } catch (_) { mesh = null; }
+  if (!mesh || !mesh.material) return;
+  try {
+    const many = Array.isArray(mesh.material);
+    const source = many ? mesh.material : [mesh.material];
+    const tintedMaterials = source.map((material) => {
+      if (!material) return material;
+      const copy = typeof material.clone === 'function' ? material.clone() : material;
+      if (copy.color && typeof copy.color.setHex === 'function') copy.color.setHex(hex);
+      copy.needsUpdate = true;
+      return copy;
+    });
+    mesh.material = many ? tintedMaterials : tintedMaterials[0];
+  } catch (_) {}
+};
+
+/* The 2F floor and its 2F-only walls are the same GDevelop objects as 1F, so the
+ * shared wall separation, sight-line check and CPU avoidance keep working. They
+ * are tinted once, which is what tells the two floors apart at a glance. */
+const tintSecondFloor = () => {
+  const floors = objects('Floor');
+  for (let i = 0; i < floors.length; i += 1) {
+    if (floors[i].getX() > X_MIN_2F - 20) tinted(floors[i], 0xffd39a, 'floor2f' + i);
+  }
+  const walls = objects('Wall');
+  for (let i = 0; i < walls.length; i += 1) {
+    if (walls[i].getX() > X_MIN_2F - 60) tinted(walls[i], 0xff9a63, 'wall2f' + i);
+  }
+  vars.get('TwoFloorReady').setBoolean(floors.length >= 2 && walls.length >= 44);
+};
+
+const totalPlayersNow = () => 1 + objects('Actor').length;
+const trapModeNow = () => {
+  const raw = vars.get('TrapSwitchMode').getAsString();
+  return raw === 'AlwaysOn' || raw === 'Off' ? raw : 'Auto';
+};
+const trapEnabledNow = () => {
+  const mode = trapModeNow();
+  if (mode === 'Off') return false;
+  if (mode === 'AlwaysOn') return true;
+  return totalPlayersNow() >= 8;
+};
+
+const layoutString = () => W.switches.map((sw) => {
+  const floor = floorNameFor(sw.x + SWITCH_SIZE / 2);
+  return sw.x + ':' + sw.y + ':' + floor + ':' + sw.kind + ':' + (sw.on ? '1' : '0') + ':' + (sw.spent ? '1' : '0');
+}).join(';');
+const gateLayoutString = () => W.gates.map((gate) => {
+  const floor = floorNameFor(gate.x + GATE_SIZE / 2);
+  return gate.x + ':' + gate.y + ':' + floor + ':' + (gate.open ? '1' : '0');
+}).join(';');
+
+const moveInstances = () => {
+  const switchPads = objects('SwitchPad');
+  for (let i = 0; i < switchPads.length; i += 1) {
+    const spot = W.switches[i];
+    if (!spot) continue;
+    switchPads[i].setX(spot.x);
+    switchPads[i].setY(spot.y);
+    if (typeof switchPads[i].setZ === 'function') switchPads[i].setZ(0);
+  }
+  const gates = objects('GatePad');
+  for (let i = 0; i < gates.length; i += 1) {
+    const spot = W.gates[i];
+    if (!spot) continue;
+    gates[i].setX(spot.x);
+    gates[i].setY(spot.y);
+    if (typeof gates[i].setZ === 'function') gates[i].setZ(0);
+  }
+};
+
+const makeLayout = () => {
+  const total = totalPlayersNow();
+  const trapEnabled = trapEnabledNow();
+  const picks = shuffle(SWITCH_SPOTS).slice(0, 5);
+  const kinds = ['correct', 'correct', 'correct'];
+  if (trapEnabled) kinds.push('trap');
+  while (kinds.length < picks.length) kinds.push('dummy');
+  const mixed = shuffle(kinds);
+  W.switches = picks.map((spot, index) => ({
+    x: spot[0],
+    y: spot[1],
+    kind: mixed[index],
+    on: false,
+    spent: false
+  }));
+  const gatePicks = [];
+  for (const spot of shuffle(GATE_SPOTS)) {
+    const gx = spot[0] + GATE_SIZE / 2;
+    const gy = spot[1] + GATE_SIZE / 2;
+    const tooCloseToSwitch = W.switches.some((sw) => Math.hypot(sw.x + SWITCH_SIZE / 2 - gx, sw.y + SWITCH_SIZE / 2 - gy) < 150);
+    const tooCloseToGate = gatePicks.some((other) => Math.hypot(other[0] + GATE_SIZE / 2 - gx, other[1] + GATE_SIZE / 2 - gy) < 280);
+    if (tooCloseToSwitch || tooCloseToGate) continue;
+    gatePicks.push(spot);
+    if (gatePicks.length === 3) break;
+  }
+  let fallback = 0;
+  while (gatePicks.length < 3 && fallback < GATE_SPOTS.length) {
+    if (gatePicks.indexOf(GATE_SPOTS[fallback]) === -1) gatePicks.push(GATE_SPOTS[fallback]);
+    fallback += 1;
+  }
+  W.gates = gatePicks.map((spot) => ({ x: spot[0], y: spot[1], open: false }));
+  W.gateOpenIndex = -1;
+  W.holdIndex = -1;
+  W.holdTime = 0;
+  W.layoutReady = true;
+  moveInstances();
+  vars.get('V070ResetPending').setBoolean(false);
+  vars.get('SwitchHoldIndex').setNumber(-1);
+  vars.get('SwitchHoldTime').setNumber(0);
+  vars.get('SwitchHoldProgress').setNumber(0);
+  vars.get('SwitchHoldPressed').setBoolean(false);
+  vars.get('SwitchLayoutSerial').setNumber(vars.get('SwitchLayoutSerial').getAsNumber() + 1);
+  vars.get('SwitchLayoutReady').setBoolean(true);
+  vars.get('SwitchLayout').setString(layoutString());
+  vars.get('GateLayout').setString(gateLayoutString());
+  vars.get('TotalPlayers').setNumber(total);
+  vars.get('TrapSwitchEnabled').setBoolean(trapEnabled);
+  vars.get('SwitchCount').setNumber(W.switches.length);
+  vars.get('SwitchCorrectTotal').setNumber(3);
+  vars.get('SwitchDummyTotal').setNumber(W.switches.filter((sw) => sw.kind === 'dummy').length);
+  vars.get('SwitchTrapTotal').setNumber(W.switches.filter((sw) => sw.kind === 'trap').length);
+  vars.get('SwitchActiveCount').setNumber(0);
+  vars.get('SwitchTriggeredCount').setNumber(0);
+  vars.get('SwitchDummyTriggered').setNumber(0);
+  vars.get('SwitchTrapTriggered').setNumber(0);
+  vars.get('SwitchLastResult').setString('');
+  vars.get('GateCount').setNumber(W.gates.length);
+  vars.get('GateUnlocked').setBoolean(false);
+  vars.get('GateOpenIndex').setNumber(-1);
+  vars.get('GateOpenFloor').setString('');
+  vars.get('GateTouchCount').setNumber(0);
+  vars.get('EscapeWonByGate').setBoolean(false);
+  vars.get('StairCooldownLeft').setNumber(0);
+  vars.get('StairRideCount').setNumber(0);
+  vars.get('StairLastFrom').setString('');
+  vars.get('StairLastTo').setString('');
+  for (const pad of objects('StairPad')) {
+    pad.__iceWolfV070StairCooldown = 0;
+  }
+  for (const actor of objects('Actor')) {
+    actor.__iceWolfV070StairCooldown = 0;
+    actor.__iceWolfV070Hold = 0;
+  }
+};
+
+const player0 = firstObject('Player');
+const playerRole = player0 ? player0.getVariables().get('Role').getAsString() : 'Human';
+const playerState = player0 ? player0.getVariables().get('State').getAsString() : 'Active';
+
+if (!W.layoutReady || vars.get('V070ResetPending').getAsBoolean()) {
+  makeLayout();
+}
+tintSecondFloor();
+
+const switchEnabled = vars.get('SwitchEscapeEnabled').getAsBoolean();
+const switchPads = objects('SwitchPad');
+const gatePads = objects('GatePad');
+const stairPads = objects('StairPad');
+let visibleSwitchPads = 0;
+for (const pad of switchPads) {
+  const index = switchPads.indexOf(pad);
+  const spot = W.switches[index];
+  const visible = switchEnabled && !!spot && !spot.spent;
+  const shown = visible || (switchEnabled && !!spot && spot.on);
+  showObject(pad, shown);
+  if (shown) visibleSwitchPads += 1;
+  if (spot) {
+    if (spot.on) paint(pad, 0x7dffa4, 'switchOn');
+    else if (spot.spent) paint(pad, 0x9aa4b2, 'switchSpent');
+    else paint(pad, 0x2fd8ff, 'switchLive');
+  }
+}
+const gateUnlockedForPaint = vars.get('GateUnlocked').getAsBoolean();
+let visibleGatePads = 0;
+for (const pad of gatePads) {
+  const index = gatePads.indexOf(pad);
+  const gate = W.gates[index];
+  showObject(pad, switchEnabled && !!gate);
+  if (switchEnabled && gate) visibleGatePads += 1;
+  if (!gate) continue;
+  if (gate.open) paint(pad, 0x3dff86, 'gateOpen');
+  else if (gateUnlockedForPaint) paint(pad, 0x5e2630, 'gateDim');
+  else paint(pad, 0xd23c4c, 'gateLocked');
+}
+for (const pad of stairPads) {
+  showObject(pad, true);
+  paint(pad, 0xffc73e, 'stair');
+}
+// Counted for the gameplay tests: a 3D instance's hidden flag is not part of the
+// harness snapshot, so the visible pad counts are published as scene variables.
+vars.get('SwitchPadsVisible').setNumber(visibleSwitchPads);
+vars.get('GatePadsVisible').setNumber(visibleGatePads);
+
+/* ---------- stairs ---------- */
+let stairCooldown = Math.max(0, vars.get('StairCooldownLeft').getAsNumber() - dt);
+const rideStairs = (rider, isPlayer) => {
+  if (!rider) return false;
+  if (isPlayer) {
+    if (stairCooldown > 0) return false;
+  } else {
+    const left = Number.isFinite(rider.__iceWolfV070StairCooldown) ? rider.__iceWolfV070StairCooldown : 0;
+    rider.__iceWolfV070StairCooldown = Math.max(0, left - dt);
+    if (rider.__iceWolfV070StairCooldown > 0) return false;
+  }
+  for (let i = 0; i < stairPads.length; i += 1) {
+    if (!insideRect(rider, rectOf(stairPads[i], 0), 0)) continue;
+    // stairs are laid out as [1F-A, 1F-B, 2F-A, 2F-B]: 0<->2 and 1<->3
+    const destinationIndex = i < 2 ? i + 2 : i - 2;
+    const destination = stairPads[destinationIndex];
+    if (!destination) return false;
+    const fromFloor = floorNameFor(rider.getCenterXInScene());
+    rider.setX(destination.getX() + destination.getWidth() / 2 - rider.getWidth() / 2);
+    rider.setY(destination.getY() + destination.getHeight() / 2 - rider.getHeight() / 2);
+    if (typeof rider.setZ === 'function') rider.setZ(0);
+    if (isPlayer) stairCooldown = STAIR_COOLDOWN;
+    else rider.__iceWolfV070StairCooldown = STAIR_COOLDOWN;
+    const toFloor = floorNameFor(rider.getCenterXInScene());
+    if (isPlayer) {
+      vars.get('StairRideCount').setNumber(vars.get('StairRideCount').getAsNumber() + 1);
+      vars.get('StairLastFrom').setString(fromFloor);
+      vars.get('StairLastTo').setString(toFloor);
+      feedback('🪜 ' + toFloor + 'へ移動', 1.1);
+      cue('stair');
+    }
+    return true;
+  }
+  return false;
+};
+if (playing) {
+  rideStairs(player0, true);
+  for (const actor of objects('Actor')) {
+    if (actor.getVariables().get('State').getAsString() !== 'Active') continue;
+    rideStairs(actor, false);
+  }
+}
+vars.get('StairCooldownLeft').setNumber(stairCooldown);
+vars.get('PlayerFloor').setString(player0 ? floorNameFor(player0.getCenterXInScene()) : '1F');
+
+/* ---------- switch activation ---------- */
+const openGate = () => {
+  if (W.gateOpenIndex >= 0 || !W.gates.length) return;
+  const index = Math.floor(Math.random() * W.gates.length);
+  const gate = W.gates[index];
+  gate.open = true;
+  W.gateOpenIndex = index;
+  const floor = floorNameFor(gate.x + GATE_SIZE / 2);
+  vars.get('GateUnlocked').setBoolean(true);
+  vars.get('GateOpenIndex').setNumber(index);
+  vars.get('GateOpenFloor').setString(floor);
+  vars.get('GateLayout').setString(gateLayoutString());
+  feedback('🟢 ゲート開放！（' + floor + '）', 2.4);
+  cue('gateOpen');
+};
+const becomeThirdWolf = (target, label) => {
+  if (!target) return;
+  const targetVars = target.getVariables();
+  targetVars.get('Role').setString('Wolf');
+  if (target === player0) {
+    vars.get('WolfModeLeft').setNumber(vars.get('WolfModeDuration').getAsNumber());
+    vars.get('WolfBirthPlayerTrap').setBoolean(true);
+  } else {
+    targetVars.get('AIWolfModeLeft').setNumber(5);
+    targetVars.get('AIWolfCooldownLeft').setNumber(5);
+  }
+  vars.get('SwitchTrapTriggered').setNumber(vars.get('SwitchTrapTriggered').getAsNumber() + 1);
+  feedback('⚠️ 罠！' + label + 'は3人目の人狼になった！', 3.0);
+};
+const activateSwitch = (index, who) => {
+  const spot = W.switches[index];
+  if (!spot || spot.on || spot.spent) return false;
+  if (!vars.get('SwitchEscapeEnabled').getAsBoolean()) return false;
+  vars.get('SwitchTriggeredCount').setNumber(vars.get('SwitchTriggeredCount').getAsNumber() + 1);
+  vars.get('SwitchLastResult').setString(spot.kind);
+  if (spot.kind === 'correct') {
+    spot.on = true;
+    const active = W.switches.filter((sw) => sw.kind === 'correct' && sw.on).length;
+    vars.get('SwitchActiveCount').setNumber(active);
+    vars.get('SwitchLayout').setString(layoutString());
+    feedback('スイッチ起動！（' + active + '/3）', 1.4);
+    cue('switchOn');
+    if (active >= 3) openGate();
+  } else if (spot.kind === 'dummy') {
+    spot.spent = true;
+    vars.get('SwitchDummyTriggered').setNumber(vars.get('SwitchDummyTriggered').getAsNumber() + 1);
+    vars.get('SwitchLayout').setString(layoutString());
+    feedback('…ハズレのスイッチだった', 1.6);
+    cue('switchDummy');
+  } else {
+    spot.spent = true;
+    vars.get('SwitchLayout').setString(layoutString());
+    cue('switchTrap');
+    const actor = who && who !== 'player' ? who : null;
+    if (actor) {
+      const idVar = actor.getVariables().get('DisplayId');
+      becomeThirdWolf(actor, '「' + (idVar ? idVar.getAsString() : '?') + '」');
+    } else {
+      becomeThirdWolf(player0, 'あなた');
+    }
+  }
+  return true;
+};
+runtimeScene.__iceWolfV070Activate = activateSwitch;
+runtimeScene.__iceWolfV070OpenGate = openGate;
+
+/* ---------- the player holds the button next to a live switch ---------- */
+let holdIndex = vars.get('SwitchHoldIndex').getAsNumber();
+let holdTime = vars.get('SwitchHoldTime').getAsNumber();
+let nearIndex = -1;
+let nearDistance = Infinity;
+if (playing && switchEnabled && player0 && playerRole === 'Human' && playerState === 'Active') {
+  const px = player0.getCenterXInScene();
+  const py = player0.getCenterYInScene();
+  for (let i = 0; i < W.switches.length; i += 1) {
+    const spot = W.switches[i];
+    if (spot.on || spot.spent) continue;
+    const distance = Math.hypot(spot.x + SWITCH_SIZE / 2 - px, spot.y + SWITCH_SIZE / 2 - py);
+    if (distance <= SWITCH_RANGE && distance < nearDistance) {
+      nearDistance = distance;
+      nearIndex = i;
+    }
+  }
+}
+const pressed = vars.get('SwitchHoldPressed').getAsBoolean();
+if (nearIndex < 0) {
+  holdIndex = -1;
+  holdTime = 0;
+} else if (nearIndex !== holdIndex) {
+  holdIndex = nearIndex;
+  holdTime = 0;
+} else if (pressed) {
+  holdTime += dt;
+  if (holdTime >= SWITCH_HOLD) {
+    const done = activateSwitch(holdIndex, 'player');
+    holdTime = 0;
+    if (!done) holdIndex = -1;
+  }
+} else {
+  holdTime = 0;
+}
+W.holdIndex = holdIndex;
+W.holdTime = holdTime;
+const progress = Math.min(1, holdTime / SWITCH_HOLD);
+vars.get('SwitchHoldIndex').setNumber(holdIndex);
+vars.get('SwitchHoldTime').setNumber(holdTime);
+vars.get('SwitchHoldProgress').setNumber(progress);
+vars.get('SwitchHoldVisible').setBoolean(nearIndex >= 0 && (holdTime > 0 || pressed));
+
+/* ---------- gate touch decides the round ---------- */
+let gateTouched = false;
+if (playing && vars.get('GateUnlocked').getAsBoolean() && !gameOver && W.gateOpenIndex >= 0) {
+  const gate = W.gates[W.gateOpenIndex];
+  const gateRect = { left: gate.x, top: gate.y, right: gate.x + GATE_SIZE, bottom: gate.y + GATE_SIZE };
+  let escaped = false;
+  if (player0 && playerRole === 'Human' && playerState === 'Active' && insideRect(player0, gateRect, 4)) escaped = true;
+  for (const actor of objects('Actor')) {
+    if (escaped) break;
+    const av = actor.getVariables();
+    if (av.get('Role').getAsString() !== 'Human') continue;
+    if (av.get('State').getAsString() !== 'Active') continue;
+    if (insideRect(actor, gateRect, 4)) escaped = true;
+  }
+  if (escaped) {
+    gateTouched = true;
+    vars.get('GateTouchCount').setNumber(vars.get('GateTouchCount').getAsNumber() + 1);
+    vars.get('EscapeWonByGate').setBoolean(true);
+    vars.get('GameOver').setBoolean(true);
+    for (const obj of objects('WinText')) {
+      setText(obj, '人間の勝利');
+      showObject(obj, true);
+    }
+    feedback('ゲートから脱出！人間の勝利', 3.2);
+  }
+}
+vars.get('GateTouchedNow').setBoolean(gateTouched);
+
+/* ---------- HUD ---------- */
+const switchHudVisible = playing && switchEnabled;
+const activeCount = W.switches.filter((sw) => sw.kind === 'correct' && sw.on).length;
+for (const obj of objects('SwitchText')) {
+  setText(obj, 'スイッチ: ' + activeCount + '/3');
+  showObject(obj, switchHudVisible);
+}
+const gateUnlocked = vars.get('GateUnlocked').getAsBoolean();
+const gateOpenFloor = vars.get('GateOpenFloor').getAsString();
+for (const obj of objects('GateText')) {
+  setText(obj, gateUnlocked ? '🟢 ゲート開放: ' + gateOpenFloor : 'ゲート: 閉鎖中 ×' + W.gates.length);
+  showObject(obj, switchHudVisible);
+}
+for (const obj of objects('FloorText')) {
+  setText(obj, player0 ? floorNameFor(player0.getCenterXInScene()) : '1F');
+  showObject(obj, switchHudVisible);
+}
+
+/* ---------- the infect button fits on one line ---------- */
+for (const obj of objects('InfectButton')) {
+  const size = typeof obj.getCharacterSize === 'function' ? obj.getCharacterSize() : 0;
+  const width = obj.getWidth();
+  const label = typeof obj.getString === 'function' ? obj.getString() : '[ 人狼役にする ]';
+  let estimate = 0;
+  for (const character of label) {
+    estimate += /[\u3000-\u9fff\uff00-\uffef]/.test(character) ? size : size * 0.56;
+  }
+  vars.get('InfectButtonFontSize').setNumber(size);
+  vars.get('InfectButtonWidth').setNumber(width);
+  vars.get('InfectButtonTextWidth').setNumber(Math.round(estimate));
+  vars.get('InfectButtonFitsOneLine').setBoolean(size > 0 && width > 0 && estimate <= width - 10);
+}
+
+/* ---------- CPU routing helpers (used by the AI block) ---------- */
+const nearestStairToward = (obj, targetCenterX) => {
+  const fromFloor = floorNameFor(obj.getCenterXInScene());
+  const toFloor = floorNameFor(targetCenterX);
+  if (fromFloor === toFloor) return null;
+  const wantFirstFloor = toFloor === '1F';
+  let best = null;
+  let bestDistance = Infinity;
+  for (let i = 0; i < stairPads.length; i += 1) {
+    const onFirstFloor = i < 2;
+    if (onFirstFloor !== wantFirstFloor) continue;
+    const pad = stairPads[i];
+    const cx = pad.getX() + pad.getWidth() / 2;
+    const cy = pad.getY() + pad.getHeight() / 2;
+    const distance = Math.hypot(cx - obj.getCenterXInScene(), cy - obj.getCenterYInScene());
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = { x: cx, y: cy, distance: distance };
+    }
+  }
+  return best;
+};
+runtimeScene.__iceWolfV070StairToward = (obj, targetCenterX) => {
+  const stair = nearestStairToward(obj, targetCenterX);
+  if (!stair) return null;
+  const dx = stair.x - obj.getCenterXInScene();
+  const dy = stair.y - obj.getCenterYInScene();
+  const length = Math.max(Math.hypot(dx, dy), 1);
+  return { vx: dx / length, vy: dy / length, distance: stair.distance };
+};
+runtimeScene.__iceWolfV070SwitchIntent = (actor, ax, ay, delta) => {
+  if (!W.layoutReady || !vars.get('SwitchEscapeEnabled').getAsBoolean()) return null;
+  if (vars.get('GameOver').getAsBoolean()) return null;
+  if (actor.getVariables().get('Role').getAsString() !== 'Human') return null;
+  const step = Number.isFinite(delta) ? delta : 0.016;
+  // A frozen ally on the other floor is worth a stair ride before any switch.
+  let farRescue = null;
+  let farRescueDistance = Infinity;
+  for (const other of objects('Actor')) {
+    if (other === actor) continue;
+    const ov = other.getVariables();
+    const state = ov.get('State').getAsString();
+    if (state !== 'Frozen' && state !== 'FrozenWolfCandidate') continue;
+    if (floorNameFor(other.getCenterXInScene()) === floorNameFor(ax)) continue;
+    const distance = Math.hypot(other.getCenterXInScene() - ax, other.getCenterYInScene() - ay);
+    if (distance < farRescueDistance) {
+      farRescueDistance = distance;
+      farRescue = other;
+    }
+  }
+  if (farRescue) {
+    const hop = runtimeScene.__iceWolfV070StairToward(actor, farRescue.getCenterXInScene());
+    if (hop) {
+      actor.__iceWolfV070Hold = 0;
+      return { vx: hop.vx, vy: hop.vy, speed: 95 };
+    }
+  }
+  let index = -1;
+  let best = Infinity;
+  for (let i = 0; i < W.switches.length; i += 1) {
+    const spot = W.switches[i];
+    if (spot.on || spot.spent) continue;
+    const distance = Math.hypot(spot.x + SWITCH_SIZE / 2 - ax, spot.y + SWITCH_SIZE / 2 - ay);
+    if (distance < best) {
+      best = distance;
+      index = i;
+    }
+  }
+  if (index < 0) {
+    actor.__iceWolfV070Hold = 0;
+    return null;
+  }
+  const spot = W.switches[index];
+  const spotFloor = floorNameFor(spot.x + SWITCH_SIZE / 2);
+  if (spotFloor !== floorNameFor(ax)) {
+    const hop = runtimeScene.__iceWolfV070StairToward(actor, spot.x + SWITCH_SIZE / 2);
+    if (hop) {
+      actor.__iceWolfV070Hold = 0;
+      return { vx: hop.vx, vy: hop.vy, speed: 95 };
+    }
+    return null;
+  }
+  const cx = spot.x + SWITCH_SIZE / 2;
+  const cy = spot.y + SWITCH_SIZE / 2;
+  const distance = Math.hypot(cx - ax, cy - ay);
+  if (distance <= 34) {
+    const held = Number.isFinite(actor.__iceWolfV070Hold) ? actor.__iceWolfV070Hold : 0;
+    actor.__iceWolfV070Hold = held + step;
+    if (actor.__iceWolfV070Hold >= SWITCH_HOLD) {
+      actor.__iceWolfV070Hold = 0;
+      activateSwitch(index, actor);
+    }
+    return { vx: 0, vy: 0, speed: 0 };
+  }
+  actor.__iceWolfV070Hold = 0;
+  const length = Math.max(distance, 1);
+  return { vx: (cx - ax) / length, vy: (cy - ay) / length, speed: 95 };
+};
+
+/* ---------- DOM overlay: hold button, hold ring, world labels ---------- */
+if (typeof document === 'undefined') {
+  vars.get('SwitchHoldPressed').setBoolean(false);
+} else {
+  if (!W.ui) {
+    for (const old of document.querySelectorAll('[data-ice-wolf-v070="1"]')) old.remove();
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const ringSize = 56;
+    const ringStroke = 6;
+    const ringRadius = (ringSize - ringStroke) / 2;
+    const ringCircumference = 2 * Math.PI * ringRadius;
+
+    const button = document.createElement('button');
+    button.dataset.iceWolfV070 = '1';
+    button.type = 'button';
+    button.setAttribute('aria-label', 'スイッチを起動する（長押し）');
+    button.textContent = '長押しで起動';
+    button.style.position = 'fixed';
+    button.style.left = '50%';
+    button.style.bottom = '26px';
+    button.style.transform = 'translateX(-50%)';
+    button.style.width = '176px';
+    button.style.height = '52px';
+    button.style.display = 'none';
+    button.style.zIndex = '2147482520';
+    button.style.borderRadius = '17px';
+    button.style.border = '2px solid rgba(95,233,255,0.92)';
+    button.style.background = 'rgba(9,44,64,0.88)';
+    button.style.color = '#eafcff';
+    button.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+    button.style.fontSize = '16px';
+    button.style.fontWeight = '800';
+    button.style.letterSpacing = '0.4px';
+    button.style.boxShadow = '0 4px 14px rgba(0,0,0,0.35)';
+    button.style.touchAction = 'none';
+    button.style.userSelect = 'none';
+    button.style.webkitUserSelect = 'none';
+    button.style.webkitTapHighlightColor = 'transparent';
+    const press = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      vars.get('SwitchHoldPressed').setBoolean(true);
+      button.style.background = 'rgba(24,110,140,0.95)';
+    };
+    const release = (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      vars.get('SwitchHoldPressed').setBoolean(false);
+      button.style.background = 'rgba(9,44,64,0.88)';
+    };
+    button.addEventListener('pointerdown', press, { passive: false });
+    button.addEventListener('pointerup', release, { passive: false });
+    button.addEventListener('pointercancel', release, { passive: false });
+    button.addEventListener('pointerleave', release, { passive: false });
+    document.body.appendChild(button);
+
+    const wrap = document.createElement('div');
+    wrap.dataset.iceWolfV070 = '1';
+    wrap.setAttribute('role', 'progressbar');
+    wrap.setAttribute('aria-label', 'スイッチ起動ゲージ');
+    wrap.style.position = 'fixed';
+    wrap.style.left = '50%';
+    wrap.style.bottom = '86px';
+    wrap.style.width = ringSize + 'px';
+    wrap.style.height = ringSize + 'px';
+    wrap.style.transform = 'translateX(-50%)';
+    wrap.style.display = 'none';
+    wrap.style.zIndex = '2147482521';
+    wrap.style.pointerEvents = 'none';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('width', String(ringSize));
+    svg.setAttribute('height', String(ringSize));
+    svg.setAttribute('viewBox', '0 0 ' + ringSize + ' ' + ringSize);
+    svg.style.display = 'block';
+    svg.style.transform = 'rotate(-90deg)';
+    const track = document.createElementNS(SVG_NS, 'circle');
+    track.setAttribute('cx', String(ringSize / 2));
+    track.setAttribute('cy', String(ringSize / 2));
+    track.setAttribute('r', String(ringRadius));
+    track.setAttribute('fill', 'none');
+    track.setAttribute('stroke', 'rgba(120,244,255,0.22)');
+    track.setAttribute('stroke-width', String(ringStroke));
+    const arc = document.createElementNS(SVG_NS, 'circle');
+    arc.setAttribute('cx', String(ringSize / 2));
+    arc.setAttribute('cy', String(ringSize / 2));
+    arc.setAttribute('r', String(ringRadius));
+    arc.setAttribute('fill', 'none');
+    arc.setAttribute('stroke', '#7dffb0');
+    arc.setAttribute('stroke-width', String(ringStroke));
+    arc.setAttribute('stroke-linecap', 'round');
+    arc.setAttribute('stroke-dasharray', String(Math.round(ringCircumference * 100) / 100));
+    arc.setAttribute('stroke-dashoffset', String(Math.round(ringCircumference * 100) / 100));
+    svg.appendChild(track);
+    svg.appendChild(arc);
+    wrap.appendChild(svg);
+    document.body.appendChild(wrap);
+
+    const labelFor = (text, color) => {
+      const el = document.createElement('div');
+      el.dataset.iceWolfV070 = '1';
+      el.textContent = text;
+      el.style.position = 'fixed';
+      el.style.left = '0';
+      el.style.top = '0';
+      el.style.transform = 'translate(-50%, -100%)';
+      el.style.display = 'none';
+      el.style.padding = '1px 6px';
+      el.style.borderRadius = '8px';
+      el.style.border = '1px solid ' + color;
+      el.style.background = 'rgba(3,16,26,0.72)';
+      el.style.color = color;
+      el.style.fontFamily = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      el.style.fontSize = '11px';
+      el.style.fontWeight = '800';
+      el.style.letterSpacing = '0.4px';
+      el.style.whiteSpace = 'nowrap';
+      el.style.zIndex = '2147482990';
+      el.style.pointerEvents = 'none';
+      document.body.appendChild(el);
+      return el;
+    };
+    const labels = new Map();
+    for (const pad of switchPads) labels.set(pad, labelFor('◆', 'rgba(95,233,255,0.92)'));
+    for (const pad of gatePads) labels.set(pad, labelFor('🔒 LOCK', 'rgba(255,120,132,0.95)'));
+    for (const pad of stairPads) labels.set(pad, labelFor('🪜', 'rgba(255,199,62,0.95)'));
+    W.ui = { button, wrap, arc, ringCircumference, labels, positioned: false, lastLayoutAt: -10000, ids: new Map() };
+  }
+  const ui = W.ui;
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const canvas = typeof document.querySelector === 'function' ? document.querySelector('canvas') : null;
+  if (canvas && (!ui.positioned || now - ui.lastLayoutAt >= 1000)) {
+    const rect = canvas.getBoundingClientRect();
+    ui.button.style.left = '50%';
+    ui.button.style.bottom = '26px';
+    ui.lastLayoutAt = now;
+    ui.positioned = true;
+  }
+  const showHold = playing && switchEnabled && nearIndex >= 0 && playerRole === 'Human' && playerState === 'Active';
+  ui.button.style.display = showHold ? 'block' : 'none';
+  if (!showHold) {
+    if (vars.get('SwitchHoldPressed').getAsBoolean()) vars.get('SwitchHoldPressed').setBoolean(false);
+    ui.wrap.style.display = 'none';
+  } else {
+    const percent = Math.round(progress * 100);
+    ui.wrap.style.display = progress > 0.001 ? 'block' : 'none';
+    const dash = Math.round(ui.ringCircumference * (1 - progress) * 1000) / 1000;
+    if (ui.arc.getAttribute('stroke-dashoffset') !== String(dash)) ui.arc.setAttribute('stroke-dashoffset', String(dash));
+    if (ui.arc.getAttribute('data-percent') !== String(percent)) ui.arc.setAttribute('data-percent', String(percent));
+  }
+  const project = (pad, el, text, color) => {
+    if (!pad || !el) return;
+    let mesh = null;
+    try { mesh = pad.get3DRendererObject ? pad.get3DRendererObject() : null; } catch (_) { mesh = null; }
+    const layer = pad.getInstanceContainer && pad.getInstanceContainer().getLayer(pad.getLayer());
+    const renderer = layer && layer.getRenderer ? layer.getRenderer() : null;
+    const camera = renderer && renderer.getThreeCamera ? renderer.getThreeCamera() : null;
+    if (!mesh || !camera || !canvas || typeof THREE === 'undefined') {
+      el.style.display = 'none';
+      return;
+    }
+    mesh.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    const projected = new THREE.Vector3();
+    mesh.getWorldPosition(projected);
+    projected.project(camera);
+    const visible = projected.z >= -1 && projected.z <= 1 && projected.x >= -1.1 && projected.x <= 1.1 && projected.y >= -1.1 && projected.y <= 1.1;
+    if (!visible) {
+      el.style.display = 'none';
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    el.style.left = (rect.left + (projected.x * 0.5 + 0.5) * rect.width) + 'px';
+    el.style.top = (rect.top + (-projected.y * 0.5 + 0.5) * rect.height - 12) + 'px';
+    if (el.textContent !== text) el.textContent = text;
+    if (el.style.borderColor !== color) {
+      el.style.borderColor = color;
+      el.style.color = color;
+    }
+    el.style.display = 'block';
+  };
+  const labelsActive = playing && switchEnabled && !gameOver;
+  for (let i = 0; i < switchPads.length; i += 1) {
+    const spot = W.switches[i];
+    const el = ui.labels.get(switchPads[i]);
+    if (!el) continue;
+    if (!labelsActive || !spot || spot.spent && !spot.on) {
+      el.style.display = 'none';
+      continue;
+    }
+    const text = spot.on ? '✓ ON' : '◆';
+    project(switchPads[i], el, text, spot.on ? 'rgba(125,255,164,0.95)' : 'rgba(95,233,255,0.92)');
+  }
+  for (let i = 0; i < gatePads.length; i += 1) {
+    const gate = W.gates[i];
+    const el = ui.labels.get(gatePads[i]);
+    if (!el) continue;
+    if (!labelsActive || !gate) {
+      el.style.display = 'none';
+      continue;
+    }
+    project(gatePads[i], el, gate.open ? '🟢 OPEN!!' : '🔒 LOCK', gate.open ? 'rgba(125,255,164,0.98)' : 'rgba(255,120,132,0.95)');
+  }
+  if (labelsActive) {
+    for (let i = 0; i < stairPads.length; i += 1) {
+      const el = ui.labels.get(stairPads[i]);
+      if (!el) continue;
+      project(stairPads[i], el, i % 2 === 0 ? '🪜 1F→2F' : '🪜 2F→1F', 'rgba(255,199,62,0.95)');
+    }
+  } else {
+    for (let i = 0; i < stairPads.length; i += 1) {
+      const el = ui.labels.get(stairPads[i]);
+      if (el) el.style.display = 'none';
+    }
+  }
+}
+
+// Only rewrite the published layout strings when they really changed: this block
+// runs every frame on a phone and the strings are read-only for tests and the HUD.
+const layoutNow = layoutString();
+if (vars.get('SwitchLayout').getAsString() !== layoutNow) vars.get('SwitchLayout').setString(layoutNow);
+const gateLayoutNow = gateLayoutString();
+if (vars.get('GateLayout').getAsString() !== gateLayoutNow) vars.get('GateLayout').setString(gateLayoutNow);
+const activeNow = W.switches.filter((sw) => sw.kind === 'correct' && sw.on).length;
+if (vars.get('SwitchActiveCount').getAsNumber() !== activeNow) vars.get('SwitchActiveCount').setNumber(activeNow);
+};
+gdjs.FROST_32LABCode.eventsList38 = function(runtimeScene) {
+
+{
+
+
+gdjs.FROST_32LABCode.userFunc0xac4448(runtimeScene);
+
+}
+
+
+};gdjs.FROST_32LABCode.eventsList39 = function(runtimeScene) {
 
 {
 
@@ -5983,6 +6819,13 @@ gdjs.FROST_32LABCode.eventsList37(runtimeScene);
 }
 
 
+{
+
+
+gdjs.FROST_32LABCode.eventsList38(runtimeScene);
+}
+
+
 };
 
 gdjs.FROST_32LABCode.func = function(runtimeScene) {
@@ -6156,8 +6999,44 @@ gdjs.FROST_32LABCode.GDWarpPadObjects3.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects4.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects5.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects6.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects6.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects6.length = 0;
 
-gdjs.FROST_32LABCode.eventsList38(runtimeScene);
+gdjs.FROST_32LABCode.eventsList39(runtimeScene);
 gdjs.FROST_32LABCode.GDFloorObjects1.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects2.length = 0;
 gdjs.FROST_32LABCode.GDFloorObjects3.length = 0;
@@ -6326,6 +7205,42 @@ gdjs.FROST_32LABCode.GDWarpPadObjects3.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects4.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects5.length = 0;
 gdjs.FROST_32LABCode.GDWarpPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDSwitchPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDGatePadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects1.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects2.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects3.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects4.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects5.length = 0;
+gdjs.FROST_32LABCode.GDStairPadObjects6.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDSwitchTextObjects6.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDGateTextObjects6.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects1.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects2.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects3.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects4.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects5.length = 0;
+gdjs.FROST_32LABCode.GDFloorTextObjects6.length = 0;
 
 
 return;
