@@ -1,0 +1,26 @@
+name: ICE WOLF v0.7.0 Round Once
+
+on:
+  push:
+    branches:
+      - feature/v065-production-round-start
+    paths:
+      - .github/workflows/v070-improvements-ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    if: ${{ !contains(github.event.head_commit.message, 'remove v070 round helper') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v065-production-round-start
+          fetch-depth: 0
+      - name: Run gameplay verification and preview publish
+        run: bash scripts/v070/run-v070-improvements-ci.sh
