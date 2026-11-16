@@ -1,0 +1,24 @@
+{
+  "name": "ice-wolf",
+  "version": "0.7.0",
+  "private": true,
+  "description": "ICE WOLF - 3D social deduction freeze tag game (GDevelop HTML5 export wrapped in a Capacitor iOS shell)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "ios:sync": "cap sync ios",
+    "ios:open": "cap open ios",
+    "ios:build": "bash scripts/ios/build-and-upload-testflight.sh",
+    "ios:upload": "bash scripts/ios/build-and-upload-testflight.sh --upload"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

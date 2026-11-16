@@ -28,6 +28,24 @@ Changes should be developed on branches and reviewed before merging into `main`.
 
 Current validation branch: `dev/core-validation`
 
+## iOS app (TestFlight)
+
+The iPhone app is the GDevelop HTML5 export wrapped in a Capacitor 8.6.2 shell:
+
+```bash
+npm ci                                  # Capacitor 8.6.2, locked
+npx cap sync ios                        # build/ -> ios/App/App/public
+python3 scripts/ios/verify-ios-project.py   # landscape lock, icon, versions (no Mac needed)
+```
+
+`.github/workflows/ios-testflight.yml` exports the game on Ubuntu, then archives,
+signs and (optionally) uploads it to TestFlight on a macOS runner using the same
+App Store Connect API key secrets as the other signlinkjp apps.
+
+- Bundle ID: `jp.signlink.IceWolf` / team `TGBNH8WJV6`
+- Landscape only, full screen, status bar hidden
+- Full setup, App Store Connect and GitHub Secrets steps: `docs/ios-testflight-setup.md`
+
 ## Status
 
 Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13. `game.json` was materialized and byte-validated by GitHub Actions from the current CoreFix v0.2 project source before being committed to `main`.

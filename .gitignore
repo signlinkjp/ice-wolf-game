@@ -1,0 +1,20 @@
+# Node / Capacitor
+node_modules/
+npm-debug.log*
+
+# GDevelop HTML5 export output (produced by the export step, never committed)
+build/
+
+# Xcode
+DerivedData/
+*.xcarchive
+*.ipa
+xcuserdata/
+*.xcuserstate
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local build output of scripts/ios/build-and-upload-testflight.sh
+artifacts/
