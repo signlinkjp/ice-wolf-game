@@ -1,8 +1,14 @@
 # ICE WOLF
 
-ICE WOLF is a 3D social-deduction freeze-tag game prototype built with GDevelop.
+ICE WOLF is a 3D social-deduction freeze-tag game built with GDevelop.
 
-## Open the current prototype in GDevelop Web Editor
+**v1.0.0** is the first world release: the whole interface is localised into
+twelve languages (Japanese, English, Simplified and Traditional Chinese, Korean,
+Spanish, French, German, Portuguese, Italian, Hindi, Indonesian), chosen on first
+launch from the device language or by hand, and switchable at any time from
+SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
+
+## Open the project in the GDevelop Web Editor
 
 https://editor.gdevelop.io/?project=https%3A%2F%2Fraw.githubusercontent.com%2Fsignlinkjp%2F-ice-wolf-game%2Fmain%2Fgame.json
 
@@ -10,15 +16,14 @@ Raw project source:
 
 https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
 
-## Current development target
+## What the game is
 
-- 6 actors total: 1 player + 5 actors
-- Wolf / Human roles
-- 8-direction mobile D-pad
-- Fixed overhead camera
-- Freeze / Rescue / hidden Infection trap
-- 5-minute match timer and win conditions
-- CPU AI is the next major phase after Core Prototype validation
+- 7 players on two floors (FROST LAB): 1 human player + 6 CPUs
+- Wolf / Human roles, 5-second Wolf Mode, freeze and hold-to-rescue
+- One secret "wolf role" designation per match (the rescue that is a trap)
+- 2 / 3 / 5 minute matches, speed floors, warp pads, stairs between 1F and 2F
+- Five switches (three correct) and three gates; the gate escape wins for the humans
+- Compact virtual joystick, normal and overhead camera, effects-only sound
 
 ## Development workflow
 
@@ -26,7 +31,7 @@ The canonical project file is `game.json` on `main`.
 
 Changes should be developed on branches and reviewed before merging into `main`. The current source is intentionally public so the GDevelop Web Editor can load the raw `game.json` directly on iPhone.
 
-Current validation branch: `dev/core-validation`
+Current release: `main` at v1.0.0 (Build 7).
 
 ## iOS app (TestFlight)
 
@@ -48,4 +53,7 @@ App Store Connect API key secrets as the other signlinkjp apps.
 
 ## Status
 
-Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13. `game.json` was materialized and byte-validated by GitHub Actions from the current CoreFix v0.2 project source before being committed to `main`.
+Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
+Current release: **v1.0.0 (Build 7)** — twelve languages, first-launch language
+picker, `ICE WOLF v1.0.0` build markers. Version history and the verification of
+each step live in `docs/`.
