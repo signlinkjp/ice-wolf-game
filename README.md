@@ -31,7 +31,7 @@ The canonical project file is `game.json` on `main`.
 
 Changes should be developed on branches and reviewed before merging into `main`. The current source is intentionally public so the GDevelop Web Editor can load the raw `game.json` directly on iPhone.
 
-Current release: `main` at v1.0.0 (Build 7).
+Current release: `main` at v1.0.0 (Build 8).
 
 ## iOS app (TestFlight)
 
@@ -54,6 +54,7 @@ App Store Connect API key secrets as the other signlinkjp apps.
 ## Status
 
 Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
-Current release: **v1.0.0 (Build 7)** — twelve languages, first-launch language
-picker, `ICE WOLF v1.0.0` build markers. Version history and the verification of
-each step live in `docs/`.
+Current release: **v1.0.0 (Build 8)** — twelve languages, first-launch language
+picker, `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one
+size down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
+Version history and the verification of each step live in `docs/`.
