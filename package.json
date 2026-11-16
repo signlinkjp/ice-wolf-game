@@ -1,6 +1,6 @@
 {
   "name": "ice-wolf",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "ICE WOLF - 3D social deduction freeze tag game (GDevelop HTML5 export wrapped in a Capacitor iOS shell)",
   "license": "UNLICENSED",
