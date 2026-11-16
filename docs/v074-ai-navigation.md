@@ -81,14 +81,17 @@ FROST LAB の1Fは「4つの部屋＋柱」で、部屋の出入り口は**南�
    - 壁の向こうの獲物を人狼が**回り込んで凍結**させる。
    - 通常プレイ10秒で、**どのCPUも150フレーム（2.5秒）以上立ち止まらない**。
    ローカル再現（`work/v074/harness_v074.py`）→ **HARNESS PASS**。
-4. **既存GDevelopテストの回帰**: `v0.6.1 Human CPU navigation recovery test` →
+4. **2Fだけの40秒**（`work/v074/sim_second_floor.py`、全員を2Fに置いて開始）:
+   6体すべてが動き続け（最短4,469px、最長11,501px）、**12回**階段で1Fへ渡りました。
+   最長の停止は1.6秒＝スイッチ長押しの時間そのもので、**2F MOVEMENT PASS**。
+5. **既存GDevelopテストの回帰**: `v0.6.1 Human CPU navigation recovery test` →
    **HARNESS PASS**。ここだけ、壁をすり抜けず正しい経路を通るぶん到着が遅くなるため、
    待ちフレームを 16→40回（5.3秒）に広げました（検証内容＝「目に見えて迂回する」「救助が
    完了する」は不変）。
-5. **v0.7.2 階段ロジック**（`work/v072/sim_v072.py`）→ **SIMULATION PASS**、
+6. **v0.7.2 階段ロジック**（`work/v072/sim_v072.py`）→ **SIMULATION PASS**、
    **v0.7.3 ブロックトイ**（`work/v073/sim_v073.py`）→ **ALL MOCK CHECKS PASS**（挙動不変）。
-6. **iOSプロジェクト**: `python3 scripts/ios/verify-ios-project.py` → **ALL CHECKS PASSED**。
-7. **負荷**: 7体ぶんのJSを quickjs（JITなし）で回して**0.76ms/フレーム**
+7. **iOSプロジェクト**: `python3 scripts/ios/verify-ios-project.py` → **ALL CHECKS PASSED**。
+8. **負荷**: 7体ぶんのJSを quickjs（JITなし）で回して**0.76ms/フレーム**
    （うち新レイヤー0.28ms）。実機のJITではさらに軽く、60fpsの余裕は十分です。
 
 ## 5. バージョン
