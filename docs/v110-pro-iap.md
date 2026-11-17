@@ -94,7 +94,7 @@ App Store
 - `ios/App/App/SceneDelegate.swift` — `IceWolfBridgeViewController` で起動
 - `ios/App/App.xcodeproj/project.pbxproj` — 新ファイルを App ターゲットに追加、`1.1.0 (13)`
 - `scripts/ios/verify-ios-project.py` — StoreKit の検証18項目、既定値 `1.1.0` / `13`
-- `package.json` — `1.1.0`、`npm test`（`node --test "tests/pro/*.test.mjs"`）、`npm run test:ios`
+- `package.json` — `1.1.0`、`npm test`（`node --test tests/pro/*.test.mjs`）、`npm run test:ios`
 - `tests/pro/helpers.mjs` / `pro-strings.test.mjs` / `pro-store.test.mjs` / `scope-guard.test.mjs`
 - `docs/v110-pro-iap.md`（この資料）、`README.md`
 

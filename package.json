@@ -9,7 +9,7 @@
     "ios:open": "cap open ios",
     "ios:build": "bash scripts/ios/build-and-upload-testflight.sh",
     "ios:upload": "bash scripts/ios/build-and-upload-testflight.sh --upload",
-    "test": "node --test \"tests/pro/*.test.mjs\"",
+    "test": "node --test tests/pro/pro-strings.test.mjs tests/pro/pro-store.test.mjs tests/pro/scope-guard.test.mjs",
     "test:ios": "python3 scripts/ios/verify-ios-project.py"
   },
   "dependencies": {
