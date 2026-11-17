@@ -314,6 +314,11 @@ test('the switch layout is the host’s, and only the pads move the pads', () =>
   assert.equal(again[1].on, true);
   assert.equal(again[1].spent, false);
 
+  /* An empty layout is "unchanged", not "no switches at all". */
+  const unchanged = sync.iceWolfSyncSwitchList(list, { layout: [], on: [1, 0, 0] });
+  assert.equal(unchanged.length, 3, 'an empty layout keeps the pads');
+  assert.equal(unchanged[1].spent, false, 'and still takes the bits');
+
   /* A layout that moved is adopted whole. */
   const moved = sync.iceWolfSyncSwitchList(list, { layout: [{ x: 0, y: 600, kind: 'correct' }], on: [0] });
   assert.equal(moved.length, 1);
@@ -931,5 +936,6 @@ test('the sync group is the last block, carries its markers, and its state has i
   assert.ok(online.includes('iceWolfOnlineInput(online.sequence, moveX, moveY, action, pose)'),
     'the guest sends its pose with its input');
   assert.ok(online.includes("winId: winIdNow"), 'the host sends the ending as a word');
-  assert.ok(online.includes('layout: switches.map'), 'and the switch layout');
+  assert.ok(online.includes('layout: layoutDue ? switches.map'), 'and the switch layout, when it changes');
+  assert.ok(online.includes("online.lastLayoutSerial !== layoutSerial"), 'the pads only travel on a new draw');
 });
