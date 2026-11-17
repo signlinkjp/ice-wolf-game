@@ -41,8 +41,8 @@ https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
 - Wolf / Human roles, 5-second Wolf Mode, freeze and hold-to-rescue
 - Spectator camera: when you are frozen, follow any living player with ‹ ›
 - One secret "wolf role" designation per match (the rescue that is a trap)
-- 2 / 3 / 5 minute matches, speed floors, warp pads, stairs between 1F and 2F
-- Five switches (three correct) and three gates; the gate escape wins for the humans
+- 2 / 3 / 5 minute matches (1 / 10 with Pro), speed floors, warp pads, stairs between 1F and 2F
+- Five switches (three correct; 3 / 4 with Pro) and three gates; the gate escape wins for the humans
 - Compact virtual joystick, normal and overhead camera, effects-only sound
 
 ## Development workflow
