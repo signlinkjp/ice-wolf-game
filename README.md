@@ -18,7 +18,14 @@ SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
   own floor plans and atmosphere, stage-linked block-toy outfits, matches of up to
   10 players with two wolves, Pro custom rules (switch count, 1 / 10 minutes) and
   a spectator camera that follows a living player while you are frozen
-  (`docs/v110-phase1-stages.md`).
+  (`docs/v110-phase1-stages.md`);
+- **Phase 2 online**: a room with a six-character code, seats and READY, a host
+  who owns the round, and eight one-tap stamps that every phone reads in its own
+  of the twelve languages. Rooms run over Supabase Realtime (Broadcast + Presence,
+  no tables, no RLS, no library fetched at run time) behind a `RealtimeTransport`
+  interface with an in-memory hub for the tests. Creating a room and the ten
+  player / two wolf / custom rules are Pro; joining Classic and Deep-Sea Aquarium
+  is free, joining a Pro stage is not (`docs/v110-online-setup.md`).
 
 The movement, hitbox, camera distances, freeze/rescue, switch hold, stairs, warp
 and AI keep their 1.0.0 numbers; `tests/pro/scope-guard.test.mjs` compares them
@@ -44,6 +51,8 @@ https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
 - 2 / 3 / 5 minute matches (1 / 10 with Pro), speed floors, warp pads, stairs between 1F and 2F
 - Five switches (three correct; 3 / 4 with Pro) and three gates; the gate escape wins for the humans
 - Compact virtual joystick, normal and overhead camera, effects-only sound
+- Online rooms (up to 10 phones) with eight translated quick stamps; the host
+  phone runs the round and the guests see the same arena, roles and HUD
 
 ## Development workflow
 
@@ -63,7 +72,7 @@ The iPhone app is the GDevelop HTML5 export wrapped in a Capacitor 8.6.2 shell:
 npm ci                                  # Capacitor 8.6.2, locked
 npx cap sync ios                        # build/ -> ios/App/App/public
 python3 scripts/ios/verify-ios-project.py   # landscape lock, icon, versions, StoreKit (no Mac needed)
-npm test                                # Pro store + 12 languages + stages + roster + no-gameplay-change guards
+npm test                                # Pro store + 12 languages + stages + roster + online + no-gameplay-change guards
 ```
 
 `.github/workflows/ios-testflight.yml` exports the game on Ubuntu, then archives,
@@ -80,9 +89,14 @@ Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
 Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
 `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
 down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
-In progress: **v1.1.0 (Build 14)** — the Pro purchase foundation and Phase 1
-(6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera) on
-`feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`, `docs/v110-phase1-stages.md`).
-Phase 2 (online rooms over Supabase Realtime) is designed and not built:
-`docs/v110-online-multiplayer-plan.md`.
+In progress: **v1.1.0 (Build 15)** — the Pro purchase foundation, Phase 1
+(6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera) and
+Phase 2 (online rooms, host authority, eight translated quick stamps) on
+`feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`, `docs/v110-phase1-stages.md`,
+`docs/v110-online-setup.md`).
+The online rooms need one external step: a Supabase project URL and its anon key
+(`docs/v110-online-setup.md` §3). Until they are set the game says so and the
+lobby runs as a one-phone practice room. Remote players' positions are received
+and validated but not yet drawn by the 3D scene — that swap of the CPU block is
+the next build (`docs/v110-online-setup.md` §7).
 Version history and the verification of each step live in `docs/`.
