@@ -556,6 +556,87 @@ test('a host frame drives the remote seats and leaves the CPUs to the AI', () =>
   scene.__iceWolfV070Activate = originalActivate;
 });
 
+test('a round played across two phones, host frame to guest frame', () => {
+  /* The whole point, driven end to end: the host walks seat 1 to a spot, the
+   * snapshot is built and cleaned the way the wire does it, and the guest's
+   * actor for seat 1 arrives at that spot. */
+  const roster = [];
+  for (let seat = 0; seat < 7; seat += 1) {
+    roster.push({
+      seat, id: seat === 0 ? 'YOU' : 'ABCDEFGHI'[seat - 1],
+      clientId: seat === 0 ? 'h1' : (seat === 1 ? 'c1' : (seat === 2 ? 'c2' : '')),
+      cpu: seat > 2, role: 'Human', name: ''
+    });
+  }
+  const clock = { now: Date.now() };
+  const hostOnline = {
+    payload: { kind: 'start', roster },
+    seat: 0,
+    inputs: { c1: { kind: 'input', seq: 1, moveX: 1, moveY: 0, action: 'none', x: 120, y: 100, at: clock.now } },
+    remotePoses: {},
+    snapshot: null
+  };
+  const host = makeScene({
+    variables: { OnlineRoomActive: true, OnlineIsHost: true, RoundPhase: 'Active', RosterDealt: true },
+    online: hostOnline
+  });
+  for (let frame = 0; frame < 40; frame += 1) {
+    clock.now += 16;
+    host.__iceWolfV110SyncAt = clock.now - 16;
+    host.__iceWolfV110SyncNow = clock.now;
+    hostOnline.inputs.c1.at = clock.now;
+    runFrame(host);
+  }
+  const hostSeatOne = host.actors[0];
+  assert.ok(Math.abs(hostSeatOne.x - 120) < 2 && Math.abs(hostSeatOne.y - 100) < 2,
+    `the host walked the remote seat to the phone’s pose: ${hostSeatOne.x},${hostSeatOne.y}`);
+
+  /* The snapshot the host's wire builds, cleaned by the receiving side. */
+  const snapshot = {
+    kind: 'snapshot',
+    t: clock.now,
+    phase: 'Active',
+    timer: 140,
+    players: roster.map((row) => {
+      const index = row.seat - 1;
+      const object = row.seat === 0 ? host.player : host.actors[index];
+      return {
+        id: row.id,
+        x: object.x,
+        y: object.y,
+        z: 0,
+        yaw: 0,
+        role: 'Human',
+        state: object.values.get('State') || 'Active',
+        mode: 0
+      };
+    }),
+    switches: { active: 0, triggered: 0, enabled: true, serial: 1, on: [], spent: [], layout: [] },
+    gates: { openIndex: -1, openFloor: '', unlocked: false, serial: 1, layout: [] },
+    win: '', winId: ''
+  };
+
+  const guestOnline = { payload: { kind: 'start', roster }, seat: 2, inputs: {}, snapshot };
+  const guest = makeScene({
+    variables: { OnlineRoomActive: true, OnlineIsHost: false, RoundPhase: 'Active', RosterDealt: true, GameOver: false },
+    online: guestOnline
+  });
+  for (let frame = 0; frame < 12; frame += 1) {
+    clock.now += 16;
+    guest.__iceWolfV110SyncAt = clock.now - 16;
+    guest.__iceWolfV110SyncNow = clock.now;
+    runFrame(guest);
+  }
+  const guestSeatOne = guest.actors[0];
+  assert.equal(guestSeatOne.values.get('LabelText'), 'A', 'a nameless phone keeps the roster letter');
+  assert.ok(Math.abs(guestSeatOne.x - hostSeatOne.x) < 6,
+    `the guest’s seat 1 is where the host’s is: ${guestSeatOne.x} vs ${hostSeatOne.x}`);
+  assert.ok(Math.abs(guestSeatOne.y - hostSeatOne.y) < 6);
+  /* And the guest's own seat stayed its own. */
+  assert.equal(guest.player.values.get('DisplayId'), 'YOU', 'the guest’s Player is still YOU');
+  assert.equal(guest.values.get('OnlineGuestMode'), true);
+});
+
 test('a seat that goes quiet leaves the arena, and comes back when it returns', () => {
   const roster = [
     { seat: 0, id: 'YOU', clientId: 'h1', cpu: false, role: 'Human', name: '' },
