@@ -25,7 +25,11 @@ const NEW_GROUPS = [
   'v1.1.0 人数・2人狼・ルール',
   'v1.1.0 観戦カメラ',
   'v1.1.0 観戦カメラ（追従）',
-  'v1.1.0 Pro 購入・復元UI'
+  'v1.1.0 Pro 購入・復元UI',
+  /* Phase 2: the room, its screen and the quick stamps, all after Phase 1. */
+  'v1.1.0 オンライン中核',
+  'v1.1.0 オンラインロビー',
+  'v1.1.0 クイックスタンプ'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -160,8 +164,8 @@ test('no game object was added, removed or renamed, and the 1.0.0 scene variable
   const added = after.variables.map((variable) => variable.name).filter((name) => !beforeVars.has(name));
   assert.ok(added.length > 0, 'the new state lives in scene variables');
   for (const name of added) {
-    assert.match(name, /^(Pro|Stage|Player|Wolf|Switch|Match|Roster|Actor|Spectator|Ten|Two|BlockToy)/,
-      `${name} is part of the Phase 1 state`);
+    assert.match(name, /^(Pro|Stage|Player|Wolf|Switch|Match|Roster|Actor|Spectator|Ten|Two|BlockToy|Online|Stamp)/,
+      `${name} is part of the Phase 1 or Phase 2 state`);
   }
 });
 
@@ -182,7 +186,7 @@ test('the version is 1.1.0 in one place on every side, on a build after 1.0.0', 
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.equal(pkg.version, '1.1.0', 'package.json');
   assert.ok(pkg.scripts?.test?.includes('node --test'), 'npm test runs the test suite');
-  for (const file of ['v110-stage.test.mjs', 'v110-match.test.mjs']) {
+  for (const file of ['v110-stage.test.mjs', 'v110-match.test.mjs', 'v110-online.test.mjs']) {
     assert.ok(pkg.scripts.test.includes(file), `npm test runs ${file}`);
   }
 
