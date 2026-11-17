@@ -32,8 +32,9 @@ CAP_CONFIG = REPO_ROOT / "capacitor.config.ts"
 
 DEFAULT_BUNDLE_ID = "jp.signlink.IceWolf"
 DEFAULT_TEAM_ID = "TGBNH8WJV6"
-DEFAULT_MARKETING_VERSION = "1.0.0"
-DEFAULT_BUILD_NUMBER = "8"
+DEFAULT_MARKETING_VERSION = "1.1.0"
+DEFAULT_BUILD_NUMBER = "13"
+PRODUCT_ID = "jp.signlink.IceWolf.pro"
 
 failures: list[str] = []
 notes: list[str] = []
@@ -184,6 +185,63 @@ def check_pbxproj(bundle_id: str, team_id: str, marketing: str, build: str) -> N
     check(scheme.is_file(), "shared App scheme exists (xcodebuild -scheme App works in CI)")
 
 
+def check_storekit() -> None:
+    """v1.1.0: the Pro in-app purchase is a real native plugin, wired in."""
+    print("StoreKit (Pro)")
+    plugin = IOS_APP / "StoreKitPlugin.swift"
+    if not plugin.is_file():
+        fail(f"{plugin} is missing")
+        return
+    code = plugin.read_text(encoding="utf-8")
+    check("import StoreKit" in code, "the plugin links StoreKit")
+    check("CAPBridgedPlugin" in code, "the plugin is a Capacitor bridged plugin")
+    check(
+        'jsName = "IceWolfStoreKit"' in code,
+        "the plugin jsName is IceWolfStoreKit (what game.json calls)",
+    )
+    for method in ("proStatus", "purchase", "restore"):
+        check(f'name: "{method}"' in code, f"the plugin declares {method}()")
+    check(f'productID = "{PRODUCT_ID}"' in code, f"the product id is {PRODUCT_ID}")
+    check("Transaction.currentEntitlements" in code, "the entitlement is read from StoreKit 2")
+    check("case .verified" in code, "transactions are only trusted when StoreKit verifies them")
+    check("AppStore.sync()" in code, "restore asks the App Store to sync")
+    check(
+        "IceWolfBridgeViewController" in code and "registerPluginInstance(IceWolfStoreKitPlugin())" in code,
+        "the bridge view controller registers the plugin",
+    )
+
+    scene = (IOS_APP / "SceneDelegate.swift").read_text(encoding="utf-8")
+    check(
+        "IceWolfBridgeViewController()" in scene,
+        "SceneDelegate starts the app on the subclass that registers the plugin",
+    )
+    check(
+        "CAPBridgeViewController()" not in scene,
+        "SceneDelegate no longer starts a bare CAPBridgeViewController",
+    )
+
+    text = PBXPROJ.read_text(encoding="utf-8")
+    check("StoreKitPlugin.swift in Sources" in text, "the plugin is in the App target's Sources phase")
+    check(
+        "StoreKitPlugin.swift */" in text,
+        "the plugin has a file reference in the Xcode project",
+    )
+
+    game = REPO_ROOT / "game.json"
+    if game.is_file():
+        try:
+            data = json.loads(game.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            fail(f"game.json does not parse: {error}")
+        else:
+            layout = next((item for item in data.get("layouts", []) if item.get("name") == "FROST LAB"), {})
+            groups = [event.get("name") for event in layout.get("events", [])]
+            check("v1.1.0 Pro 購入・復元UI" in groups, "game.json carries the Pro purchase group")
+            blob = json.dumps(data, ensure_ascii=False)
+            check(PRODUCT_ID in blob, f"the game asks for {PRODUCT_ID}")
+            check("IceWolfStoreKit" in blob, "the game calls the IceWolfStoreKit plugin")
+
+
 def check_assets() -> None:
     print("Assets")
     icon_dir = IOS_APP / "Assets.xcassets" / "AppIcon.appiconset"
@@ -251,6 +309,7 @@ def main() -> int:
     print(f"ICE WOLF iOS shell verification (repo {REPO_ROOT})")
     check_info_plist()
     check_pbxproj(args.bundle_id, args.team_id, args.marketing_version, args.build_number)
+    check_storekit()
     check_assets()
     check_capacitor_config()
     if args.build_dir:

@@ -8,6 +8,12 @@ Spanish, French, German, Portuguese, Italian, Hindi, Indonesian), chosen on firs
 launch from the device language or by hand, and switchable at any time from
 SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
 
+**v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) adds the Pro in-app purchase
+foundation only: a StoreKit 2 plugin for the non-consumable
+`jp.signlink.IceWolf.pro`, a purchase / restore screen reachable from the menu
+and SETTINGS, and the twelve-language lines for it. No gameplay, map, switch or
+AI value changed. See `docs/v110-pro-iap.md`.
+
 ## Open the project in the GDevelop Web Editor
 
 https://editor.gdevelop.io/?project=https%3A%2F%2Fraw.githubusercontent.com%2Fsignlinkjp%2F-ice-wolf-game%2Fmain%2Fgame.json
@@ -31,7 +37,9 @@ The canonical project file is `game.json` on `main`.
 
 Changes should be developed on branches and reviewed before merging into `main`. The current source is intentionally public so the GDevelop Web Editor can load the raw `game.json` directly on iPhone.
 
-Current release: `main` at v1.0.0 (Build 8).
+Current release: `main` at v1.0.0 (Build 12, in App Store review). `v1.1.0`
+(Pro purchase foundation) is developed on `feat/ice-wolf-v1.1.0-pro` and is not
+merged into `main` until 1.0.0 is approved.
 
 ## iOS app (TestFlight)
 
@@ -40,7 +48,8 @@ The iPhone app is the GDevelop HTML5 export wrapped in a Capacitor 8.6.2 shell:
 ```bash
 npm ci                                  # Capacitor 8.6.2, locked
 npx cap sync ios                        # build/ -> ios/App/App/public
-python3 scripts/ios/verify-ios-project.py   # landscape lock, icon, versions (no Mac needed)
+python3 scripts/ios/verify-ios-project.py   # landscape lock, icon, versions, StoreKit (no Mac needed)
+npm test                                # Pro store + 12-language + no-gameplay-change guards
 ```
 
 `.github/workflows/ios-testflight.yml` exports the game on Ubuntu, then archives,
@@ -54,7 +63,9 @@ App Store Connect API key secrets as the other signlinkjp apps.
 ## Status
 
 Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
-Current release: **v1.0.0 (Build 8)** — twelve languages, first-launch language
-picker, `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one
-size down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
+Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
+`ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
+down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
+In progress: **v1.1.0** — the Pro (non-consumable) purchase and restore
+foundation on `feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`).
 Version history and the verification of each step live in `docs/`.
