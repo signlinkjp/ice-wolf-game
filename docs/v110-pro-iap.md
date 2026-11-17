@@ -77,7 +77,7 @@ App Store
 | うち 12言語（表の欠落・日本語混入・Pro画面の全状態×12言語） | **PASS**（138キー / missing 0 / leaks 0） |
 | うち StoreKit 橋渡し（購入・キャンセル・承認待ち・失敗・復元・復元なし・ネイティブ無し・タイムアウト・キャッシュ） | **PASS** |
 | うち「ゲームを変えていない」ガード（main と比較して Pro グループ以外はリリース表記以外バイト一致、`.github/workflows/` 不変更） | **PASS** |
-| 新 GDevelop テスト `v1.1.0 Pro purchase test`（モックランタイムで実行） | **HARNESS PASS（175アサーション / 53フレーム）** |
+| 新 GDevelop テスト `v1.1.0 Pro purchase test`（モックランタイムで実行） | **HARNESS PASS（177アサーション / 57フレーム）** |
 | HUD 多言語の回帰（ja/en/ko/de/hi で役割・カウンタ・スイッチ・ボタン・再使用秒） | **PASS** |
 | JS 構文（全28ブロック + 全43テストソース） | **SYNTAX PASS** |
 | `python3 scripts/ios/verify-ios-project.py`（`1.1.0` / `13`） | **ALL CHECKS PASSED**（StoreKit の18項目を含む） |
