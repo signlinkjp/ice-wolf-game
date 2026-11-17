@@ -29,7 +29,9 @@ const NEW_GROUPS = [
   /* Phase 2: the room, its screen and the quick stamps, all after Phase 1. */
   'v1.1.0 オンライン中核',
   'v1.1.0 オンラインロビー',
-  'v1.1.0 クイックスタンプ'
+  'v1.1.0 クイックスタンプ',
+  /* Phase 2b: the snapshot → 3D/HUD block, after the wire it reads. */
+  'v1.1.0 オンライン対戦同期'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -186,7 +188,7 @@ test('the version is 1.1.0 in one place on every side, on a build after 1.0.0', 
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.equal(pkg.version, '1.1.0', 'package.json');
   assert.ok(pkg.scripts?.test?.includes('node --test'), 'npm test runs the test suite');
-  for (const file of ['v110-stage.test.mjs', 'v110-match.test.mjs', 'v110-online.test.mjs']) {
+  for (const file of ['v110-stage.test.mjs', 'v110-match.test.mjs', 'v110-online.test.mjs', 'v110-sync.test.mjs']) {
     assert.ok(pkg.scripts.test.includes(file), `npm test runs ${file}`);
   }
 
