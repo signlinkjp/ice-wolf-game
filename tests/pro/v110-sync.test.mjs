@@ -556,6 +556,62 @@ test('a host frame drives the remote seats and leaves the CPUs to the AI', () =>
   scene.__iceWolfV070Activate = originalActivate;
 });
 
+test('a seat that goes quiet leaves the arena, and comes back when it returns', () => {
+  const roster = [
+    { seat: 0, id: 'YOU', clientId: 'h1', cpu: false, role: 'Human', name: '' },
+    { seat: 1, id: 'A', clientId: 'c1', cpu: false, role: 'Human', name: 'Ken' },
+    { seat: 2, id: 'B', clientId: '', cpu: true, role: 'Human', name: '' }
+  ];
+  const online = {
+    payload: { kind: 'start', roster },
+    seat: 0,
+    room: { seats: [{ seat: 0, clientId: 'h1', out: false }, { seat: 1, clientId: 'c1', out: true }] },
+    inputs: { c1: { kind: 'input', seq: 1, moveX: 1, moveY: 0, action: 'none', x: 40, y: 40, at: Date.now() } },
+    remotePoses: {},
+    snapshot: null
+  };
+  const scene = makeScene({
+    variables: { OnlineRoomActive: true, OnlineIsHost: true, RoundPhase: 'Active', RosterDealt: true },
+    online
+  });
+  runFrame(scene);
+  assert.equal(scene.actors[0].values.get('State'), 'Out', 'a quiet seat is off the ice');
+  assert.equal(scene.actors[0].y, 40000, 'and parked, like an unused CPU seat');
+
+  online.room.seats[1].out = false;
+  runFrame(scene);
+  assert.equal(scene.actors[0].values.get('State'), 'Active', 'presence back brings the seat back');
+});
+
+test('a guest hides a seat the host reports as Out', () => {
+  const roster = [
+    { seat: 0, id: 'YOU', clientId: 'h1', cpu: false, role: 'Human', name: '' },
+    { seat: 1, id: 'A', clientId: 'c1', cpu: false, role: 'Human', name: '' },
+    { seat: 2, id: 'B', clientId: 'c2', cpu: false, role: 'Human', name: '' }
+  ];
+  const online = {
+    payload: { kind: 'start', roster },
+    seat: 2,
+    inputs: {},
+    snapshot: {
+      kind: 'snapshot', t: 100, phase: 'Active', timer: 60,
+      players: [
+        { id: 'YOU', x: 0, y: 0, role: 'Human', state: 'Active', mode: 0 },
+        { id: 'A', x: 0, y: 0, role: 'Human', state: 'Out', mode: 0 },
+        { id: 'B', x: 0, y: 0, role: 'Human', state: 'Active', mode: 0 }
+      ],
+      switches: { active: 0, triggered: 0, on: [], spent: [], layout: [] },
+      gates: { openIndex: -1, openFloor: '', unlocked: false, layout: [] }
+    }
+  };
+  const scene = makeScene({
+    variables: { OnlineRoomActive: true, OnlineIsHost: false, RoundPhase: 'Active', RosterDealt: true, GameOver: false },
+    online
+  });
+  runFrame(scene);
+  assert.equal(scene.actors[0].values.get('State'), 'Out', 'the guest hides the seat too');
+});
+
 test('a host that is not seat 0 still has ten bodies and a remote seat', () => {
   /* The seat-0 phone left the lobby; seat 3 took the room over. The host's own
    * character is seat 3, and seat 0 borrows the actor that would have been the
