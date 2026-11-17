@@ -489,6 +489,13 @@ test('the Supabase settings are configuration, and are checked before use', () =
   assert.equal(good.configured, true);
   assert.equal(good.url, 'https://abcd1234.supabase.co', 'a trailing slash is dropped');
   assert.equal(good.host, 'abcd1234.supabase.co');
+  /* The names the Supabase dashboard uses work as well. */
+  const aliased = online.iceWolfOnlineConfig({
+    SUPABASE_URL: 'https://abcd1234.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig'
+  });
+  assert.equal(aliased.configured, true);
+  assert.equal(aliased.host, 'abcd1234.supabase.co');
   assert.equal(online.iceWolfOnlineSocketUrl(good),
     'wss://abcd1234.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig&vsn=1.0.0');
   assert.equal(online.iceWolfOnlineTopic('ABC234'), 'realtime:ice-wolf-room-ABC234');

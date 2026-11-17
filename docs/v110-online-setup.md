@@ -71,6 +71,9 @@ Supabase のプロジェクトを1つ作り、URL と anon key をアプリに�
 2. `localStorage['iceWolfOnlineConfigV1'] = '{"url":"…","key":"…"}'`
 3. GDevelop のシーン変数 `OnlineConfigUrl` / `OnlineConfigKey`
 
+（1と2は Supabase のダッシュボードと同じ名前 `SUPABASE_URL` / `SUPABASE_ANON_KEY` でも
+読めます。`{ SUPABASE_URL: '…', SUPABASE_ANON_KEY: '…' }`）
+
 ### 3-A. iOS の WebView に1行足す（おすすめ・配布物に含められる）
 
 `ios/App/App/public/index.html` の `<head>`（GDevelop のスクリプトより前）に:
