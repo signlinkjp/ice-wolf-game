@@ -19,6 +19,15 @@ are sums of sines with whole-number frequencies, which wrap by construction.
 Files are quantised to a 256-colour palette so fifteen of them stay small enough
 for the HTML5 build. Everything is deterministic (fixed seeds), so re-running
 the script produces the same bytes and the repository stays diff-stable.
+
+The floors are read, not looked at: they carry the toys, the ice, the switches
+and the rescue rings, so a floor keeps one calm tone, a wide seam at most and a
+local contrast of roughly 15-25 levels. The walls may be as characterful as the
+stage likes - they are the edges of the view, not the middle of it.
+
+Add --preview=/path/to/sheet.png (once per sheet) to write a labelled contact
+sheet beside the build artefacts; a name containing "aquarium" gets the aquarium
+panels plus 3x3 tilings, any other name gets all fifteen textures by stage.
 """
 
 from __future__ import annotations
@@ -26,6 +35,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import sys
 
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -239,135 +249,175 @@ def coral_branch(draw, x, y, height, colour, rng, depth=2):
 
 
 # ------------------------------------------------------------------- aquarium
-AQUA_GLASS = (14, 118, 150)
-
+AQUA_GLASS = (62, 176, 204)
 
 AQUA_WAVES = [(3, 1, 1.0, 0.0), (1, -3, 0.85, 1.9), (4, 2, 0.6, 0.7), (-2, 4, 0.5, 2.4)]
 
+# The colours of the shoal that lives on the tank glass: a clownfish orange, a
+# yellow tang, a pink anthias, a cyan damselfish and a violet wrasse.
+AQUA_FISH = [(255, 138, 62), (255, 214, 92), (248, 116, 148), (96, 226, 246), (176, 132, 246)]
 
-def build_aquarium_wall() -> Image.Image:
-    """A glass tank panel.
 
-    The tile is composed symmetrically about its middle line: a wall shows one
-    whole tile, and the engine maps one of the two broad faces with v reversed,
-    so anything with a top and a bottom would hang upside down on one side. The
-    sand, the coral and the light are therefore repeated at both edges and the
-    fish swim in the middle band.
+def symmetric_shade(image: Image.Image, strength: float) -> Image.Image:
+    """Darken both ends of the panel by the same amount.
+
+    The engine maps one of the two broad faces of a wall upside down, so every
+    top-or-bottom feature is drawn mirrored about the middle line: the panel
+    reads the same whichever way up the face is.
     """
-    rng = random.Random(1101)
-    image = vertical_gradient((22, 118, 152), (16, 92, 124))
-    shade_layer = vertical_gradient((0, 0, 0), (0, 0, 0))
-    shade_draw = ImageDraw.Draw(shade_layer)
+    layer = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
+    draw = ImageDraw.Draw(layer)
     for y in range(SIZE):
         f = abs(y / (SIZE - 1.0) - 0.5) * 2.0
-        tone = int(40 * f ** 2)
-        shade_draw.line([(0, y), (SIZE, y)], fill=(tone, tone, tone))
-    image = ImageChops.subtract(image, shade_layer)
-    # Shafts of light through the water, mirrored top and bottom.
-    shafts = blurred_ellipses((26, 104, 128),
-                              [(60, -40, 90, 260), (240, -60, 70, 300), (420, -30, 84, 280),
-                               (60, SIZE + 40, 90, 260), (240, SIZE + 60, 70, 300),
-                               (420, SIZE + 30, 84, 280)], 42)
-    image = ImageChops.add(image, shafts, scale=1.2)
-    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.30), (150, 238, 250), strength=0.35, blur=5.0)
-    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.17), (196, 248, 255), strength=0.28, blur=2.6)
-    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.26), (30, 110, 140), strength=0.28, blur=7)
+        tone = int(strength * f ** 2.0)
+        draw.line([(0, y), (SIZE, y)], fill=(tone, tone, tone))
+    return ImageChops.subtract(image, layer)
+
+
+def build_aquarium_wall() -> Image.Image:
+    """One pane of the great tank: bright aqua water, sun shafts, caustics, a
+    coral bank at both edges, and a shoal swimming through the middle band."""
+    rng = random.Random(1111)
+    image = vertical_gradient((96, 194, 216), (72, 174, 202))
+    image = symmetric_shade(image, 46)
+    # Sunlight falling through the water: wide soft shafts, mirrored top/bottom.
+    shafts = blurred_ellipses((96, 208, 228),
+                              [(66, -50, 86, 300), (250, -70, 66, 330), (432, -40, 78, 310),
+                               (66, SIZE + 50, 86, 300), (250, SIZE + 70, 66, 330), (432, SIZE + 40, 78, 310)], 44)
+    image = ImageChops.add(image, shafts, scale=1.22)
+    # Caustics: bright cell walls of light on the glass, then their soft shadows.
+    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.30), (196, 250, 255), strength=0.32, blur=6.0)
+    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.16), (240, 254, 255), strength=0.26, blur=2.4)
+    image = paint_field(image, wave_field(AQUA_WAVES, softness=0.30), (30, 138, 172), strength=0.20, blur=8.0)
 
     draw = ImageDraw.Draw(image)
-    # Sand banks at both edges of the panel, mirrored.
+    # The tank bed and its coral bank, mirrored onto both edges of the pane.
     for flip in (False, True):
         def y_of(v):
             return SIZE - v if flip else v
-        poly(draw, [(0, y_of(SIZE)), (0, y_of(SIZE - 34)), (110, y_of(SIZE - 50)),
-                    (230, y_of(SIZE - 30)), (350, y_of(SIZE - 48)), (450, y_of(SIZE - 32)),
-                    (SIZE, y_of(SIZE - 46)), (SIZE, y_of(SIZE))], fill=(214, 192, 142))
-        poly(draw, [(0, y_of(SIZE)), (0, y_of(SIZE - 16)), (160, y_of(SIZE - 24)),
-                    (320, y_of(SIZE - 12)), (SIZE, y_of(SIZE - 20)), (SIZE, y_of(SIZE))],
-             fill=(238, 222, 176))
-        for _ in range(20):
-            dot(draw, rng.uniform(0, SIZE), y_of(SIZE - rng.uniform(4, 26)), rng.choice((1, 2)),
-                (206, 186, 142))
-        # Coral and weed rooted in that bank.
-        for x, h, c in ((40, 62, (236, 116, 104)), (446, 54, (230, 126, 190)),
-                        (196, 44, (248, 170, 96)), (300, 50, (206, 108, 186))):
-            coral_branch(draw, x, y_of(SIZE - 22), h, c, rng)
-        for x in (110, 260, 372):
-            line(draw, [(x, y_of(SIZE - 20)), (x + 8, y_of(SIZE - 74)), (x + 2, y_of(SIZE - 112))],
-                 (46, 148, 110), width=5)
-            line(draw, [(x + 8, y_of(SIZE - 74)), (x + 26, y_of(SIZE - 98))], (52, 164, 118), width=4)
+        poly(draw, [(0, y_of(SIZE)), (0, y_of(SIZE - 46)), (104, y_of(SIZE - 62)),
+                    (232, y_of(SIZE - 40)), (356, y_of(SIZE - 58)), (452, y_of(SIZE - 42)),
+                    (SIZE, y_of(SIZE - 56)), (SIZE, y_of(SIZE))], fill=(236, 214, 162))
+        poly(draw, [(0, y_of(SIZE)), (0, y_of(SIZE - 24)), (150, y_of(SIZE - 34)),
+                    (318, y_of(SIZE - 18)), (SIZE, y_of(SIZE - 28)), (SIZE, y_of(SIZE))],
+             fill=(250, 236, 194))
+        for _ in range(24):
+            dot(draw, rng.uniform(0, SIZE), y_of(SIZE - rng.uniform(4, 34)), rng.choice((1, 2)),
+                (222, 200, 148))
+        # Coral heads in strong reef colours, and weed between them.
+        for x, h, c in ((36, 78, (255, 108, 96)), (452, 70, (238, 108, 190)),
+                        (156, 60, (255, 168, 72)), (300, 66, (214, 118, 236)),
+                        (392, 52, (255, 132, 108))):
+            coral_branch(draw, x, y_of(SIZE - 26), h, c, rng)
+        for x in (86, 244, 348, 480):
+            line(draw, [(x, y_of(SIZE - 24)), (x + 10, y_of(SIZE - 86)), (x + 3, y_of(SIZE - 128))],
+                 (38, 158, 112), width=6)
+            line(draw, [(x + 9, y_of(SIZE - 84)), (x + 30, y_of(SIZE - 112))], (52, 178, 122), width=4)
+            line(draw, [(x + 6, y_of(SIZE - 62)), (x - 16, y_of(SIZE - 92))], (44, 168, 118), width=4)
+        # A starfish and a shell on the sand.
+        sx, sy = (392, y_of(SIZE - 34))
+        for i in range(5):
+            a = math.radians(-90 + i * 72)
+            line(draw, [(sx, sy), (sx + math.cos(a) * 26, sy + math.sin(a) * 26)], (250, 148, 104), width=10)
+        dot(draw, sx, sy, 10, (255, 186, 138))
+        pie(draw, 60, y_of(SIZE - 30) - 14, 96, y_of(SIZE - 30) + 14, 180, 360, (240, 226, 200))
 
-    # The fish and the jellyfish live in the middle band, where the panel is
-    # water on either way up.
-    fish(draw, 150, 190, 112, (8, 44, 70), (178, 212, 226), s=1)
-    fish(draw, 360, 236, 88, (12, 56, 84), (170, 204, 220), s=-1)
-    fish(draw, 300, 300, 70, (26, 88, 116), (206, 232, 242), s=1)
-    jellyfish(draw, 250, 256, 24, (232, 156, 228), (255, 222, 250))
-    for _ in range(34):
-        bx = rng.uniform(22, SIZE - 22)
-        by = rng.uniform(60, SIZE - 60)
-        r = rng.choice((2, 3, 4, 5))
-        ring(draw, bx, by, r, outline=(208, 242, 252), width=1)
-        dot(draw, bx - 1, by - 1, max(1, r - 2), (242, 253, 255))
+    # The shoal: five fish of different colours, all in the middle band, so no
+    # fish is ever cut by the mirrored edges.
+    fish(draw, 128, 196, 118, AQUA_FISH[0], (255, 236, 214), s=1)
+    fish(draw, 372, 214, 104, AQUA_FISH[1], (255, 250, 210), s=-1)
+    fish(draw, 246, 262, 92, AQUA_FISH[2], (255, 224, 234), s=1)
+    fish(draw, 96, 296, 78, AQUA_FISH[3], (216, 252, 255), s=1)
+    fish(draw, 400, 300, 84, AQUA_FISH[4], (232, 220, 255), s=-1)
+    # Jellyfish drifting between them, with their ribbons.
+    jellyfish(draw, 300, 316, 26, (248, 176, 240), (255, 232, 252))
+    jellyfish(draw, 196, 158, 18, (212, 168, 250), (240, 226, 255))
 
-    # Tank mullions on the tile edges, so the panels join into one tank.
-    metal_frame(draw, (214, 246, 255), (8, 40, 60), (150, 232, 250), thickness=12)
+    # Bubbles: streams rising from the coral, and a scatter through the water.
+    for x0 in (58, 216, 336, 470):
+        for k in range(5):
+            bx = x0 + math.sin(k * 1.7 + x0) * 9
+            by = 120 + k * 52
+            r = 3 + (k % 3)
+            ring(draw, bx, by, r, outline=(236, 252, 255), width=2)
+            dot(draw, bx - 1, by - 1, max(1, r - 2), (250, 255, 255))
+    for _ in range(46):
+        bx = rng.uniform(20, SIZE - 20)
+        by = rng.uniform(40, SIZE - 40)
+        r = rng.choice((2, 3, 4))
+        ring(draw, bx, by, r, outline=(226, 250, 255), width=1)
+        dot(draw, bx - 1, by - 1, max(1, r - 2), (246, 254, 255))
+
+    # Tank mullions on the tile edges, so the panes join into one huge tank.
+    metal_frame(draw, (236, 252, 255), (10, 82, 108), (166, 240, 252), thickness=12)
     return image.filter(ImageFilter.SMOOTH)
 
 
 def build_aquarium_cap() -> Image.Image:
+    """The lit top of the tank wall: bright water with caustics and bubbles."""
     rng = random.Random(1102)
-    image = vertical_gradient((92, 212, 234), (26, 124, 160))
-    big = wave_field(AQUA_WAVES, softness=0.17)
+    image = vertical_gradient((138, 220, 238), (78, 176, 206))
+    big = wave_field(AQUA_WAVES, softness=0.15)
     fine = wave_field([(5, 2, 1.0, 0.2), (-3, 6, 0.8, 1.9), (7, 1, 0.6, 0.7)], softness=0.22)
-    image = paint_field(image, big, (168, 236, 250), strength=0.3, blur=8)
-    image = paint_field(image, big, (242, 254, 255), strength=0.6, blur=2.6)
-    image = paint_field(image, fine, (255, 255, 255), strength=0.22, blur=1.4)
+    image = paint_field(image, big, (196, 244, 252), strength=0.34, blur=8)
+    image = paint_field(image, big, (250, 255, 255), strength=0.5, blur=2.8)
+    image = paint_field(image, fine, (255, 255, 255), strength=0.2, blur=1.4)
 
     draw = ImageDraw.Draw(image)
     for _ in range(80):
-        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (246, 254, 255))
-    # A couple of leaves drifting on the surface.
+        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (250, 255, 255))
+    # A couple of small fish seen from above, and two leaves on the surface.
+    for x, y, s_, c in ((126, 170, 1, AQUA_FISH[1]), (352, 392, -1, AQUA_FISH[3])):
+        for dx in NEIGHBOURS:
+            for dy in NEIGHBOURS:
+                draw.ellipse([x + dx - 24, y + dy - 12, x + dx + 24, y + dy + 12], fill=c)
+        poly(draw, [(x - 20 * s_, y), (x - 40 * s_, y - 12), (x - 36 * s_, y), (x - 40 * s_, y + 12)],
+             fill=shade(c, -0.22))
+        dot(draw, x + 12 * s_, y - 3, 3, (250, 255, 255))
     for x, y, s in ((110, 168, 1), (340, 400, -1)):
         poly(draw, [(x, y), (x + 30 * s, y - 14), (x + 52 * s, y + 6), (x + 20 * s, y + 16)],
-             fill=(26, 112, 88))
-        line(draw, [(x, y), (x + 46 * s, y + 2)], (14, 78, 62), width=2)
-    metal_frame(draw, (222, 250, 255), (8, 40, 60), (176, 244, 254), thickness=12)
+             fill=(34, 138, 104))
+        line(draw, [(x, y), (x + 46 * s, y + 2)], (18, 96, 74), width=2)
+    metal_frame(draw, (238, 253, 255), (10, 82, 108), (186, 246, 255), thickness=12)
     return image.filter(ImageFilter.SMOOTH)
 
 
 def build_aquarium_floor() -> Image.Image:
+    """The tank bed: a calm, evenly lit sand-and-stone floor.
+
+    This is the surface the player reads the arena from, so it carries no fine
+    detail and no hard white ripples: large, soft caustic bands only, a shade
+    lighter than the walls, so the toys, the ice, the pads and the rescue rings
+    all stand out against it.
+    """
     rng = random.Random(1103)
-    image = vertical_gradient((32, 108, 130), (14, 66, 88))
-    # Sand patches, soft-edged.
-    image = blend_spots(image, (62, 120, 128),
-                        [(90, 120, 120, 70), (330, 300, 150, 84), (200, 430, 130, 76), (430, 90, 90, 60)],
-                        28, 0.5)
-    # The bright caustic ripples over the tank floor.
-    big = wave_field(AQUA_WAVES, softness=0.19)
-    fine = wave_field([(6, 2, 1.0, 0.5), (-4, 7, 0.8, 1.8), (8, 1, 0.6, 2.9)], softness=0.24)
-    image = paint_field(image, big, (86, 172, 186), strength=0.35, blur=8)
-    image = paint_field(image, big, (206, 250, 255), strength=0.45, blur=3.2)
-    image = paint_field(image, fine, (238, 255, 255), strength=0.2, blur=1.4)
+    image = vertical_gradient((140, 182, 194), (120, 162, 178))
+    # A hint of the sand bed under the water, then big soft caustic bands: low
+    # frequency and low contrast, so the toys never disappear into the floor.
+    image = blend_spots(image, (172, 174, 152), [(120, 140, 210, 170), (390, 380, 220, 180)], 70, 0.22)
+    big = wave_field([(2, 1, 1.0, 0.4), (1, -2, 0.8, 2.0), (3, 2, 0.5, 1.1)], softness=0.45)
+    image = paint_field(image, big, (182, 216, 220), strength=0.36, blur=22)
+    image = paint_field(image, big, (208, 236, 238), strength=0.14, blur=11)
+    # Cooler water shadow pooled at two corners, warm light at the others.
+    image = blend_spots(image, (112, 158, 172), [(96, 112, 190, 150), (392, 384, 200, 160)], 60, 0.32)
+    image = blend_spots(image, (188, 206, 196), [(392, 128, 170, 130), (120, 392, 160, 130)], 60, 0.26)
 
     draw = ImageDraw.Draw(image)
-    for _ in range(46):
-        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((2, 3, 4)),
-            rng.choice([(46, 100, 112), (70, 128, 136), (34, 84, 98)]))
-    # Sand ripples.
-    for i in range(5):
-        y0 = 40 + i * 100
-        pts = [(x, y0 + math.sin(x / 46.0 + i) * 12) for x in range(0, SIZE + 1, 16)]
-        line(draw, pts, (72, 132, 140), width=3)
-    # A starfish and two shells per tile.
-    sx, sy = 402, 140
-    for i in range(5):
-        a = math.radians(-90 + i * 72)
-        line(draw, [(sx, sy), (sx + math.cos(a) * 30, sy + math.sin(a) * 30)], (246, 138, 96), width=11)
-    dot(draw, sx, sy, 12, (252, 176, 126))
-    for cx, cy in ((110, 330), (300, 430)):
-        pie(draw, cx - 18, cy - 18, cx + 18, cy + 18, 180, 360, (226, 210, 184))
-        for k in range(4):
-            line(draw, [(cx - 14 + k * 9, cy), (cx - 16 + k * 9, cy - 16)], (198, 180, 154), width=2)
+    # A wide stone grid, one seam every half tile: structure without noise.
+    for t in (0, SIZE // 2):
+        line(draw, [(t, 0), (t, SIZE)], (120, 152, 162), width=3)
+        line(draw, [(0, t), (SIZE, t)], (120, 152, 162), width=3)
+        line(draw, [(t + 2, 0), (t + 2, SIZE)], (172, 202, 206), width=1)
+        line(draw, [(0, t + 2), (SIZE, t + 2)], (172, 202, 206), width=1)
+    # A handful of very soft pebbles, all within a few steps of the base tone.
+    for _ in range(14):
+        cx = rng.uniform(0, SIZE)
+        cy = rng.uniform(0, SIZE)
+        rx = rng.uniform(14, 30)
+        image = blend_spots(image, (132, 168, 176), [(cx, cy, rx, rx * 0.7)], 12, 0.24)
+    draw = ImageDraw.Draw(image)
+    for _ in range(30):
+        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 2)), (148, 180, 188))
     return image.filter(ImageFilter.SMOOTH)
 
 
@@ -477,50 +527,54 @@ def build_park_cap() -> Image.Image:
 
 
 def build_park_floor() -> Image.Image:
+    """The fairground floor: two close, warm tones and a soft neon grid.
+
+    Build 17's floor was a near-white / near-black checkerboard with confetti on
+    it, and the toys disappeared into it. Both cell tones now sit within a few
+    steps of each other, the confetti is gone, and only the grid still glows.
+    """
     rng = random.Random(2203)
-    cell = SIZE // 4
-    image = Image.new("RGB", (SIZE, SIZE), (96, 70, 136))
+    cell = SIZE // 2
+    image = Image.new("RGB", (SIZE, SIZE), (150, 128, 158))
     draw = ImageDraw.Draw(image)
-    for j in range(4):
-        for i in range(4):
-            dark = (j + i) % 2 == 0
-            colour = (92, 66, 138) if dark else (242, 228, 202)
+    for j in range(2):
+        for i in range(2):
+            colour = (146, 122, 156) if (i + j) % 2 == 0 else (166, 148, 158)
             x0, y0 = i * cell, j * cell
             box(draw, x0, y0, x0 + cell, y0 + cell, fill=colour)
-            poly(draw, [(x0 + 6, y0 + 6), (x0 + cell - 8, y0 + 6),
-                        (x0 + cell - 28, y0 + 32), (x0 + 6, y0 + 32)], fill=shade(colour, 0.16))
-            box(draw, x0 + 4, y0 + 4, x0 + cell - 4, y0 + cell - 4, fill=None,
-                outline=shade(colour, -0.2), width=1)
+    # Soft lamps thrown by the strings overhead, generous and low contrast.
+    image = blend_spots(image, (182, 156, 170), [(150, 140, 190, 150), (390, 380, 200, 160)], 56, 0.5)
+    image = blend_spots(image, (132, 112, 146), [(392, 130, 170, 140), (120, 380, 160, 130)], 56, 0.4)
+
+    draw = ImageDraw.Draw(image)
     # Grout lines on the cell boundaries (drawn wrapped, so the tile edge matches).
     for t in range(0, SIZE, cell):
-        line(draw, [(t, 0), (t, SIZE)], (62, 36, 84), width=4)
-        line(draw, [(0, t), (SIZE, t)], (62, 36, 84), width=4)
+        line(draw, [(t, 0), (t, SIZE)], (128, 108, 138), width=3)
+        line(draw, [(0, t), (SIZE, t)], (128, 108, 138), width=3)
 
-    # Neon strip along the tile grid.
+    # A thin neon strip along the tile grid, bright enough to read as a fair-
+    # ground but narrow enough not to compete with the players.
     neon = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
     neon_draw = ImageDraw.Draw(neon)
     for t in (0, SIZE // 2):
-        neon_draw.line([(0, t), (SIZE, t)], (255, 96, 196), width=6)
-        neon_draw.line([(t, 0), (t, SIZE)], (255, 96, 196), width=6)
-    image = ImageChops.add(image, wrapped_blur(neon, 9), scale=1.25)
+        neon_draw.line([(0, t), (SIZE, t)], (255, 96, 196), width=4)
+        neon_draw.line([(t, 0), (t, SIZE)], (255, 96, 196), width=4)
+    image = ImageChops.add(image, wrapped_blur(neon, 8), scale=1.1)
     draw = ImageDraw.Draw(image)
     for t in (0, SIZE // 2):
-        line(draw, [(0, t), (SIZE, t)], (255, 196, 238), width=2)
-        line(draw, [(t, 0), (t, SIZE)], (255, 196, 238), width=2)
+        line(draw, [(0, t), (SIZE, t)], (255, 176, 232), width=2)
+        line(draw, [(t, 0), (t, SIZE)], (255, 176, 232), width=2)
 
-    # Painted star and confetti, the fairground floor.
-    sx, sy, r = 330, 120, 34
+    # One painted star, quiet, the fairground's own mark.
+    sx, sy, r = 330, 130, 40
     star = []
     for i in range(10):
         a = math.radians(-90 + i * 36)
         rr = r if i % 2 == 0 else r * 0.45
         star.append((sx + math.cos(a) * rr, sy + math.sin(a) * rr))
-    poly(draw, star, fill=(255, 232, 140))
-    for _ in range(80):
-        x = rng.uniform(0, SIZE)
-        y = rng.uniform(0, SIZE)
-        c = rng.choice([(255, 232, 140), (120, 255, 224), (255, 128, 196), (252, 252, 252)])
-        box(draw, x, y, x + rng.choice((4, 5, 7)), y + rng.choice((4, 5, 7)), fill=c)
+    poly(draw, star, fill=(206, 190, 150))
+    for _ in range(24):
+        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 2)), (176, 160, 168))
     return image.filter(ImageFilter.SMOOTH)
 
 
@@ -626,35 +680,35 @@ def build_lodge_cap() -> Image.Image:
 
 def build_lodge_floor() -> Image.Image:
     rng = random.Random(3303)
-    image = Image.new("RGB", (SIZE, SIZE), (126, 78, 42))
+    image = Image.new("RGB", (SIZE, SIZE), (146, 100, 60))
     draw = ImageDraw.Draw(image)
     rows = 8
     height = SIZE // rows
     for row in range(rows):
         y0 = row * height
-        base = shade((158, 106, 60), rng.uniform(-0.16, 0.12))
+        base = shade((180, 130, 82), rng.uniform(-0.10, 0.08))
         for y in range(y0, y0 + height):
             f = (y - y0) / float(height)
             for dy in NEIGHBOURS:
                 draw.line([(0, y0 + dy + (y - y0)), (SIZE, y0 + dy + (y - y0))],
                           fill=shade(base, 0.10 - abs(f - 0.35) * 0.32))
         for dy in NEIGHBOURS:
-            draw.line([(0, y0 + dy), (SIZE, y0 + dy)], fill=(54, 32, 16), width=4)
-            draw.line([(0, y0 + dy + 4), (SIZE, y0 + dy + 4)], fill=(198, 150, 100), width=1)
+            draw.line([(0, y0 + dy), (SIZE, y0 + dy)], fill=(104, 70, 42), width=3)
+            draw.line([(0, y0 + dy + 3), (SIZE, y0 + dy + 3)], fill=(214, 170, 118), width=1)
         offset = (row % 2) * 140
         for bx in (offset + 90, offset + 350):
             for dy in NEIGHBOURS:
-                draw.line([(bx, y0 + dy), (bx, y0 + height + dy)], fill=(54, 32, 16), width=3)
-            dot(draw, bx + 10, y0 + height // 2, 2, (208, 162, 110))
-            dot(draw, bx - 10, y0 + height // 2, 2, (208, 162, 110))
-        for _ in range(4):
+                draw.line([(bx, y0 + dy), (bx, y0 + height + dy)], fill=(104, 70, 42), width=2)
+            dot(draw, bx + 10, y0 + height // 2, 2, (216, 172, 120))
+            dot(draw, bx - 10, y0 + height // 2, 2, (216, 172, 120))
+        for _ in range(2):
             gx = rng.uniform(0, SIZE)
             gy = y0 + rng.uniform(height * 0.25, height * 0.8)
             line(draw, [(gx, gy), (gx + rng.uniform(50, 170), gy + rng.uniform(-4, 4))],
                  shade(base, -0.26), width=1)
         for _ in range(1):
             kx = rng.uniform(30, SIZE - 30)
-            for r, c in ((11, (80, 46, 24)), (6, (48, 28, 14))):
+            for r, c in ((9, (120, 82, 48)), (5, (100, 66, 38))):
                 for dx in NEIGHBOURS:
                     draw.ellipse([kx + dx - r, y0 + height * 0.45 - r * 0.7,
                                   kx + dx + r, y0 + height * 0.45 + r * 0.7], fill=c)
@@ -769,26 +823,26 @@ def build_school_cap() -> Image.Image:
 
 def build_school_floor() -> Image.Image:
     rng = random.Random(4403)
-    image = Image.new("RGB", (SIZE, SIZE), (146, 100, 58))
+    image = Image.new("RGB", (SIZE, SIZE), (168, 124, 82))
     draw = ImageDraw.Draw(image)
     rows = 6
     height = SIZE // rows
     for row in range(rows):
         y0 = row * height
-        base = shade((164, 116, 68), rng.uniform(-0.18, 0.10))
+        base = shade((188, 142, 96), rng.uniform(-0.10, 0.08))
         for y in range(y0, y0 + height):
             f = (y - y0) / float(height)
             for dy in NEIGHBOURS:
                 draw.line([(0, y0 + dy + (y - y0)), (SIZE, y0 + dy + (y - y0))],
                           fill=shade(base, 0.10 - abs(f - 0.4) * 0.3))
         for dy in NEIGHBOURS:
-            draw.line([(0, y0 + dy), (SIZE, y0 + dy)], fill=(66, 42, 22), width=4)
-            draw.line([(0, y0 + dy + 4), (SIZE, y0 + dy + 4)], fill=(200, 158, 110), width=1)
+            draw.line([(0, y0 + dy), (SIZE, y0 + dy)], fill=(118, 82, 52), width=3)
+            draw.line([(0, y0 + dy + 3), (SIZE, y0 + dy + 3)], fill=(216, 174, 126), width=1)
         offset = (row % 2) * 170
         for bx in (offset + 60, offset + 300, offset + 470):
             for dy in NEIGHBOURS:
-                draw.line([(bx, y0 + dy), (bx, y0 + height + dy)], fill=(66, 42, 22), width=3)
-        for _ in range(6):
+                draw.line([(bx, y0 + dy), (bx, y0 + height + dy)], fill=(118, 82, 52), width=2)
+        for _ in range(3):
             gx = rng.uniform(0, SIZE)
             gy = y0 + rng.uniform(height * 0.2, height * 0.85)
             line(draw, [(gx, gy), (gx + rng.uniform(40, 150), gy + rng.uniform(-3, 3))],
@@ -797,13 +851,10 @@ def build_school_floor() -> Image.Image:
             sx = rng.uniform(0, SIZE)
             sy = y0 + rng.uniform(6, height - 6)
             line(draw, [(sx, sy), (sx + rng.uniform(14, 40), sy)], (210, 194, 174), width=2)
-    for _ in range(70):
-        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (206, 196, 178))
-    for cx, cy, r in ((120, 300, 34), (400, 120, 22)):
-        for dx in NEIGHBOURS:
-            for dy in NEIGHBOURS:
-                draw.ellipse([cx + dx - r, cy + dy - r * 0.5, cx + dx + r, cy + dy + r * 0.5],
-                             fill=(106, 82, 58))
+    for _ in range(40):
+        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (196, 160, 118))
+    # Scuffed varnish, soft, so the floor still reads as a school corridor.
+    image = blend_spots(image, (150, 112, 74), [(120, 300, 150, 90), (400, 120, 120, 70)], 34, 0.35)
     return image.filter(ImageFilter.SMOOTH)
 
 
@@ -813,30 +864,30 @@ STEEL = (58, 72, 90)
 
 def build_space_wall() -> Image.Image:
     rng = random.Random(5501)
-    image = Image.new("RGB", (SIZE, SIZE), (44, 56, 72))
+    image = Image.new("RGB", (SIZE, SIZE), (66, 80, 100))
     draw = ImageDraw.Draw(image)
     for j in range(2):
         for i in range(2):
             x0, y0 = i * 256, j * 256
-            box(draw, x0 + 4, y0 + 4, x0 + 251, y0 + 251, fill=(52, 66, 84))
+            box(draw, x0 + 4, y0 + 4, x0 + 251, y0 + 251, fill=(78, 94, 116))
             # Brushed metal streaks.
             for _ in range(30):
                 sx = rng.uniform(x0 + 14, x0 + 240)
                 sy = rng.uniform(y0 + 14, y0 + 236)
                 line(draw, [(sx, sy), (sx + rng.uniform(24, 96), sy)],
-                     shade((52, 66, 84), rng.uniform(-0.24, 0.3)), width=1)
+                     shade((78, 94, 116), rng.uniform(-0.18, 0.26)), width=1)
             box(draw, x0 + 4, y0 + 4, x0 + 251, y0 + 251, fill=None, outline=(126, 150, 176), width=3)
             box(draw, x0 + 11, y0 + 11, x0 + 244, y0 + 244, fill=None, outline=(22, 30, 40), width=3)
-            box(draw, x0 + 4, y0 + 236, x0 + 251, y0 + 251, fill=(30, 40, 52))
-            box(draw, x0 + 4, y0 + 4, x0 + 251, y0 + 8, fill=(84, 104, 128))
-            box(draw, x0 + 4, y0 + 247, x0 + 251, y0 + 251, fill=(84, 104, 128))
+            box(draw, x0 + 4, y0 + 236, x0 + 251, y0 + 251, fill=(48, 60, 76))
+            box(draw, x0 + 4, y0 + 4, x0 + 251, y0 + 8, fill=(112, 132, 158))
+            box(draw, x0 + 4, y0 + 247, x0 + 251, y0 + 251, fill=(112, 132, 158))
             # Every panel carries the same details, centred on its own middle, so
             # the tile reads the same upside down.
             for sign in (-1, 1):
                 for k in range(4):
                     gy = y0 + 128 + sign * (58 + k * 16)
-                    box(draw, x0 + 64, gy, x0 + 192, gy + 7, fill=(22, 30, 40))
-                    box(draw, x0 + 64, gy + 7, x0 + 192, gy + 10, fill=(74, 92, 114))
+                    box(draw, x0 + 64, gy, x0 + 192, gy + 7, fill=(40, 50, 64))
+                    box(draw, x0 + 64, gy + 7, x0 + 192, gy + 10, fill=(98, 116, 140))
             cx, cy = x0 + 128, y0 + 128
             for k in range(6):
                 a = math.radians(60 * k)
@@ -873,16 +924,16 @@ def build_space_wall() -> Image.Image:
 
 def build_space_cap() -> Image.Image:
     rng = random.Random(5502)
-    image = Image.new("RGB", (SIZE, SIZE), (74, 88, 108))
+    image = Image.new("RGB", (SIZE, SIZE), (98, 112, 132))
     draw = ImageDraw.Draw(image)
     # Diamond tread plate from above.
     for j in range(0, SIZE, 32):
         for i in range(0, SIZE, 32):
             off = 16 if (i // 32 + j // 32) % 2 else 0
             poly(draw, [(i + 2 + off, j + 16), (i + 16 + off, j + 2),
-                        (i + 30 + off, j + 16), (i + 16 + off, j + 30)], fill=(44, 54, 70))
+                        (i + 30 + off, j + 16), (i + 16 + off, j + 30)], fill=(64, 76, 94))
             poly(draw, [(i + 6 + off, j + 16), (i + 16 + off, j + 6),
-                        (i + 26 + off, j + 16), (i + 16 + off, j + 26)], fill=(112, 130, 152))
+                        (i + 26 + off, j + 16), (i + 16 + off, j + 26)], fill=(132, 150, 172))
     for j in range(0, SIZE, 256):
         for i in range(0, SIZE, 256):
             box(draw, i + 2, j + 2, i + 253, j + 253, fill=None, outline=(26, 34, 44), width=5)
@@ -911,36 +962,40 @@ def build_space_cap() -> Image.Image:
 
 def build_space_floor() -> Image.Image:
     rng = random.Random(5503)
-    image = Image.new("RGB", (SIZE, SIZE), (44, 54, 68))
+    image = Image.new("RGB", (SIZE, SIZE), (80, 94, 112))
     draw = ImageDraw.Draw(image)
-    # Grated deck: staggered slots over a dark void, with a raised frame.
-    for j in range(0, SIZE, 32):
-        for i in range(0, SIZE, 64):
-            off = 32 if (j // 32) % 2 else 0
+    # Grated deck: staggered slots, lifted out of the void so the deck reads as
+    # a floor and the toys on it stay readable.
+    for j in range(0, SIZE, 64):
+        for i in range(0, SIZE, 128):
+            off = 64 if (j // 64) % 2 else 0
             for k in range(2):
-                x0 = i + off + k * 26
-                box(draw, x0, j + 6, x0 + 18, j + 26, fill=(14, 20, 28))
-                box(draw, x0, j + 6, x0 + 18, j + 9, fill=(78, 94, 114))
-                box(draw, x0, j + 25, x0 + 18, j + 26, fill=(26, 34, 44))
-        line(draw, [(0, j), (SIZE, j)], (78, 94, 114), width=3)
-        line(draw, [(0, j + 3), (SIZE, j + 3)], (20, 28, 38), width=2)
+                x0 = i + off + k * 52
+                box(draw, x0, j + 12, x0 + 36, j + 52, fill=(58, 71, 88))
+                box(draw, x0, j + 12, x0 + 36, j + 18, fill=(96, 112, 134))
+                box(draw, x0, j + 50, x0 + 36, j + 52, fill=(62, 74, 92))
+        line(draw, [(0, j), (SIZE, j)], (96, 112, 134), width=3)
+        line(draw, [(0, j + 3), (SIZE, j + 3)], (56, 68, 84), width=2)
     for i in range(0, SIZE, 128):
-        line(draw, [(i, 0), (i, SIZE)], (84, 100, 122), width=3)
-        line(draw, [(i + 3, 0), (i + 3, SIZE)], (22, 30, 40), width=2)
+        line(draw, [(i, 0), (i, SIZE)], (100, 118, 140), width=3)
+        line(draw, [(i + 3, 0), (i + 3, SIZE)], (58, 70, 88), width=2)
     seam = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
     seam_draw = ImageDraw.Draw(seam)
     for t in (0, 128, 256, 384):
-        seam_draw.line([(0, t), (SIZE, t)], (30, 190, 224), width=6)
-    image = ImageChops.add(image, wrapped_blur(seam, 8), scale=1.3)
+        seam_draw.line([(0, t), (SIZE, t)], (26, 150, 178), width=5)
+    image = ImageChops.add(image, wrapped_blur(seam, 8), scale=1.15)
     draw = ImageDraw.Draw(image)
-    for i in range(6):
-        x0 = 268 + i * 22
-        poly(draw, [(x0, 396), (x0 + 14, 396), (x0 - 6, 448), (x0 - 20, 448)], fill=(248, 156, 52))
+    for t in (0, 128, 256, 384):
+        line(draw, [(0, t), (SIZE, t)], (128, 206, 224), width=2)
+    # One hazard mark, small and quiet.
+    for i in range(4):
+        x0 = 300 + i * 18
+        poly(draw, [(x0, 300), (x0 + 12, 300), (x0 - 4, 340), (x0 - 16, 340)], fill=(196, 138, 62))
     for bx in (16, 240, 272, 496):
-        dot(draw, bx, 16, 5, (176, 196, 214))
-        dot(draw, bx, 496, 5, (176, 196, 214))
-    for _ in range(50):
-        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (90, 108, 128))
+        dot(draw, bx, 16, 4, (150, 168, 188))
+        dot(draw, bx, 496, 4, (150, 168, 188))
+    for _ in range(30):
+        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 1, 2)), (104, 122, 144))
     return image.filter(ImageFilter.SMOOTH)
 
 
@@ -971,10 +1026,62 @@ def save(image: Image.Image, name: str) -> None:
     print(f"{name}: {image.size[0]}x{image.size[1]} {os.path.getsize(path) // 1024} KB")
 
 
+STAGE_ORDER = ["aquarium", "park", "lodge", "school", "space"]
+
+
+def contact_sheet(images, columns, labels, cell=512, bar=34, pad=10) -> Image.Image:
+    """A labelled grid of textures, so the whole set can be looked at at once."""
+    rows = (len(images) + columns - 1) // columns
+    width = columns * (cell + pad) + pad
+    height = rows * (cell + bar + pad) + pad
+    sheet = Image.new("RGB", (width, height), (14, 18, 24))
+    draw = ImageDraw.Draw(sheet)
+    for index, image in enumerate(images):
+        row, column = divmod(index, columns)
+        x = pad + column * (cell + pad)
+        y = pad + row * (cell + bar + pad)
+        draw.rectangle([x, y, x + cell, y + bar - 4], fill=(24, 32, 42))
+        draw.text((x + 8, y + 9), labels[index], fill=(214, 232, 244))
+        sheet.paste(image.resize((cell, cell), Image.LANCZOS), (x, y + bar))
+    return sheet
+
+
+def tiled(image: Image.Image, count: int = 3) -> Image.Image:
+    """The texture laid out `count` times each way, to check it tiles seamlessly."""
+    out = Image.new("RGB", (SIZE * count, SIZE * count))
+    for j in range(count):
+        for i in range(count):
+            out.paste(image, (i * SIZE, j * SIZE))
+    return out
+
+
+def preview(paths) -> None:
+    """Write the review sheets next to the build artefacts (not into assets/)."""
+    aquarium = [BUILDERS[name]() for name in ("wall_aquarium.png", "cap_aquarium.png", "floor_aquarium.png")]
+    aqua_labels = ["AQUARIUM wall", "AQUARIUM wall top", "AQUARIUM floor"]
+    for path in paths:
+        if "aquarium" in os.path.basename(path):
+            images = aquarium + [tiled(aquarium[0]), tiled(aquarium[2])]
+            labels = aqua_labels + ["wall, tiled 3x3", "floor, tiled 3x3"]
+            contact_sheet(images, 2, labels, cell=420).save(path)
+        else:
+            images = []
+            labels = []
+            for stage in STAGE_ORDER:
+                for kind in ("wall", "cap", "floor"):
+                    images.append(BUILDERS[f"{kind}_{stage}.png"]())
+                    labels.append(f"{stage.upper()} {kind}")
+            contact_sheet(images, 3, labels, cell=300).save(path)
+        print(f"preview: {path}")
+
+
 def main() -> None:
     os.makedirs(ASSETS, exist_ok=True)
+    previews = [arg.split("=", 1)[1] for arg in sys.argv[1:] if arg.startswith("--preview=")]
     for name, builder in BUILDERS.items():
         save(builder(), name)
+    if previews:
+        preview(previews)
 
 
 if __name__ == "__main__":

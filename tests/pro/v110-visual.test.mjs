@@ -169,8 +169,20 @@ const makeHarness = () => {
       this.tag = tag;
     }
   };
+  const vector = (x = 0, y = 0, z = 0) => ({
+    x, y, z,
+    set(a, b, c) { this.x = a; this.y = b; this.z = c; return this; }
+  });
   class Mesh {
-    constructor(geometry, material) { this.geometry = geometry; this.material = material; this.children = []; }
+    constructor(geometry, material) {
+      this.geometry = geometry;
+      this.material = material;
+      this.children = [];
+      this.position = vector();
+      this.rotation = vector();
+      this.scale = vector(1, 1, 1);
+      this.name = '';
+    }
   }
   const THREE = {
     Vector3, Color, Matrix4, BufferAttribute, BufferGeometry, Mesh,
@@ -223,7 +235,7 @@ const makeHarness = () => {
   const renderer = { getThreeScene: () => scene, getThreeGroup: () => ({ add() {} }), getThreeCamera: () => null };
 
   const values = new Map();
-  const state = { background: null };
+  const state = { background: null, seconds: 1.25 };
   const vars = (name) => ({
     getAsString: () => String(values.get(name) ?? ''),
     setString: (value) => { values.set(name, String(value)); },
@@ -234,18 +246,45 @@ const makeHarness = () => {
   });
   const runtimeScene = {
     getVariables: () => ({ get: vars }),
+    getGame: () => (state.image ? { getImageManager: () => state.image } : undefined),
     getObjects: (name) => (name === 'Wall' ? walls : name === 'Floor' ? floors : []),
     getLayer: () => ({ getRenderer: () => renderer }),
     setBackgroundColor: (r, g, b) => { state.background = [r, g, b]; }
   };
   const context = vm.createContext({
     THREE, runtimeScene,
-    gdjs: { evtTools: { runtimeScene: { getElapsedTimeInSeconds: () => 1.25 } } },
-    Math, String, Number, Array, Object, Float32Array
+    gdjs: { evtTools: { runtimeScene: { getElapsedTimeInSeconds: () => state.seconds } } },
+    Math, String, Number, Array, Object, Float32Array, Promise, console
   });
   const source = artBlock();
   const run = (label) => vm.runInContext(`(function(){\n${source}\n})()`, context, { filename: `game.json#stage art ${label}` });
   return { run, scene, values, state, walls, floors, placements };
+};
+
+/* A stand-in image manager, shaped like gdjs's own: it holds a texture per
+ * resource name once the resource is loaded, answers with a placeholder before
+ * that, and hands the block a promise from loadResource. */
+const makeImageManager = () => {
+  const placeholder = { name: 'placeholder' };
+  const loaded = new Set();
+  const requested = [];
+  const waiting = [];
+  return {
+    placeholder,
+    requested,
+    loaded,
+    getInvalidPIXITexture: () => placeholder,
+    getPIXITexture: (name) => (loaded.has(name) ? { name } : placeholder),
+    loadResource: (name) => {
+      requested.push(name);
+      return new Promise((resolve) => waiting.push(() => { loaded.add(name); resolve(); }));
+    },
+    finish: () => {
+      const jobs = waiting.splice(0, waiting.length);
+      for (const job of jobs) job();
+      return jobs.length;
+    }
+  };
 };
 
 /* --------------------------------------------------------------------- tests */
@@ -348,7 +387,8 @@ test('all six stages paint for real, and Classic comes back exactly as it was', 
     assert.equal(harness.walls[0].__tileScale, 0.3125, `${stage} sets the wall tile scale`);
     assert.deepEqual(harness.floors[0].__faces.top, `floor_${stage}.png`, `${stage} textures the floor`);
     assert.equal(harness.floors[0].__tileScale, 0.5, `${stage} sets the floor tile scale`);
-    assert.equal(harness.scene.children.length, 2, `${stage} dresses the arena in two draw calls`);
+    assert.equal(harness.scene.children.length, 2 + harness.values.get('StageArtSwimmers'),
+      `${stage} dresses the arena in two draw calls plus its swimmers`);
     assert.ok(harness.scene.fog, `${stage} sets the fog`);
     assert.notDeepEqual(harness.state.background, [11, 22, 38], `${stage} sets its own sky`);
   }
@@ -361,6 +401,7 @@ test('all six stages paint for real, and Classic comes back exactly as it was', 
   harness.run('classic');
   assert.equal(harness.values.get('StageArtMode'), 'classic', 'Classic is the 1.0.0 look');
   assert.equal(harness.values.get('StageArtProps'), 0, 'Classic has no props');
+  assert.equal(harness.values.get('StageArtSwimmers'), 0, 'Classic has no population');
   assert.equal(harness.values.get('StageArtFog'), false, 'Classic has no fog');
   assert.deepEqual(wallFaces(), {
     front: 'wall_frostlab.png', back: 'wall_frostlab.png', left: 'wall_frostlab.png',
@@ -398,7 +439,8 @@ test('the block only runs again when the stage really changes', () => {
   harness.run('space again');
   assert.equal(harness.values.get('StageArtVertices'), first, 'the second frame reuses the built stage');
   assert.equal(harness.placements.length, 0, 'no geometry is rebuilt on an unchanged frame');
-  assert.equal(harness.scene.children.length, 2, 'the two draw calls stay in place');
+  assert.equal(harness.scene.children.length, 2 + harness.values.get('StageArtSwimmers'),
+    'the two draw calls stay in place, with the population');
 });
 
 test('the SETTINGS camera row is in Japanese, in all twelve languages', () => {
@@ -421,4 +463,106 @@ test('the SETTINGS camera row is in Japanese, in all twelve languages', () => {
   const menu = groupCode('v0.6.5 Production Round Start + Main Menu');
   assert.ok(menu.includes('data-i18n="settings.camera"'), 'the SETTINGS row reads settings.camera');
   assert.ok(menu.includes('data-i18n="settings.movementValue"'), 'the movement row reads settings.movementValue');
+});
+
+test('the aquarium has a population, and it swims from frame to frame', () => {
+  const harness = makeHarness();
+  harness.run('start');
+  harness.values.set('StageApplied', 'aquarium');
+  harness.state.seconds = 1;
+  harness.run('aquarium');
+  const swimmers = harness.scene.children.filter((child) => child.name === 'iceWolfV110Shoal'
+    || child.name === 'iceWolfV110Jelly');
+  assert.equal(swimmers.length, 5, 'two shoals and three jellyfish');
+  assert.equal(harness.values.get('StageArtSwimmers'), 5, 'the block reports five swimmers');
+  assert.equal(swimmers.filter((mesh) => mesh.name === 'iceWolfV110Shoal').length, 2, 'two shoals');
+  assert.equal(swimmers.filter((mesh) => mesh.name === 'iceWolfV110Jelly').length, 3, 'three jellyfish');
+  for (const mesh of swimmers) {
+    assert.ok(mesh.frustumCulled === false, 'a swimmer is never culled by a stale bound');
+    assert.ok(mesh.position.z > 160, `a swimmer floats above the wall tops (z=${mesh.position.z})`);
+    assert.ok(mesh.position.x > -760 && mesh.position.x < 800, 'a swimmer stays over the 1F arena');
+    assert.ok(mesh.position.y > -780 && mesh.position.y < 800, 'a swimmer stays over the 1F arena');
+  }
+
+  const before = swimmers.map((mesh) => [mesh.position.x, mesh.position.y]);
+  harness.state.seconds = 4.5;
+  harness.run('four seconds later');
+  const after = swimmers.map((mesh) => [mesh.position.x, mesh.position.y]);
+  for (let i = 0; i < swimmers.length; i += 1) {
+    const moved = Math.hypot(after[i][0] - before[i][0], after[i][1] - before[i][1]);
+    assert.ok(moved > 1, `swimmer ${i} moved (${moved.toFixed(2)}px)`);
+  }
+  /* The stalkers are decoration: the arena is still the same arena. */
+  assert.equal(harness.walls.every((wall) => wall.getY() > 10000 || wall.__faces.front), true,
+    'every wall is still textured');
+  assert.equal(harness.scene.fog !== null, true, 'the air is still the aquarium air');
+});
+
+test('a stage is not painted until its three textures are in the image manager', async () => {
+  /* Build 17's bug: setFaceResourceName was called on a PNG the image manager
+   * had never loaded, so gdjs answered with its purple placeholder. The block
+   * must ask the loader first, paint only when the PNGs are in memory, and fall
+   * back to the 1.0.0 surfaces if they never arrive. */
+  const harness = makeHarness();
+  const manager = makeImageManager();
+  harness.run('start');
+  harness.values.set('StageApplied', 'aquarium');
+  harness.state.image = manager;
+
+  harness.state.seconds = 1;
+  harness.run('waiting for the PNGs');
+  assert.equal(harness.values.get('StageArtPending'), 'aquarium', 'the block reports the wait');
+  assert.equal(harness.values.get('StageArtApplied'), 'classic',
+    'the stage is not claimed as applied while its PNGs are missing');
+  assert.equal(harness.walls[0].__faces.front, 'wall_frostlab.png',
+    'the arena keeps the loaded frost lab while the PNGs arrive');
+  assert.deepEqual([...manager.requested].sort(),
+    ['cap_aquarium.png', 'floor_aquarium.png', 'wall_aquarium.png'],
+    'the block asks the game loader for the three PNGs');
+  assert.equal(harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV110Shoal').length, 0,
+    'no swimmer is built for a stage that is not painted yet');
+
+  manager.finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  harness.state.seconds = 2;
+  harness.run('PNGs in memory');
+  assert.equal(harness.values.get('StageArtMode'), 'textured', 'the stage is painted once they are in memory');
+  assert.equal(harness.values.get('StageArtApplied'), 'aquarium', 'the aquarium art is applied');
+  assert.deepEqual(harness.walls[0].__faces, {
+    front: 'wall_aquarium.png', back: 'wall_aquarium.png', left: 'wall_aquarium.png',
+    right: 'wall_aquarium.png', top: 'cap_aquarium.png', bottom: 'cap_aquarium.png'
+  }, 'and only now are the faces named');
+  assert.equal(harness.values.get('StageArtSwimmers'), 5, 'and the population arrives with it');
+});
+
+test('a stage whose PNGs never arrive falls back to the frost lab, never to the placeholder', async () => {
+  const harness = makeHarness();
+  const manager = makeImageManager();
+  harness.run('start');
+  harness.values.set('StageApplied', 'space');
+  harness.state.image = manager;
+
+  harness.state.seconds = 1;
+  harness.run('waiting');
+  assert.equal(manager.requested.length, 3, 'the loader was asked once per PNG');
+
+  harness.state.seconds = 12;
+  harness.run('the wait is over');
+  assert.equal(harness.values.get('StageArtMode'), 'fallback', 'the stage falls back');
+  assert.equal(harness.values.get('StageArtDegraded'), true, 'and says so');
+  assert.deepEqual(harness.walls[0].__faces, {
+    front: 'wall_frostlab.png', back: 'wall_frostlab.png', left: 'wall_frostlab.png',
+    right: 'wall_frostlab.png', top: 'wall_frostlab.png', bottom: 'wall_frostlab.png'
+  }, 'the 1.0.0 surfaces, never the purple G');
+  assert.equal(harness.floors[0].__faces.top, 'floor_frostlab.png', 'the floor too');
+  assert.ok(harness.scene.fog, 'the stage still brings its air');
+  assert.equal(manager.requested.length, 3, 'a failed PNG is not requested again every frame');
+
+  /* A late arrival still upgrades the arena to the real textures. */
+  manager.finish();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  harness.state.seconds = 13;
+  harness.run('late PNGs');
+  assert.equal(harness.values.get('StageArtMode'), 'textured', 'the real textures win in the end');
+  assert.equal(harness.walls[0].__faces.front, 'wall_space.png', 'and are really used');
 });
