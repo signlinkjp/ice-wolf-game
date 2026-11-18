@@ -103,7 +103,13 @@ snapshot sync) and Phase 2c (guest designation relay, host-loss recovery, one wi
 reason everywhere) on `feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`,
 `docs/v110-phase1-stages.md`, `docs/v110-online-setup.md`,
 `docs/v110-release-notes.md`).
-The online rooms need one external step: a Supabase project URL and its anon key
-(`docs/v110-online-setup.md` §3). Until they are set the game says so and the
-lobby runs as a one-phone practice room; no socket is ever opened without them.
+The online rooms run on the Supabase project **`games-realtime`**
+(`siivncidktbuyqwsjeqd`): the TestFlight build writes the project URL and its
+publishable key into `window.ICE_WOLF_ONLINE_CONFIG` at build time
+(`scripts/ios/inject-online-config.py`, `docs/v110-online-setup.md` §3-A), so a
+shipped build has online rooms with nothing to set up. `game.json` itself stays
+configuration-free, and the lobby falls back to a one-phone practice room when
+no settings are present (opening the project in the GDevelop editor, for example).
+The wire itself is checked live against that project with
+`tools/supabase-realtime-game-smoke.mjs` (join, Broadcast, Presence, leave).
 Version history and the verification of each step live in `docs/`.

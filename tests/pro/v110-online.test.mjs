@@ -19,11 +19,13 @@
 //     Realtime adapter driven frame by frame through a fake WebSocket.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 
-import { groupCode, readGame, createI18n, LANGS, KANA } from './helpers.mjs';
+import { groupCode, readGame, createI18n, LANGS, KANA, repoRoot } from './helpers.mjs';
 
 /* Values that come out of the vm block carry that realm's Object and Array
  * prototypes, so compare them as plain data. */
@@ -501,6 +503,71 @@ test('the Supabase settings are configuration, and are checked before use', () =
   assert.equal(online.iceWolfOnlineTopic('ABC234'), 'realtime:ice-wolf-room-ABC234');
 });
 
+/* The build puts the real project into the exported index.html, where
+ * readConfig() looks first. game.json stays free of configuration (the test
+ * above this one proves it), and the phone still has online rooms out of the box. */
+test('the built index.html carries the production project in window.ICE_WOLF_ONLINE_CONFIG', (t) => {
+  const script = path.join(repoRoot, 'scripts', 'ios', 'inject-online-config.py');
+  assert.ok(fs.existsSync(script), 'scripts/ios/inject-online-config.py exists');
+  let python = null;
+  for (const candidate of ['python3', 'python']) {
+    try {
+      execFileSync(candidate, ['--version'], { stdio: 'ignore' });
+      python = candidate;
+      break;
+    } catch (_) { /* try the next interpreter */ }
+  }
+  if (!python) {
+    t.skip('no python3 on this machine (the build writes the file with it)');
+    return;
+  }
+
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'icewolf-config-'));
+  const page = path.join(work, 'index.html');
+  fs.writeFileSync(page, '<!DOCTYPE html>\n<html>\n<head>\n  <script src="gd.js"></script>\n</head>\n<body>\n</body>\n</html>\n', 'utf8');
+  const run = (extra) => execFileSync(python, [script, '--file', page, ...extra], { encoding: 'utf8' });
+
+  const first = run([]);
+  assert.match(first, /PASS/, 'the injection reports its check');
+  const html = fs.readFileSync(page, 'utf8');
+  assert.equal((html.match(/ICE WOLF online config:begin/g) || []).length, 1, 'one block, not a stack');
+  assert.ok(html.indexOf('ICE WOLF online config:begin') < html.indexOf('</head>'),
+    'the config is set before </head>, so it exists before the game runs');
+
+  /* Running the build again replaces the block instead of adding a second one. */
+  run([]);
+  const twice = fs.readFileSync(page, 'utf8');
+  assert.equal((twice.match(/ICE WOLF online config:begin/g) || []).length, 1, 'idempotent');
+  assert.equal(twice, html, 'the same bytes as the first run');
+
+  /* What the build writes is what the game accepts: the project ref, a
+   * publishable key, and a socket URL the transport would really open. */
+  const literal = /window\.ICE_WOLF_ONLINE_CONFIG = (\{[^}]*\});/.exec(html);
+  assert.ok(literal, 'the snippet assigns the object the game reads');
+  const written = Function(`return ${literal[1]}`)();
+  const config = online.iceWolfOnlineConfig(written);
+  assert.equal(config.configured, true, JSON.stringify(config));
+  assert.equal(config.host, 'siivncidktbuyqwsjeqd.supabase.co', 'the games-realtime project');
+  assert.match(written.key, /^sb_publishable_[A-Za-z0-9_-]+$/, 'a publishable key, not a secret');
+  assert.equal(online.iceWolfOnlineSocketUrl(config),
+    `wss://siivncidktbuyqwsjeqd.supabase.co/realtime/v1/websocket?apikey=${encodeURIComponent(written.key)}&vsn=1.0.0`);
+
+  /* --check is what the iOS verifier runs on the shipped public/ folder. */
+  assert.match(run(['--check']), /PASS/);
+
+  /* A secret key is refused before it can reach a build. */
+  let refused = null;
+  try {
+    run(['--key', 'sb_secret_0123456789abcdef0123456789abcdef']);
+  } catch (error) {
+    refused = error;
+  }
+  assert.ok(refused, 'sb_secret_... never ships');
+  assert.equal(fs.readFileSync(page, 'utf8'), twice, 'and the page is left as it was');
+
+  fs.rmSync(work, { recursive: true, force: true });
+});
+
 class FakeSocket {
   constructor(url) {
     this.url = url;
@@ -554,6 +621,16 @@ test('the Supabase transport speaks the Phoenix protocol, frame by frame', async
   assert.equal(transport.status().joined, true);
   assert.ok(events.some((event) => event.kind === 'joined'));
 
+  /* The join reply only turns presence on for the topic: on the real server a
+   * phone joins the roster with its own `presence`/`track` frame, and without it
+   * presence_state is {} for everyone and every seat goes Out after 30 seconds.
+   * The frame carries what presenceFrom() reads back from each meta. */
+  const track = socket.frames('presence').filter((frame) => frame.payload.event === 'track');
+  assert.equal(track.length, 1, 'the phone tracks itself once the join is accepted');
+  assert.equal(track[0].topic, 'realtime:ice-wolf-room-ABC234');
+  assert.deepEqual(plain(track[0].payload.payload), { clientId: 'h1', name: 'Hana', seat: 0 });
+  assert.equal(track[0].payload.payload.clientId, 'h1', 'the presence key is the client id');
+
   /* Presence: two more phones appear, one leaves. */
   socket.receive({
     event: 'presence_state',
@@ -604,6 +681,8 @@ test('the Supabase transport speaks the Phoenix protocol, frame by frame', async
   /* Leaving says goodbye on the wire and stops sending. */
   transport.leave();
   assert.equal(socket.frames('phx_leave').length, 1);
+  const untrack = socket.frames('presence').filter((frame) => frame.payload.event === 'untrack');
+  assert.equal(untrack.length, 1, 'leaving takes the seat off the roster at once');
   assert.equal(transport.send({ kind: 'stamp', stampId: 'gg' }), false);
 });
 
@@ -621,6 +700,7 @@ test('a refused join, a dead socket and a missing config each say what happened'
   assert.equal(answer.ok, false);
   assert.equal(answer.messageKey, 'online.joinFailed');
   assert.equal(refused.status().errorKey, 'online.joinFailed');
+  assert.equal(FakeSocket.last.frames('presence').length, 0, 'a refused join does not track anybody');
 
   const dead = online.createIceWolfSupabaseTransport({ config: configured, WebSocket: FakeSocket, clientId: 'c8', now: () => 0 });
   const connecting = dead.connect({});
@@ -814,6 +894,57 @@ test('every online scene variable exists and starts neutral', () => {
 });
 
 // ------------------------------------------------ the blocks run in one frame
+test('the injected window config is what turns a build online, not a practice room', () => {
+  /* The same frame, once with the snippet the build writes into index.html and
+   * once without it. This is the whole promise of the build step: a shipped
+   * phone joins the real project, and the GDevelop editor still gets a practice
+   * room because game.json carries no configuration. */
+  const game = readGame();
+  const sceneVars = game.layouts.find((layout) => layout.name === 'FROST LAB').variables;
+
+  const boot = (windowConfig) => {
+    const values = new Map(sceneVars.map((variable) => [variable.name, variable.value]));
+    const bag = (name) => ({
+      getAsString: () => String(values.has(name) ? values.get(name) : ''),
+      setString: (value) => values.set(name, String(value)),
+      getAsNumber: () => Number(values.has(name) ? values.get(name) : 0) || 0,
+      setNumber: (value) => values.set(name, Number(value)),
+      getAsBoolean: () => values.get(name) === true,
+      setBoolean: (value) => values.set(name, value === true)
+    });
+    const scene = {
+      getVariables: () => ({ get: (name) => { if (!values.has(name)) values.set(name, 0); return bag(name); } }),
+      getObjects: () => [],
+      getGame: () => ({ getAssetPath: () => '' })
+    };
+    values.set('StageApplied', 'classic');
+    values.set('StageId', 'classic');
+    values.set('RoundPhase', 'Menu');
+    values.set('MatchTimeLeft', 180);
+    values.set('LanguageCommand', 'ja');
+    values.set('ProUnlocked', true);
+
+    const sandbox = { runtimeScene: scene, console, Date, Math, JSON, Promise, Set, Map, Number, String, Array, Object, isFinite, encodeURIComponent, setTimeout, clearTimeout };
+    if (windowConfig) sandbox.window = { ICE_WOLF_ONLINE_CONFIG: windowConfig };
+    const context = vm.createContext(sandbox);
+    const run = (group, label) => vm.runInContext(`(function () {\n${groupCode(group)}\n})()`, context, { filename: `game.json#${label}` });
+    run('v1.0.0 12言語 i18n', 'i18n');
+    run('v1.1.0 オンライン中核', 'online core');
+    run('v1.1.0 オンラインロビー', 'online lobby');
+    run('v1.1.0 クイックスタンプ', 'quick stamps');
+    return values;
+  };
+
+  const shipped = boot({ url: 'https://siivncidktbuyqwsjeqd.supabase.co', key: 'sb_publishable_lrs0ilfAGmibFiiP4DHYaA_Bk7lgzuZ' });
+  assert.equal(shipped.get('OnlineConfigured'), true, 'the build is online');
+  assert.equal(shipped.get('OnlineLocal'), false, 'and not a one-phone practice room');
+  assert.equal(shipped.get('OnlineConfigHost'), 'siivncidktbuyqwsjeqd.supabase.co');
+
+  const editor = boot(null);
+  assert.equal(editor.get('OnlineConfigured'), false, 'game.json alone is unconfigured');
+  assert.equal(editor.get('OnlineLocal'), true, 'so the editor preview stays a practice room');
+});
+
 test('a frame of the shipping blocks runs, creates a practice room, and stays quiet', () => {
   const game = readGame();
   const sceneVars = game.layouts.find((layout) => layout.name === 'FROST LAB').variables;

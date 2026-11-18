@@ -10,6 +10,8 @@ Checked here:
   * the app icon is a 1024x1024 RGB PNG with no alpha (App Store requirement)
   * every asset the asset catalog references actually exists
   * capacitor.config.ts still points at appId / appName / webDir `build`
+  * with --require-online-config: the web layer carries the Supabase project in
+    window.ICE_WOLF_ONLINE_CONFIG before </head> (what makes a build online)
 
 Exit code 0 = all checks pass, 1 = at least one check failed.
 """
@@ -297,6 +299,45 @@ def check_export(build_dir: Path) -> None:
         check("gd.js" in html, "index.html loads the GDevelop runtime")
 
 
+def check_online_config(public_dir: Path) -> None:
+    """v1.1.0: the built web layer names the Supabase project the game joins.
+
+    The game reads `window.ICE_WOLF_ONLINE_CONFIG` first (docs/v110-online-setup.md
+    §3). Without it a TestFlight build would only offer one-phone practice rooms,
+    so a release build must carry it. A publishable (`sb_publishable_...`) or the
+    legacy anon key is expected; a secret key must never be here.
+    """
+    print(f"Online config ({public_dir}/index.html)")
+    index = public_dir / "index.html"
+    if not index.is_file():
+        fail(f"{index} is missing (cap sync did not produce the web layer)")
+        return
+    html = index.read_text(encoding="utf-8", errors="replace")
+    if "ICE_WOLF_ONLINE_CONFIG" not in html:
+        fail("index.html does not set window.ICE_WOLF_ONLINE_CONFIG")
+        return
+    ok("index.html sets window.ICE_WOLF_ONLINE_CONFIG")
+
+    head_end = html.lower().rfind("</head>")
+    check(head_end < 0 or html.index("ICE_WOLF_ONLINE_CONFIG") < head_end,
+          "the config is set before </head>", "it would run after the game starts")
+
+    project = re.search(r"url:\s*'(https://([a-z0-9]+)\.supabase\.co)'", html)
+    check(project is not None, "the project URL is https://<ref>.supabase.co",
+          "no url:'https://<ref>.supabase.co' entry" if project is None else "")
+    if project:
+        notes.append(f"online project: {project.group(2)}")
+
+    key = re.search(r"key:\s*'([^']+)'", html)
+    if key is None:
+        fail("index.html does not carry a key for the online config")
+        return
+    value = key.group(1)
+    check(len(value) >= 20, f"the shipped key is long enough ({len(value)} characters)")
+    check(not value.startswith("sb_secret_") and "service_role" not in value,
+          "the shipped key is the publishable (or legacy anon) key, never a secret")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID)
@@ -304,6 +345,10 @@ def main() -> int:
     parser.add_argument("--marketing-version", default=DEFAULT_MARKETING_VERSION)
     parser.add_argument("--build-number", default=DEFAULT_BUILD_NUMBER)
     parser.add_argument("--build-dir", default="", help="also verify this HTML5 export folder")
+    parser.add_argument("--public-dir", default=str(IOS_APP / "public"),
+                        help="the web layer Capacitor copies into the app (default: ios/App/App/public)")
+    parser.add_argument("--require-online-config", action="store_true",
+                        help="require window.ICE_WOLF_ONLINE_CONFIG in the web layer (release builds do)")
     args = parser.parse_args()
 
     print(f"ICE WOLF iOS shell verification (repo {REPO_ROOT})")
@@ -314,6 +359,8 @@ def main() -> int:
     check_capacitor_config()
     if args.build_dir:
         check_export(Path(args.build_dir))
+    if args.require_online_config:
+        check_online_config(Path(args.public_dir))
 
     print()
     if failures:

@@ -30,12 +30,17 @@ Supabase のプロジェクトを1つ作り、URL と anon key をアプリに�
 | ゲストの人狼の「人狼役」指名（infect）をホストが実行 | **実装済み**（Phase 2c・§7.1） |
 | ホストが落ちたときの引き継ぎ／試合の終了 | **実装済み**（Phase 2c・§7.2） |
 | 勝敗の理由（ゲート／時間切れ／全凍結）を全員で共有 | **実装済み**（Phase 2c・§7.3） |
-| Supabase の URL / anon key | **未設定**（この資料の §3 で入れる。ここだけが残り） |
+| Supabase の URL / anon key | **設定済み**（`games-realtime` = `siivncidktbuyqwsjeqd`。§3-A のビルド注入で TestFlight に載る） |
 
 設定が空のあいだは **練習モード** になります。部屋を作ると「この端末の中だけ」の
 部屋ができ、席・ルール・開始・スタンプ・HUD を1台で全部ためせます（画面に
 `練習` バッジが出ます）。合言葉で **入る** 方は、設定が入るまで動きません
 （入る先のサーバーが無いため）。
+
+配布ビルドは §3-A のとおりビルド時に設定が入るので、**何も設定していない端末でも
+そのままオンラインで遊べます**。`練習` バッジが出るのは、GDevelop エディタで
+`game.json` を直接プレビューしたとき（設定を持たない）か、`ICEWOLF_SUPABASE_URL` を
+空にしてビルドしたときだけです。
 
 **設定が空のときはソケットを開きません。** URL と key の両方が揃って正しい形のときだけ
 Realtime に接続し、片方でも欠けていれば `iceWolfOnlineConfig()` が理由
@@ -70,11 +75,11 @@ Realtime に接続し、片方でも欠けていれば `iceWolfOnlineConfig()` �
    - Phase 2 の見積り: 10人 × スナップショット5Hz × 5分 ≒ **1.5MB/試合**。
      1試合あたり入力が約0.3MB、スタンプは無視できる量。月200試合でも余裕です
 
-## 3. アプリに URL と anon key を渡す（3通り・好きなもの）
+## 3. アプリに URL と key を渡す（3通り）
 
-**このリポジトリに key を書かないでください。** コード側は3か所から読むだけで、
+**このリポジトリの `game.json` には key を書きません。** ゲーム側は3か所から読むだけで、
 どれも既定は空です（`tests/pro/v110-online.test.mjs` が「ファイルに秘密が無いこと」を
-毎回確認します）。
+毎回確認します）。配布ビルドは 3-A で自動的に設定されます。
 
 読み込みの優先順位（`readConfig()`）:
 
@@ -85,24 +90,32 @@ Realtime に接続し、片方でも欠けていれば `iceWolfOnlineConfig()` �
 （1と2は Supabase のダッシュボードと同じ名前 `SUPABASE_URL` / `SUPABASE_ANON_KEY` でも
 読めます。`{ SUPABASE_URL: '…', SUPABASE_ANON_KEY: '…' }`）
 
-### 3-A. iOS の WebView に1行足す（おすすめ・配布物に含められる）
+### 3-A. ビルド時に自動で入る（既定・配布物に含まれる）
 
-`ios/App/App/public/index.html` の `<head>`（GDevelop のスクリプトより前）に:
+`scripts/ios/build-and-upload-testflight.sh` が、`npx cap sync ios` の直後・
+シェル検証の前に `scripts/ios/inject-online-config.py` を呼び、
+`ios/App/App/public/index.html` の `</head>` の直前にこの1行を書きます
+（`public/` は同期のたびに作り直されるので、リポジトリのファイルではなくビルド時に書く）。
 
 ```html
 <script>
-  window.ICE_WOLF_ONLINE_CONFIG = {
-    url: 'https://YOUR-PROJECT.supabase.co',
-    key: 'eyJhbGciOi...（anon public）'
-  };
+  window.ICE_WOLF_ONLINE_CONFIG = { url: 'https://siivncidktbuyqwsjeqd.supabase.co', key: 'sb_publishable_…' };
 </script>
 ```
 
-`npx cap sync ios` のたびに `public/` は再生成されるので、**この1行は
-`ios/App/App/public/index.html` ではなく、ビルド後に差し込むスクリプト**に置くのが安全です。
-最小のやり方は、TestFlight 用のワークフローが使う `build/` をコピーした直後に
-`scripts/ios/` のビルドスクリプトでこのスニペットを書き足すことです
-（`.github/workflows/` は触らない約束なので、必要になったら相方に指示してください）。
+- 既定値は本番プロジェクト **`games-realtime`**（`https://siivncidktbuyqwsjeqd.supabase.co`）と
+  その **publishable key**。何も指定しなくても TestFlight ビルドはオンラインで動きます
+- 差し替えは環境変数 `ICEWOLF_SUPABASE_URL` / `ICEWOLF_SUPABASE_ANON_KEY`
+  （ステージング用プロジェクトで試すときだけ）
+- `--check` で書き換えずに検査だけ。ビルドはさらに
+  `scripts/ios/verify-ios-project.py --require-online-config` で「web層に config が入っているか・
+  `</head>` より前か・secret キーでないか」まで検証します（入っていなければビルドは止まります）
+- **publishable key（`sb_publishable_…`）はクライアントに配る前提の鍵**です。プロジェクトを
+  指すだけで、ゲームが使うのは Broadcast/Presence のチャンネル参加まで。IPA から取り出せる
+  種類のものなので、ビルドに含めても秘密の漏洩にはなりません
+- `service_role` / `sb_secret_…` は**絶対に入れません**。注入スクリプトは secret キーを
+  受け取ると停止します
+- この1行を `ios/App/App/public/index.html` に手で書かないこと（`cap sync` で消えます）
 
 ### 3-B. 端末の localStorage に入れる（ビルドし直さずに試す）
 
@@ -131,6 +144,17 @@ location.reload();
 
 ## 4. 2台で確かめる
 
+実サーバーに対する自動の疎通は、リポジトリの `tools/` で1コマンドで確かめられます
+（Node 20 の `--experimental-websocket`。ゲームと同じ `game.json` のコードを動かします）:
+
+```bash
+node --experimental-websocket tools/supabase-realtime-smoke.mjs \
+  --url https://siivncidktbuyqwsjeqd.supabase.co --key sb_publishable_lrs0ilfAGmibFiiP4DHYaA_Bk7lgzuZ
+node --experimental-websocket tools/supabase-realtime-game-smoke.mjs \
+  --url https://siivncidktbuyqwsjeqd.supabase.co --key sb_publishable_lrs0ilfAGmibFiiP4DHYaA_Bk7lgzuZ --code TEST42
+```
+
+1台目・2台目の順に:
 1. 両方の端末で **ONLINE** → バッジが `練習` ではなく **`PRO`** になっている
    （`練習` のままなら §3 の設定が読まれていません）
 2. 1台目（Pro）: **部屋を作る** → 6文字の合言葉が出る
@@ -188,11 +212,23 @@ location.reload();
 
 ```
 → {"topic":"realtime:ice-wolf-room-ABC234","event":"phx_join","ref":"iw1",
-   "payload":{"config":{"broadcast":{"self":true},"presence":{"key":"<clientId>"},"private":false}}}
-→ {"topic":"realtime:ice-wolf-room-ABC234","event":"broadcast","ref":"iw2",
+   "payload":{"config":{"broadcast":{"self":true},"presence":{"key":"<clientId>","enabled":true},
+   "private":false},"access_token":"<key>"}}
+← {"event":"phx_reply","payload":{"status":"ok"}}
+→ {"topic":"realtime:ice-wolf-room-ABC234","event":"presence","ref":"iw2",
+   "payload":{"event":"track","payload":{"clientId":"<clientId>","name":"Hana","seat":0}}}
+← {"event":"presence_state","payload":{}}
+← {"event":"presence_diff","payload":{"joins":{"<clientId>":{"metas":[{...}]}},"leaves":{}}}
+→ {"topic":"realtime:ice-wolf-room-ABC234","event":"broadcast","ref":"iw3",
    "payload":{"type":"broadcast","event":"stamp","payload":{"stampId":"help","sender":"Hana"}}}
-← {"event":"presence_state","payload":{"<clientId>":{"metas":[{...}]}}}
+→ {"topic":"realtime:ice-wolf-room-ABC234","event":"presence","ref":"iw4",
+   "payload":{"event":"untrack","payload":{}}}   （退出時。この後に phx_leave）
 ```
+
+> **在室は join だけでは載りません（2026-11-19 実測）。** join が `ok` を返した後に
+> `presence` / `track` を1回送らないと、`presence_state` は全員分が空 `{}` のままで、
+> 30秒後に全席が `Out`、ホストの引き継ぎや試合終了が誤発動します。ゲームのトランスポートは
+> join 成功直後に track、退出時に untrack を送ります（`tests/pro/v110-online.test.mjs`）。
 
 **ライブラリは読み込みません**（supabase-js を CDN から取ると審査の 2.5.2 に触れるため）。
 `createIceWolfSupabaseTransport()` が WebSocket を直接使います。
@@ -266,7 +302,6 @@ location.reload();
 
 ### まだ残っている作業
 
-- **Supabase の URL と anon key を入れる**（§3）。これだけで2台の実機対戦ができます。
 - 試合中の途中観戦（`SpectatorActive` を presence の `spectator` 席に使う）
 - 結果を `room_events` テーブルに残す（Phase 3 のランキング。そのときだけ RLS と
   テーブルが必要になります）
@@ -296,5 +331,6 @@ location.reload();
 | `サーバーにつながりません` | WebSocket が開けない | 機内モード・Wi-Fi・Realtime が ON か |
 | `入室できませんでした` | 合言葉違い／部屋が閉じた | 6文字を確認。ホストが退出すると部屋は閉じます |
 | `ホストとの通信が切れました。試合を終了します。` | ホストの端末が12秒以上応答していない（または次の席が無い） | 仕様どおり。ONLINE 画面から部屋を作り直すか、同じ合言葉で入り直す |
+| 試合開始から約30秒で全員が `Out` になり、ホストが移る | 在室（presence）が載っていない古いビルド（join だけで `track` を送っていない） | 新しいビルドにする。§6 の `presence`/`track` を参照 |
 | `このステージは PRO 専用です` | 無料で Pro ステージの部屋に入ろうとした | 仕様どおり（§5）。クラシック／水族館の部屋を選ぶ |
 | スタンプが `少し待ってから` | 2秒クールダウン | 2秒待つ（1試合30回まで） |

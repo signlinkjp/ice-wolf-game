@@ -37,6 +37,9 @@
 #   ICEWOLF_UPLOAD_CONFIRM=1   required together with --upload
 #   MARKETING_VERSION / BUILD_NUMBER  override the Xcode project values
 #   BUNDLE_ID / TEAM_ID               override the defaults below
+#   ICEWOLF_SUPABASE_URL / ICEWOLF_SUPABASE_ANON_KEY
+#                              override the online project written into the web
+#                              layer (default: the games-realtime project)
 #
 set -euo pipefail
 
@@ -201,6 +204,19 @@ CAP_BIN="$REPO_ROOT/node_modules/.bin/cap"
 info "public/ contains $(find "$REPO_ROOT/ios/App/App/public" -type f | wc -l | tr -d ' ') files"
 
 # --------------------------------------------------------------------------
+# 3b. Online config — the Supabase project the game reads first
+# --------------------------------------------------------------------------
+# The game reads `window.ICE_WOLF_ONLINE_CONFIG` before localStorage and the scene
+# variables (docs/v110-online-setup.md §3), so the shipped web layer carries the
+# project and the TestFlight build has online rooms with nothing to set up. The
+# values stay out of game.json: tests/pro/v110-online.test.mjs fails if a project
+# URL or a key is ever written into the game file.
+step "online config (Supabase Realtime -> window.ICE_WOLF_ONLINE_CONFIG)"
+python3 "$REPO_ROOT/scripts/ios/inject-online-config.py" \
+  --file "$REPO_ROOT/ios/App/App/public/index.html" \
+  || die "could not write the online config into ios/App/App/public/index.html"
+
+# --------------------------------------------------------------------------
 # 4. Static verification of the shell
 # --------------------------------------------------------------------------
 step "verify the iOS shell (landscape lock, full screen, icon, versions)"
@@ -209,7 +225,8 @@ python3 "$REPO_ROOT/scripts/ios/verify-ios-project.py" \
   --team-id "$TEAM_ID" \
   --marketing-version "$MARKETING_VERSION" \
   --build-number "$BUILD_NUMBER" \
-  --build-dir "$REPO_ROOT/build" || die "iOS shell verification failed"
+  --build-dir "$REPO_ROOT/build" \
+  --require-online-config || die "iOS shell verification failed"
 
 # --------------------------------------------------------------------------
 # 5. App Store Connect API key

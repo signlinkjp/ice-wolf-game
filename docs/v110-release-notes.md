@@ -64,10 +64,14 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 - All twelve languages reviewed, with the win conditions worded the same way
 ```
 
-> **公開前に1つだけ確認**: オンライン対戦は Supabase の URL と anon key を入れて初めて
-> つながります（`docs/v110-online-setup.md` §3）。未設定のあいだは「練習」バッジの
-> 1台だけの部屋になります。審査・配布の時点で未設定なら、What's New の「オンライン対戦」の
-> 段落は外すか、「準備中」と書いてください。
+> **オンラインの状態（確定）**: オンライン対戦は Supabase の本番プロジェクト
+> **`games-realtime`**（`siivncidktbuyqwsjeqd`）で動きます。URL と publishable key は
+> TestFlight ビルドが自動で注入するので（`docs/v110-online-setup.md` §3-A）、配布ビルドは
+> 何も設定せずにオンラインで遊べます。未設定の「練習」バッジになるのは GDevelop エディタの
+> プレビューだけです。だから What's New の「オンライン対戦」の段落はそのまま出せます。
+>
+> 疎通は 2026-11-19 に実サーバーで確認済み：join、broadcast（スタンプ・10Hz入力・5Hzスナップショット）、
+> presence（2台が互いを見る）、退出の untrack。
 
 ---
 

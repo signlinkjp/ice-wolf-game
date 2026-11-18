@@ -175,9 +175,15 @@ test('the branch only touches the files the v1.1.0 work owns', { skip }, () => {
   const diff = git(['diff', '--name-only', 'origin/main...HEAD']).trim().split('\n').filter(Boolean);
   const forbidden = diff.filter((file) => file.startsWith('.github/workflows/'));
   assert.deepEqual(forbidden, [], 'the CI workflow is not modified (no permission to change it)');
+  /* The online rooms had to be wired into the shipped build: the script that
+   * writes the project into the web layer, the build step that calls it, and the
+   * two live smoke tests that prove the wire against the real server. None of
+   * them is part of the 1.0.0 game. */
   const allowedPrefixes = ['game.json', 'ios/App/App/StoreKitPlugin.swift', 'ios/App/App/SceneDelegate.swift',
     'ios/App/App.xcodeproj/project.pbxproj', 'scripts/ios/verify-ios-project.py', 'package.json',
-    'package-lock.json', 'tests/pro/', 'docs/v110-', 'README.md'];
+    'package-lock.json', 'tests/pro/', 'docs/v110-', 'README.md',
+    'scripts/ios/inject-online-config.py', 'scripts/ios/build-and-upload-testflight.sh',
+    'tools/supabase-realtime-smoke.mjs', 'tools/supabase-realtime-game-smoke.mjs'];
   for (const file of diff) {
     assert.ok(allowedPrefixes.some((prefix) => file === prefix || file.startsWith(prefix)),
       `${file} is part of the v1.1.0 work`);
