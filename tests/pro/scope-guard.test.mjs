@@ -31,7 +31,10 @@ const NEW_GROUPS = [
   'v1.1.0 オンラインロビー',
   'v1.1.0 クイックスタンプ',
   /* Phase 2b: the snapshot → 3D/HUD block, after the wire it reads. */
-  'v1.1.0 オンライン対戦同期'
+  'v1.1.0 オンライン対戦同期',
+  /* Build 19: one gimmick per v1.1.0 stage, before the sync so the snapshot
+   * publishes the position a zone has just produced. */
+  'v1.1.0 ステージ固有ギミック'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
