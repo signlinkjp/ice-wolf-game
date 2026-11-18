@@ -2203,6 +2203,26 @@
           "name": "OnlineRemoteFreezeCount",
           "type": "number",
           "value": 0
+        },
+        {
+          "name": "OnlineInfectRequest",
+          "type": "String",
+          "value": ""
+        },
+        {
+          "name": "OnlineInfectRequestLeft",
+          "type": "Number",
+          "value": 0
+        },
+        {
+          "name": "OnlineRemoteInfectCount",
+          "type": "Number",
+          "value": 0
+        },
+        {
+          "name": "OnlineHostLost",
+          "type": "Boolean",
+          "value": false
         }
       ],
       "instances": [
@@ -6090,7 +6110,7 @@
                 "",
                 "// [ja, en, zh-Hans, zh-Hant, ko, es, fr, de, pt, it, hi, id]",
                 "const TEXTS = {",
-                "  'menu.tagline': ['人狼を見抜け。凍らせるか、脱出しろ。', 'Find the wolf. Freeze them all, or escape.', '找出人狼。冻结他们，或逃出去。', '找出人狼。凍結他們，或逃出去。', '늑대를 찾아라. 모두 얼리거나, 탈출하라.', 'Encuentra al lobo. Congélalos a todos o escapa.', 'Démasquez le loup. Congelez-les tous, ou échappez-vous.', 'Finde den Wolf. Friere alle ein – oder entkomme.', 'Encontre o lobo. Congele todos ou escape.', 'Scopri il lupo. Congela tutti o scappa.', 'भेड़िये को पहचानो। सबको जमाओ, या भाग निकलो।', 'Temukan serigala. Bekukan semua, atau kabur.'],",
+                "  'menu.tagline': ['人狼を見抜け。全員凍らせるか、脱出しろ。', 'Find the wolf. Freeze them all, or escape.', '找出人狼。冻结所有人，或逃出去。', '找出人狼。凍結所有人，或逃出去。', '늑대를 찾아라. 모두 얼리거나, 탈출하라.', 'Encuentra al lobo. Congélalos a todos o escapa.', 'Démasquez le loup. Congelez-les tous, ou échappez-vous.', 'Finde den Wolf. Friere alle ein – oder entkomme.', 'Encontre o lobo. Congele todos ou escape.', 'Scopri il lupo. Congela tutti o scappa.', 'भेड़िये को पहचानो। सबको जमाओ, या भाग निकलो।', 'Temukan serigala. Bekukan semua, atau kabur.'],",
                 "  'menu.start': ['START GAME ›', 'START GAME ›', '开始游戏 ›', '開始遊戲 ›', '게임 시작 ›', 'EMPEZAR ›', 'JOUER ›', 'SPIELEN ›', 'JOGAR ›', 'GIOCA ›', 'खेल शुरू करें ›', 'MULAI ›'],",
                 "  'menu.how': ['HOW TO PLAY', 'HOW TO PLAY', '玩法说明', '玩法說明', '게임 방법', 'CÓMO JUGAR', 'COMMENT JOUER', 'ANLEITUNG', 'COMO JOGAR', 'COME GIOCARE', 'कैसे खेलें', 'CARA BERMAIN'],",
                 "  'menu.record': ['RECORD', 'RECORD', '战绩', '戰績', '전적', 'RÉCORDS', 'STATS', 'REKORD', 'RECORDE', 'RECORD', 'रिकॉर्ड', 'REKOR'],",
@@ -6317,6 +6337,7 @@
                 "  'online.started': ['試合中は入室できません。', 'A match is already running.', '比赛进行中，无法加入。', '比賽進行中，無法加入。', '경기 중에는 입장할 수 없습니다.', 'Ya hay una partida en curso.', 'Une partie est déjà en cours.', 'Es läuft schon eine Partie.', 'Já há uma partida em andamento.', 'C’è già una partita in corso.', 'मैच चल रहा है, अभी नहीं जुड़ सकते।', 'Pertandingan sedang berjalan.'],",
                 "  'online.hostLeft': ['ホストが退出しました。あなたがホストです。', 'The host left. You are the host now.', '房主已离开。你现在是房主。', '房主已離開。你現在是房主。', '호스트가 나갔습니다. 이제 당신이 호스트입니다.', 'El anfitrión salió. Ahora eres el anfitrión.', 'L’hôte est parti. Vous êtes l’hôte.', 'Der Host ist gegangen. Du bist jetzt Host.', 'O anfitrião saiu. Agora você é o anfitrião.', 'L’host è uscito. Ora sei tu l’host.', 'होस्ट चला गया। अब आप होस्ट हैं।', 'Host keluar. Kamu sekarang host.'],",
                 "  'online.disconnected': ['通信が切れました（30秒で席が空きます）。', 'Connection lost (the seat frees after 30 s).', '连接中断（30秒后空出座位）。', '連線中斷（30秒後空出座位）。', '연결이 끊겼습니다(30초 뒤 자리가 비워집니다).', 'Conexión perdida (el puesto se libera en 30 s).', 'Connexion perdue (la place se libère après 30 s).', 'Verbindung weg (Platz wird nach 30 s frei).', 'Conexão perdida (o lugar libera em 30 s).', 'Connessione persa (il posto si libera dopo 30 s).', 'कनेक्शन टूटा (30 सेकंड में सीट खाली होगी)।', 'Koneksi terputus (kursi bebas setelah 30 detik).'],",
+                "  'online.hostLost': ['ホストとの通信が切れました。試合を終了します。', 'The host stopped responding. The match is over.', '与房主的连接中断。本场比赛结束。', '與房主的連線中斷。本場比賽結束。', '호스트와의 연결이 끊겼습니다. 경기를 종료합니다.', 'Se perdió la conexión con el anfitrión. La partida termina.', 'Connexion à l’hôte perdue. La partie se termine.', 'Verbindung zum Host verloren. Die Partie endet.', 'Conexão com o anfitrião perdida. A partida termina.', 'Connessione con l’host persa. La partita finisce.', 'होस्ट से संपर्क टूट गया। मैच समाप्त हो गया।', 'Koneksi ke host terputus. Pertandingan selesai.'],",
                 "  'online.reconnected': ['戻ってきました', 'Back online', '已重新连接', '已重新連線', '다시 연결됨', 'De nuevo en línea', 'De retour en ligne', 'Wieder verbunden', 'De volta online', 'Di nuovo online', 'फिर से जुड़ गए', 'Kembali tersambung'],",
                 "  'online.localNote': ['いまは通信なしの練習モードです。合言葉はこの端末の中だけ。', 'Practice mode: no server yet, so the room lives on this phone only.', '当前是练习模式：还没有服务器，房间只在这台设备上。', '目前是練習模式：還沒有伺服器，房間只在這個裝置上。', '지금은 연습 모드입니다. 서버가 없어 방은 이 기기에만 있습니다.', 'Modo práctica: aún no hay servidor, la sala solo existe en este móvil.', 'Mode entraînement : pas encore de serveur, la salle reste sur ce téléphone.', 'Übungsmodus: noch kein Server, der Raum bleibt auf diesem Gerät.', 'Modo treino: ainda sem servidor, a sala fica só neste celular.', 'Modalità prova: niente server, la stanza resta su questo telefono.', 'अभी अभ्यास मोड: सर्वर नहीं, रूम सिर्फ़ इस फ़ोन पर है।', 'Mode latihan: belum ada server, ruang hanya di ponsel ini.'],",
                 "  'online.localBadge': ['練習', 'PRACTICE', '练习', '練習', '연습', 'PRÁCTICA', 'ENTRAÎNEMENT', 'ÜBUNG', 'TREINO', 'PROVA', 'अभ्यास', 'LATIHAN'],",
@@ -8371,7 +8392,23 @@
                 "    && !vars.get('InfectionUsed').getAsBoolean()",
                 "    && player.getVariables().get('Role').getAsString() === 'Wolf'",
                 "    && player.getVariables().get('State').getAsString() === 'Active';",
-                "  if (canSet) {",
+                "  if (canSet && vars.get('OnlineGuestMode').getAsBoolean() === true) {",
+                "    /* A guest does not change the round: it asks the host for this seat, and",
+                "     * the next snapshot shows the result. */",
+                "    const actor = runtimeScene.getObjects('Actor').find((candidate) => String(candidate.__iceWolfV110SeatId || '') === pickedId);",
+                "    if (actor) {",
+                "      const actorVars = actor.getVariables();",
+                "      if (actorVars.get('Role').getAsString() === 'Human' && actorVars.get('State').getAsString() === 'Frozen') {",
+                "        vars.get('OnlineInfectRequest').setString(pickedId);",
+                "        vars.get('OnlineInfectRequestLeft').setNumber(1.2);",
+                "        for (const obj of runtimeScene.getObjects('ActionFeedbackText')) {",
+                "          if (typeof obj.setString === 'function') obj.setString('「' + pickedId + '」を人狼役に設定（正体は秘密）');",
+                "          if (typeof obj.hide === 'function') obj.hide(false);",
+                "        }",
+                "        vars.get('FeedbackLeft').setNumber(1.5);",
+                "      }",
+                "    }",
+                "  } else if (canSet) {",
                 "    const actor = runtimeScene.getObjects('Actor').find((candidate) => {",
                 "      const idVar = candidate.getVariables().get('DisplayId');",
                 "      return idVar !== undefined && idVar !== null && idVar.getAsString() === pickedId;",
@@ -8504,11 +8541,18 @@
                 "      if (actorVars.get('Role').getAsString() !== 'Human') continue;",
                 "      if (actorVars.get('State').getAsString() !== 'Frozen') continue;",
                 "      const idVar = actorVars.get('DisplayId');",
-                "      const id = idVar ? idVar.getAsString() : '';",
+                "      /* Phase 2c: on a guest phone the body's DisplayId is its object letter,",
+                "       * which is not always its seat; online the seat id is what the request",
+                "       * and the host speak. The reach is the host's 140, not the 420 a host",
+                "       * uses to offer a choice. */",
+                "      const guest = vars.get('OnlineGuestMode').getAsBoolean() === true;",
+                "      const id = guest && actor.__iceWolfV110SeatId",
+                "        ? String(actor.__iceWolfV110SeatId)",
+                "        : (idVar ? idVar.getAsString() : '');",
                 "      const dx = actor.getCenterXInScene() - px;",
                 "      const dy = actor.getCenterYInScene() - py;",
                 "      const dist = Math.sqrt(dx * dx + dy * dy);",
-                "      if (dist > 420) continue;",
+                "      if (dist > (guest ? 140 : 420)) continue;",
                 "      entries.push({ id, dist });",
                 "    }",
                 "    entries.sort((a, b) => a.dist - b.dist);",
@@ -9998,6 +10042,107 @@
               "conditions": [
                 {
                   "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "GameOver",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "InfectionUsed",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Role",
+                    "=",
+                    "\"Wolf\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "State",
+                    "=",
+                    "\"Active\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "Distance"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Actor",
+                    "140",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "Role",
+                    "=",
+                    "\"Human\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "State",
+                    "=",
+                    "\"Frozen\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "OnlineGuestMode",
+                    "True",
+                    ""
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": {
+                    "value": "Show"
+                  },
+                  "parameters": [
+                    "InfectButton",
+                    ""
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "BuiltinCommonInstructions::Standard",
+              "conditions": [
+                {
+                  "type": {
                     "value": "ButtonStates::ButtonFSM::IsClicked"
                   },
                   "parameters": [
@@ -10271,6 +10416,260 @@
                   "parameters": [
                     "OnlineGuestMode",
                     "False",
+                    ""
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": {
+                    "value": "SetBooleanVariable"
+                  },
+                  "parameters": [
+                    "WolfRolePickOpen",
+                    "True",
+                    ""
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "BuiltinCommonInstructions::Standard",
+              "conditions": [
+                {
+                  "type": {
+                    "value": "ButtonStates::ButtonFSM::IsClicked"
+                  },
+                  "parameters": [
+                    "InfectButton",
+                    "ButtonFSM",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "GameOver",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "InfectionUsed",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Role",
+                    "=",
+                    "\"Wolf\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "State",
+                    "=",
+                    "\"Active\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "Distance"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Actor",
+                    "140",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "Role",
+                    "=",
+                    "\"Human\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "State",
+                    "=",
+                    "\"Frozen\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BuiltinCommonInstructions::CompareNumbers"
+                  },
+                  "parameters": [
+                    "NearbyFrozenCount",
+                    "<=",
+                    "1"
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "OnlineGuestMode",
+                    "True",
+                    ""
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": {
+                    "value": "SetStringVariable"
+                  },
+                  "parameters": [
+                    "OnlineInfectRequest",
+                    "=",
+                    "\"\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "SetNumberVariable"
+                  },
+                  "parameters": [
+                    "OnlineInfectRequestLeft",
+                    "=",
+                    "1.2"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "BuiltinCommonInstructions::Standard",
+              "conditions": [
+                {
+                  "type": {
+                    "value": "ButtonStates::ButtonFSM::IsClicked"
+                  },
+                  "parameters": [
+                    "InfectButton",
+                    "ButtonFSM",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "GameOver",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "InfectionUsed",
+                    "False",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Role",
+                    "=",
+                    "\"Wolf\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Player",
+                    "State",
+                    "=",
+                    "\"Active\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "Distance"
+                  },
+                  "parameters": [
+                    "Player",
+                    "Actor",
+                    "140",
+                    ""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "Role",
+                    "=",
+                    "\"Human\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "StringObjectVariable"
+                  },
+                  "parameters": [
+                    "Actor",
+                    "State",
+                    "=",
+                    "\"Frozen\""
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BuiltinCommonInstructions::CompareNumbers"
+                  },
+                  "parameters": [
+                    "NearbyFrozenCount",
+                    ">=",
+                    "2"
+                  ]
+                },
+                {
+                  "type": {
+                    "value": "BooleanVariable"
+                  },
+                  "parameters": [
+                    "OnlineGuestMode",
+                    "True",
                     ""
                   ]
                 }
@@ -13120,6 +13519,19 @@
                 "/* ==== v1.1.0 Pro store — testable block (tests/pro/*.test.mjs) ==== */",
                 "const ICE_WOLF_PRO_PRODUCT_ID = 'jp.signlink.IceWolf.pro';",
                 "const ICE_WOLF_PRO_STORAGE_KEY = 'iceWolfProV1';",
+                "/* The price the user settled (2026-11-18): JPY 500, a one-time purchase. The",
+                " * store's own `displayPrice` is still what the screen shows as soon as StoreKit",
+                " * answers; this is the fallback line the free screen can show before it does,",
+                " * and what the harness answers with. The US price is a store-side choice on the",
+                " * closest tier: $2.99 (just under ¥500) or $3.99 (just over). */",
+                "const ICE_WOLF_PRO_FALLBACK_PRICE = '\\u00a5500';",
+                "const ICE_WOLF_PRO_FALLBACK_PRICE_US = '$2.99';",
+                "const iceWolfProFallbackPrice = (lang) => {",
+                "  const code = String(lang === undefined || lang === null ? 'ja' : lang).toLowerCase();",
+                "  if (code === 'ja') return ICE_WOLF_PRO_FALLBACK_PRICE;",
+                "  if (code === 'en') return ICE_WOLF_PRO_FALLBACK_PRICE_US;",
+                "  return '';",
+                "};",
                 "",
                 "const iceWolfProIsThenable = (value) => !!value && typeof value.then === 'function';",
                 "",
@@ -13423,7 +13835,7 @@
                 "",
                 "/* What the Pro screen says, for one state, in the current language. Kept out of",
                 " * the DOM so the twelve languages can be checked for every state. */",
-                "const iceWolfProView = (snapshot, tr) => {",
+                "const iceWolfProView = (snapshot, tr, lang) => {",
                 "  const state = snapshot || {};",
                 "  const t = (key, params) => (typeof tr === 'function' ? tr(key, params) : key);",
                 "  const unlocked = state.pro === true;",
@@ -13447,7 +13859,16 @@
                 "    badge: t(unlocked ? 'pro.unlocked' : 'pro.free'),",
                 "    status: t(statusKey),",
                 "    message: messageKey ? t(messageKey) : '',",
-                "    priceLine: state.priceText ? t('pro.priceLine', { p: state.priceText }) : '',",
+                "    /* The store price first, always verbatim. Without one, a free screen may",
+                "     * name the settled price; an owned one says nothing rather than quoting a",
+                "     * price the player already paid. */",
+                "    priceLine: (() => {",
+                "      const storePrice = String(state.priceText || '').trim();",
+                "      if (storePrice) return t('pro.priceLine', { p: storePrice });",
+                "      if (unlocked) return '';",
+                "      const fallback = iceWolfProFallbackPrice(lang === undefined || lang === null ? state.lang : lang);",
+                "      return fallback ? t('pro.priceLine', { p: fallback }) : '';",
+                "    })(),",
                 "    buyLabel: unlocked ? t('pro.owned') : t(status === 'purchasing' ? 'pro.purchasing' : 'pro.buy'),",
                 "    restoreLabel: t(status === 'restoring' ? 'pro.restoring' : 'pro.restore'),",
                 "    comingSoon: t('pro.comingSoon'),",
@@ -13466,7 +13887,7 @@
                 "const createIceWolfProFakeAdapter = (mode, options) => {",
                 "  const settings = options || {};",
                 "  const script = String(mode || 'ok');",
-                "  const priceText = settings.priceText ? String(settings.priceText) : '¥610';",
+                "  const priceText = settings.priceText ? String(settings.priceText) : ICE_WOLF_PRO_FALLBACK_PRICE;",
                 "  const calls = [];",
                 "  const answer = (name, payload) => {",
                 "    calls.push(name);",
@@ -13635,8 +14056,12 @@
                 "    if (label) label.textContent = tr(store.snapshot().pro === true ? 'pro.unlocked' : 'pro.free') + ' \\u203a';",
                 "  };",
                 "",
+                "  const languageNow = () => {",
+                "    const i18n = runtimeScene.__iceWolfI18n;",
+                "    return i18n && typeof i18n.lang === 'string' ? i18n.lang : 'ja';",
+                "  };",
                 "  const renderPro = (force) => {",
-                "    const view = iceWolfProView(store.snapshot(), tr);",
+                "    const view = iceWolfProView(store.snapshot(), tr, languageNow());",
                 "    /* Called every frame: only touch the DOM when a line would change. */",
                 "    const signature = [view.title, view.badge, view.status, view.message, view.priceLine,",
                 "      view.buyLabel, view.restoreLabel, view.closeLabel, view.soonNote, view.items.join('~'),",
@@ -14006,7 +14431,7 @@
                 "const ICE_WOLF_ONLINE_STAMP_VISIBLE_MS = 2600;",
                 "const ICE_WOLF_ONLINE_STAMP_KEEP = 4;",
                 "const ICE_WOLF_ONLINE_BOUNDS = { minX: -708, maxX: 2292, minY: -708, maxY: 692, zMin: -8, zMax: 160 };",
-                "const ICE_WOLF_ONLINE_ACTIONS = ['none', 'wolf', 'rescue', 'switch'];",
+                "const ICE_WOLF_ONLINE_ACTIONS = ['none', 'wolf', 'rescue', 'switch', 'infect'];",
                 "/* Phase 2b: a ride on the stairs moves ~1,600px in one go, so the \"is this the",
                 " * same character\" guard has to allow it; anything past 2,000 is garbage. */",
                 "const ICE_WOLF_ONLINE_MAX_STEP = 2000;",
@@ -14017,6 +14442,17 @@
                 "const ICE_WOLF_ONLINE_FLOOR_GAP_X = 792;",
                 "const ICE_WOLF_ONLINE_SWITCH_MAX = 5;",
                 "const ICE_WOLF_ONLINE_GATE_MAX = 3;",
+                "",
+                "/* --------------------------------------------------------------- seat ids",
+                " * The wire names a seat the way the roster does: `YOU` for seat 0 and A..I for",
+                " * the rest. An infect request carries one, so the host turns the captive the",
+                " * guest actually tapped rather than the nearest one on the host's own screen. */",
+                "const iceWolfOnlineSeatId = (value) => {",
+                "  const text = String(value === undefined || value === null ? '' : value).toUpperCase().trim();",
+                "  if (text === 'YOU') return 'YOU';",
+                "  if (text.length === 1 && ICE_WOLF_ONLINE_ID_LETTERS.indexOf(text) >= 0) return text;",
+                "  return '';",
+                "};",
                 "",
                 "/* The six stages and who may play them. The stage block owns the real table",
                 " * (`ICE_WOLF_STAGES`); this one is the online view of it, and the test compares",
@@ -14430,20 +14866,24 @@
                 " * snapshot five times a second, and the host's copy is the truth. Both sides",
                 " * refuse anything stale, anything outside the arena and anything that is not",
                 " * one of the four actions, so a broken phone cannot move the round. */",
-                "const iceWolfOnlineInput = (seq, moveX, moveY, action, pose) => {",
+                "const iceWolfOnlineInput = (seq, moveX, moveY, action, pose, target) => {",
                 "  const clean = (value) => {",
                 "    const number = Number(value);",
                 "    if (!isFinite(number)) return 0;",
                 "    return Math.max(-1, Math.min(1, Math.round(number * 100) / 100));",
                 "  };",
                 "  const wanted = String(action || 'none');",
+                "  const cleanAction = ICE_WOLF_ONLINE_ACTIONS.indexOf(wanted) >= 0 ? wanted : 'none';",
                 "  const message = {",
                 "    kind: 'input',",
                 "    seq: Math.max(0, Math.round(Number(seq) || 0)),",
                 "    moveX: clean(moveX),",
                 "    moveY: clean(moveY),",
-                "    action: ICE_WOLF_ONLINE_ACTIONS.indexOf(wanted) >= 0 ? wanted : 'none'",
+                "    action: cleanAction",
                 "  };",
+                "  /* Phase 2c: the wolf's one-per-match designation travels with the request.",
+                "   * No other action has a target, so nothing else on the wire grew. */",
+                "  if (cleanAction === 'infect') message.target = iceWolfOnlineSeatId(target);",
                 "  /* Phase 2b: where the guest thinks its own character is. The host still owns",
                 "   * the round, but a position that already passed the client's wall separation",
                 "   * keeps the two copies on the same side of a wall instead of pushing a toy",
@@ -14463,10 +14903,25 @@
                 "  const seq = Math.round(Number((message || {}).seq) || 0);",
                 "  if (!message || message.kind !== 'input') return { ok: false, reason: 'not-input' };",
                 "  if (seq <= Math.round(Number(lastSeq) || 0)) return { ok: false, reason: 'stale' };",
-                "  return { ok: true, input: iceWolfOnlineInput(seq, message.moveX, message.moveY, message.action, message) };",
+                "  return { ok: true, input: iceWolfOnlineInput(seq, message.moveX, message.moveY, message.action, message, message.target) };",
                 "};",
                 "",
                 "const iceWolfOnlineRound2 = (value) => Math.round(Number(value) * 100) / 100;",
+                "",
+                "/* ------------------------------------------------------------ why it ended",
+                " * The ending has three shapes and the guest's result screen names the right",
+                " * one: the gate (humans escaped), the clock (humans survived to time), or the",
+                " * ice (no human left). `winId` alone could not tell the first two apart, so a",
+                " * guest's gate label was the only word it had. */",
+                "const ICE_WOLF_ONLINE_WIN_BY = ['gate', 'time', 'frozen'];",
+                "const iceWolfOnlineWinBy = (value, winId, gateWin) => {",
+                "  const id = String(winId === undefined || winId === null ? '' : winId);",
+                "  const text = String(value === undefined || value === null ? '' : value);",
+                "  if (text === 'gate' || text === 'time' || text === 'frozen') return text;",
+                "  if (id === '') return '';",
+                "  if (id === 'wolf') return 'frozen';",
+                "  return gateWin === true ? 'gate' : 'time';",
+                "};",
                 "",
                 "const iceWolfOnlineSnapshot = (state) => {",
                 "  const source = state || {};",
@@ -14540,7 +14995,11 @@
                 "      layout: spots(sourceGates.layout, ICE_WOLF_ONLINE_GATE_MAX)",
                 "    },",
                 "    win: win,",
-                "    winId: winId",
+                "    winId: winId,",
+                "    winBy: iceWolfOnlineWinBy(source.winBy, winId, source.gateWin === true),",
+                "    /* One designation a match is the host's rule, so every phone can hide the",
+                "     * button instead of offering a second one. */",
+                "    infectUsed: source.infectUsed === true",
                 "  };",
                 "};",
                 "",
@@ -14627,7 +15086,9 @@
                 "      layout: spots(incomingGates.layout, ICE_WOLF_ONLINE_GATE_MAX)",
                 "    },",
                 "    win: winText,",
-                "    winId: winId",
+                "    winId: winId,",
+                "    winBy: iceWolfOnlineWinBy(incoming.winBy, winId, incoming.winBy === 'gate'),",
+                "    infectUsed: incoming.infectUsed === true",
                 "  };",
                 "  return { ok: true, snapshot: snapshot, jitter: previous ? Math.abs(t - last - 200) : 0 };",
                 "};",
@@ -14709,6 +15170,68 @@
                 "  const stamp = Math.round(Number(now) || 0);",
                 "  if (stamp < at) return true;",
                 "  return stamp - at <= ICE_WOLF_ONLINE_STAMP_VISIBLE_MS;",
+                "};",
+                "",
+                "/* ---------------------------------------------------------- the host's phone",
+                " * The room's truth lives on the host's phone. When that phone leaves the wire,",
+                " * the others must not sit on a frozen arena waiting for snapshots that will",
+                " * never come. Each guest asks this once a frame and does what it says:",
+                " *",
+                " *   none      the host is answering, or this phone is the host now;",
+                " *   takeover  the host's seat is out and this phone is the next seat — host it;",
+                " *   wait      the host's seat is out and a lower seat is taking over;",
+                " *   end       the host went silent, or nobody is left to host: end the round.",
+                " *",
+                " * `lastSnapshotAt` is when this phone last received a snapshot (0 = never), so",
+                " * a host that stops mid-round is caught even while its presence row lingers.",
+                " */",
+                "const ICE_WOLF_ONLINE_HOST_LOST_MS = 12000;",
+                "const iceWolfOnlineHostCheck = (options) => {",
+                "  const settings = options || {};",
+                "  const room = settings.room || null;",
+                "  if (settings.isHost === true || !room) return { action: 'none', reason: 'host', messageKey: '' };",
+                "  if (room.status !== 'playing') return { action: 'none', reason: 'lobby', messageKey: '' };",
+                "  const phase = String(settings.phase || '');",
+                "  if (phase !== 'Active' && phase !== 'Countdown' && phase !== 'RoleReveal') {",
+                "    return { action: 'none', reason: 'phase', messageKey: '' };",
+                "  }",
+                "  const now = Math.round(Number(settings.now) || 0);",
+                "  const clientId = String(settings.clientId || '');",
+                "  const hostSeat = iceWolfOnlineSeatOf(room, room.hostId || '');",
+                "  /* Present means the host's own seat is still on the list and not Out. A host",
+                "   * that is present is not replaced, however quiet it is inside the window:",
+                "   * only its silence, past the window, ends the round. */",
+                "  const hostPresent = !!hostSeat && hostSeat.out !== true;",
+                "  const limit = typeof settings.limitMs === 'number' && settings.limitMs > 0",
+                "    ? settings.limitMs",
+                "    : ICE_WOLF_ONLINE_HOST_LOST_MS;",
+                "  const received = Math.round(Number(settings.lastSnapshotAt) || 0);",
+                "  const startedAt = Math.round(Number(settings.startedAt) || 0);",
+                "  const since = received > 0 ? received : (startedAt > 0 ? startedAt : now);",
+                "  const age = Math.max(0, now - since);",
+                "  const silent = age > limit;",
+                "  if (hostPresent) {",
+                "    if (!silent) return { action: 'none', reason: 'grace', hostPresent: true, age: age, messageKey: '' };",
+                "    return { action: 'end', reason: 'silent', hostPresent: true, age: age, messageKey: 'online.hostLost' };",
+                "  }",
+                "  const successor = iceWolfOnlineNextHost(room, room.hostId || '');",
+                "  if (successor && successor.clientId === clientId) {",
+                "    /* The host's seat is gone and this phone is next in line: it hosts at once,",
+                "     * so the round continues on the same phones with the same snapshot wire. */",
+                "    return { action: 'takeover', reason: 'next-host', seat: successor.seat, hostPresent: false, messageKey: 'online.hostLeft' };",
+                "  }",
+                "  if (!silent) {",
+                "    /* A lower seat is taking the room over; give it the twelve seconds. */",
+                "    return { action: 'wait', reason: 'migrating', hostPresent: false, age: age, messageKey: '' };",
+                "  }",
+                "  return {",
+                "    action: 'end',",
+                "    reason: hostPresent ? 'silent' : (successor ? 'migrating' : 'no-successor'),",
+                "    hostPresent: hostPresent,",
+                "    successor: successor ? successor.clientId : '',",
+                "    age: age,",
+                "    messageKey: 'online.hostLost'",
+                "  };",
                 "};",
                 "",
                 "/* ------------------------------------------------------------------ config",
@@ -15213,6 +15736,9 @@
                 "    config: config,",
                 "    local: true,",
                 "    hub: hub,",
+                "    /* The slot is empty: practice mode is the honest fallback, and no socket is",
+                "     * ever opened for a project that has no URL and key. */",
+                "    needsConfig: config.configured !== true,",
                 "    reason: config.reason || ''",
                 "  };",
                 "};",
@@ -15261,6 +15787,10 @@
                 "  inputs: {},",
                 "  lastInputAt: 0,",
                 "  lastSnapshotAt: 0,",
+                "  lastSnapshotRxAt: 0,",
+                "  infectTarget: '',",
+                "  infectLeft: 0,",
+                "  pendingLobbyOpen: false,",
                 "  lastRoomAt: 0,",
                 "  sequence: 0,",
                 "  broadcastRevision: -1,",
@@ -15347,6 +15877,41 @@
                 "  online.stampBubble = bubble;",
                 "  online.stampSerial += 1;",
                 "  return bubble;",
+                "};",
+                "",
+                "/* A round whose wire is gone ends the same way everywhere: tell the room,",
+                " * drop the channel, put the phone back on the menu and open the ONLINE sheet",
+                " * with the reason. No half-live arena, no joystick under a result overlay. */",
+                "const endOnlineRound = (messageKey) => {",
+                "  if (online.transport && online.room) online.transport.send({ kind: 'bye', code: online.room.code });",
+                "  if (online.transport) {",
+                "    online.transport.leave();",
+                "    if (online.local) online.transport.disconnect();",
+                "    online.transport = null;",
+                "    online.hub = null;",
+                "  }",
+                "  online.room = null;",
+                "  online.payload = null;",
+                "  online.snapshot = null;",
+                "  online.isHost = false;",
+                "  online.mode = 'idle';",
+                "  online.seat = -1;",
+                "  online.pendingStart = null;",
+                "  online.started = false;",
+                "  online.infectTarget = '';",
+                "  online.infectLeft = 0;",
+                "  online.lastSnapshotRxAt = 0;",
+                "  vars.get('OnlineRoomActive').setBoolean(false);",
+                "  vars.get('OnlineStartMatched').setBoolean(false);",
+                "  vars.get('OnlineInfectRequest').setString('');",
+                "  vars.get('OnlineInfectRequestLeft').setNumber(0);",
+                "  vars.get('RoundCommand').setString('Menu');",
+                "  if (messageKey) setNote(messageKey);",
+                "  else setNote('');",
+                "  /* Group 35 may not open the sheet on the frame the round ends (the phase is",
+                "   * still Active then); the flag asks again once the menu is on screen. */",
+                "  online.pendingLobbyOpen = true;",
+                "  return true;",
                 "};",
                 "",
                 "const ensureTransport = () => {",
@@ -15451,6 +16016,9 @@
                 "  vars.get('OnlineStartMatched').setBoolean(true);",
                 "  online.stampCount = 0;",
                 "  online.stampLastAt = 0;",
+                "  /* A new round starts with no unasked designation from the last one. */",
+                "  vars.get('OnlineInfectRequest').setString('');",
+                "  vars.get('OnlineInfectRequestLeft').setNumber(0);",
                 "  online.pendingStart = { payload: payload, frames: 0 };",
                 "  online.started = false;",
                 "  /* Phase 2b: the next round re-applies the roster roles and puts the guest's",
@@ -15461,6 +16029,9 @@
                 "  online.lastLayoutSerial = -1;",
                 "  online.snapshot = null;",
                 "  online.lastWinSent = '';",
+                "  /* The host-loss clock starts with the round on this phone, not with the",
+                "   * host's own timestamp (two phones never share a clock to the second). */",
+                "  online.lastSnapshotRxAt = clock();",
                 "  return true;",
                 "};",
                 "",
@@ -15566,6 +16137,7 @@
                 "      }",
                 "    }",
                 "    online.snapshot = applied.snapshot;",
+                "    online.lastSnapshotRxAt = clock();",
                 "    vars.get('OnlineApplyCount').setNumber(vars.get('OnlineApplyCount').getAsNumber() + 1);",
                 "    return;",
                 "  }",
@@ -15622,8 +16194,15 @@
                 "    return;",
                 "  }",
                 "  if (kind === 'error' || kind === 'closed') {",
-                "    if (event.errorKey) setError(event.errorKey);",
-                "    else if (kind === 'closed') setError('online.disconnected');",
+                "    const key = event.errorKey || (kind === 'closed' ? 'online.disconnected' : '');",
+                "    /* A wire that dies during a match ends the match here, on the host and on",
+                "     * every guest: whatever is left of the arena would be a picture nobody can",
+                "     * play. A lobby only shows the reason. */",
+                "    if (online.room && online.room.status === 'playing') {",
+                "      endOnlineRound(key || 'online.disconnected');",
+                "      return;",
+                "    }",
+                "    if (key) setError(key);",
                 "    if (kind === 'closed') online.mode = 'idle';",
                 "  }",
                 "}",
@@ -15749,6 +16328,8 @@
                 "    online.started = false;",
                 "    vars.get('OnlineRoomActive').setBoolean(false);",
                 "    vars.get('OnlineStartMatched').setBoolean(false);",
+                "    vars.get('OnlineInfectRequest').setString('');",
+                "    vars.get('OnlineInfectRequestLeft').setNumber(0);",
                 "    setNote('');",
                 "    setError('');",
                 "  } else if (command === 'ready') {",
@@ -15952,7 +16533,12 @@
                 "        })) : []",
                 "      },",
                 "      win: winTextNow,",
-                "      winId: winIdNow",
+                "      winId: winIdNow,",
+                "      winBy: gameOverNow",
+                "        ? (vars.get('EscapeWonByGate').getAsBoolean() ? 'gate'",
+                "          : (winIdNow === 'wolf' ? 'frozen' : (winIdNow === 'human' ? 'time' : '')))",
+                "        : '',",
+                "      infectUsed: vars.get('InfectionUsed').getAsBoolean() === true",
                 "    });",
                 "    online.transport.send(snapshot);",
                 "    vars.get('OnlineSnapshotSent').setNumber(vars.get('OnlineSnapshotSent').getAsNumber() + 1);",
@@ -15973,18 +16559,70 @@
                 "    const own = ownObjects.length ? ownObjects[0] : null;",
                 "    const ownVars = own ? own.getVariables() : null;",
                 "    const ownRole = ownVars ? ownVars.get('Role').getAsString() : 'Human';",
-                "    const action = ownRole === 'Wolf' && vars.get('WolfModeLeft').getAsNumber() > 0",
-                "      ? 'wolf'",
-                "      : (vars.get('SwitchHoldPressed').getAsBoolean()",
-                "        ? 'switch'",
-                "        : (vars.get('RescueHoldActive').getAsBoolean() ? 'rescue' : 'none'));",
+                "    /* Phase 2c: the infect request the guest's button/picker left behind is",
+                "     * asked again on every input for 1.2 s, so one lost frame cannot swallow",
+                "     * the one designation a match allows. The host is idempotent: its",
+                "     * InfectionUsed flag refuses the repeats. */",
+                "    const infectStep = 1 / ICE_WOLF_ONLINE_INPUT_RATE;",
+                "    const infectLeft = Math.max(0, Math.round((Math.max(0, vars.get('OnlineInfectRequestLeft').getAsNumber()) - infectStep) * 1000) / 1000);",
+                "    const infectTarget = vars.get('OnlineInfectRequest').getAsString();",
+                "    const infectNow = ownRole === 'Wolf' && infectLeft > 0",
+                "      && vars.get('InfectionUsed').getAsBoolean() !== true;",
+                "    if (infectNow) {",
+                "      vars.get('OnlineInfectRequestLeft').setNumber(infectLeft);",
+                "      online.infectLeft = infectLeft;",
+                "      online.infectTarget = infectTarget;",
+                "    } else if (infectTarget !== '' || vars.get('OnlineInfectRequestLeft').getAsNumber() > 0) {",
+                "      vars.get('OnlineInfectRequest').setString('');",
+                "      vars.get('OnlineInfectRequestLeft').setNumber(0);",
+                "      online.infectLeft = 0;",
+                "      online.infectTarget = '';",
+                "    }",
+                "    const action = ownRole === 'Wolf' && infectNow",
+                "      ? 'infect'",
+                "      : (ownRole === 'Wolf' && vars.get('WolfModeLeft').getAsNumber() > 0",
+                "        ? 'wolf'",
+                "        : (vars.get('SwitchHoldPressed').getAsBoolean()",
+                "          ? 'switch'",
+                "          : (vars.get('RescueHoldActive').getAsBoolean() ? 'rescue' : 'none')));",
                 "    const pose = own ? {",
                 "      x: own.getX(),",
                 "      y: own.getY(),",
                 "      yaw: typeof own.getAngle === 'function' ? own.getAngle() : 0",
                 "    } : {};",
-                "    online.transport.send(iceWolfOnlineInput(online.sequence, moveX, moveY, action, pose));",
+                "    online.transport.send(iceWolfOnlineInput(online.sequence, moveX, moveY, action, pose, infectNow ? infectTarget : ''));",
                 "    vars.get('OnlineInputSent').setNumber(vars.get('OnlineInputSent').getAsNumber() + 1);",
+                "  }",
+                "}",
+                "",
+                "/* ---------------------------------------------------------- the host's phone",
+                " * A guest watches the host: the seat it hosts from, and snapshots that keep",
+                " * arriving. Inside twelve seconds nothing changes (one slow frame is not a lost",
+                " * host); past it, the seat that takes over hosts at once, and if nobody can,",
+                " * the round ends on the menu with the reason instead of a frozen arena. */",
+                "if (phase === 'Menu' && online.pendingLobbyOpen) {",
+                "  vars.get('OnlineUiCommand').setString('open');",
+                "  online.pendingLobbyOpen = false;",
+                "}",
+                "if (!online.isHost && online.room && online.room.status === 'playing' && phase !== 'Menu') {",
+                "  const loss = iceWolfOnlineHostCheck({",
+                "    room: online.room,",
+                "    isHost: false,",
+                "    clientId: online.clientId,",
+                "    phase: phase,",
+                "    now: clock(),",
+                "    lastSnapshotAt: online.lastSnapshotRxAt,",
+                "    startedAt: Math.round(Number(online.room.startedAt) || 0)",
+                "  });",
+                "  vars.get('OnlineHostLost').setBoolean(loss.action === 'end');",
+                "  if (loss.action === 'takeover') {",
+                "    online.isHost = true;",
+                "    online.migrated = true;",
+                "    vars.get('OnlineMigrated').setBoolean(true);",
+                "    setNote('online.hostLeft');",
+                "    broadcastRoom();",
+                "  } else if (loss.action === 'end') {",
+                "    endOnlineRound(loss.messageKey || 'online.hostLost');",
                 "  }",
                 "}",
                 "",
@@ -16809,7 +17447,7 @@
                 "const ICE_WOLF_SYNC_SEAT_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];",
                 "const ICE_WOLF_SYNC_SEATS = 10;",
                 "const ICE_WOLF_SYNC_STATES = ['Active', 'Frozen', 'FrozenWolfCandidate', 'Escaped', 'Out'];",
-                "const ICE_WOLF_SYNC_ACTIONS = ['none', 'wolf', 'rescue', 'switch'];",
+                "const ICE_WOLF_SYNC_ACTIONS = ['none', 'wolf', 'rescue', 'switch', 'infect'];",
                 "/* A snapshot 5 times a second moves a 260px/s character 52px between frames.",
                 " * Blend that over ~110ms (about seven frames) and 3D reads as walking, not as",
                 " * stepping; anything further than 300px in one snapshot is a stair ride, a warp",
@@ -16829,6 +17467,9 @@
                 "const ICE_WOLF_SYNC_FREEZE_DISTANCE = 30;",
                 "const ICE_WOLF_SYNC_SWITCH_RANGE = 76;",
                 "const ICE_WOLF_SYNC_RESCUE_RANGE = 105;",
+                "/* Phase 2c: how close a wolf has to be to the frozen human it turns. The same",
+                " * 140 the host's own button has always used. */",
+                "const ICE_WOLF_SYNC_INFECT_RANGE = 140;",
                 "const ICE_WOLF_SYNC_FLOOR_GAP_X = 792;",
                 "const ICE_WOLF_SYNC_MAX_SWITCHES = 5;",
                 "const ICE_WOLF_SYNC_MAX_GATES = 3;",
@@ -17041,12 +17682,62 @@
                 "  return { ok: true, x: placed.x, y: placed.y, reason: 'ok', distance: iceWolfSyncRound(distance) };",
                 "};",
                 "",
+                "/* ------------------------------------------------------- the designation",
+                " * A wolf may turn one frozen human into a wolf role, once a match. On the",
+                " * host's phone the button does it; on a guest's phone the ask travels as",
+                " * `action: 'infect'` naming the seat, and the host applies the one the guest",
+                " * tapped — never a different captive because it happened to be closer. */",
+                "const iceWolfSyncInfectSeat = (value) => {",
+                "  const text = String(value === undefined || value === null ? '' : value).toUpperCase().trim();",
+                "  if (text === 'YOU') return 0;",
+                "  const index = ICE_WOLF_SYNC_SEAT_LETTERS.indexOf(text);",
+                "  return index >= 0 ? index + 1 : -1;",
+                "};",
+                "/* The frozen humans a wolf could turn, nearest first. `list` is plain data:",
+                " * `{seat, role, state, x, y}` per body. */",
+                "const iceWolfSyncInfectCandidates = (list, x, y, radius) => {",
+                "  const px = iceWolfSyncNumber(x);",
+                "  const py = iceWolfSyncNumber(y);",
+                "  const limit = Number.isFinite(Number(radius)) ? Number(radius) : ICE_WOLF_SYNC_INFECT_RANGE;",
+                "  const out = [];",
+                "  for (const entry of (Array.isArray(list) ? list : [])) {",
+                "    if (!entry) continue;",
+                "    const seat = Math.round(Number(entry.seat));",
+                "    if (!isFinite(seat) || seat < 0) continue;",
+                "    if (iceWolfSyncRole(entry.role) !== 'Human') continue;",
+                "    if (iceWolfSyncState(entry.state) !== 'Frozen') continue;",
+                "    const distance = Math.hypot(iceWolfSyncNumber(entry.x) - px, iceWolfSyncNumber(entry.y) - py);",
+                "    if (!isFinite(distance) || distance > limit) continue;",
+                "    out.push({ seat: seat, id: iceWolfSyncSeatId(seat), distance: iceWolfSyncRound(distance) });",
+                "  }",
+                "  out.sort((a, b) => a.distance - b.distance || a.seat - b.seat);",
+                "  return out;",
+                "};",
+                "/* Which captive the host turns: the named seat when it is really a frozen human",
+                " * in reach (`named`), the nearest one when the request named nobody",
+                " * (`nearest`), and a refusal when the named seat is not there (`far`). */",
+                "const iceWolfSyncInfectChoice = (list, x, y, radius, wantedSeat) => {",
+                "  const candidates = iceWolfSyncInfectCandidates(list, x, y, radius);",
+                "  const wanted = Math.round(Number(wantedSeat));",
+                "  if (Number.isFinite(wanted) && wanted >= 0) {",
+                "    const named = candidates.find((row) => row.seat === wanted) || null;",
+                "    if (!named) return { ok: false, reason: 'far', seat: wanted, id: iceWolfSyncSeatId(wanted), candidates: candidates };",
+                "    return { ok: true, reason: 'named', seat: named.seat, id: named.id, candidates: candidates };",
+                "  }",
+                "  if (!candidates.length) return { ok: false, reason: 'none', seat: -1, id: '', candidates: candidates };",
+                "  return { ok: true, reason: 'nearest', seat: candidates[0].seat, id: candidates[0].id, candidates: candidates };",
+                "};",
+                "",
                 "/* The one action a phone is asking for this frame. The wolf button is a mode",
                 " * switch (the host keeps the mode running), the hold button and the rescue",
                 " * button are holds (the host runs the timer, so two phones cannot both finish a",
                 " * switch twice). */",
                 "const iceWolfSyncActionOf = (state) => {",
                 "  const source = state || {};",
+                "  /* The designation is asked before the mode: it is one press, not a hold, and",
+                "   * it must not be swallowed by a wolf that is mid-run. */",
+                "  const designating = String(source.infectTarget === undefined || source.infectTarget === null ? '' : source.infectTarget);",
+                "  if (String(source.role || '') === 'Wolf' && designating !== '') return 'infect';",
                 "  if (String(source.role || '') === 'Wolf' && Number(source.wolfMode) > 0) return 'wolf';",
                 "  if (source.switchPressed === true) return 'switch';",
                 "  if (source.rescueHeld === true) return 'rescue';",
@@ -17321,6 +18012,10 @@
                 "for (const row of roster) {",
                 "  const obj = objectForSeat(row.seat);",
                 "  if (!obj) continue;",
+                "  /* The seat each body stands for, for every row before any row is processed:",
+                "   * a designation asks about a body that comes later in the roster. */",
+                "  obj.__iceWolfV110Seat = row.seat;",
+                "  obj.__iceWolfV110SeatId = iceWolfSyncSeatId(row.seat);",
                 "  const labelVar = obj.getVariables().get('LabelText');",
                 "  if (!labelVar) continue;",
                 "  const wanted = labelFor(row);",
@@ -17336,6 +18031,7 @@
                 "  let switchFires = 0;",
                 "  let rescueFires = 0;",
                 "  let freezeFires = 0;",
+                "  let infectFires = 0;",
                 "  const humanInReach = (from) => {",
                 "    const list = [];",
                 "    if (player) list.push(player);",
@@ -17373,6 +18069,24 @@
                 "      }",
                 "    }",
                 "    return best;",
+                "  };",
+                "  /* Every body a wolf could turn, with the seat it stands for. */",
+                "  const infectTargets = (from) => {",
+                "    const rows = [];",
+                "    const push = (obj, seat) => {",
+                "      if (!obj || obj === from) return;",
+                "      const ov = obj.getVariables();",
+                "      rows.push({",
+                "        seat: Math.round(Number(seat)),",
+                "        role: ov.get('Role').getAsString(),",
+                "        state: ov.get('State').getAsString(),",
+                "        x: obj.getCenterXInScene(),",
+                "        y: obj.getCenterYInScene()",
+                "      });",
+                "    };",
+                "    if (player) push(player, ownSeat);",
+                "    for (const candidate of actors) push(candidate, candidate.__iceWolfV110Seat);",
+                "    return rows;",
                 "  };",
                 "  const arena = runtimeScene.__iceWolfV070 || null;",
                 "  const liveSwitches = arena && Array.isArray(arena.switches) ? arena.switches : [];",
@@ -17412,6 +18126,7 @@
                 "    /* Which seat this body stands for, so the snapshot can say it even when the",
                 "     * object's DisplayId is the letter of a different seat (the borrowed one). */",
                 "    actor.__iceWolfV110Seat = row.seat;",
+                "    actor.__iceWolfV110SeatId = iceWolfSyncSeatId(row.seat);",
                 "    if (row.seat === ownSeat) continue;",
                 "    if (row.cpu || !row.clientId) {",
                 "      actor.__iceWolfV110Remote = false;",
@@ -17462,6 +18177,35 @@
                 "    if (stateNow !== 'Active') continue;",
                 "    const role = av.get('Role').getAsString();",
                 "    const action = fresh ? iceWolfSyncAction(input.action) : 'none';",
+                "    /* Phase 2c: the guest wolf's one designation, applied here so the host's",
+                "     * InfectionUsed is the only one that counts. A named seat that is not a",
+                "     * frozen human in reach is refused, never swapped for another captive. */",
+                "    if (role === 'Wolf' && action === 'infect' && vars.get('InfectionUsed').getAsBoolean() !== true) {",
+                "      const choice = iceWolfSyncInfectChoice(",
+                "        infectTargets(actor),",
+                "        actor.getCenterXInScene(),",
+                "        actor.getCenterYInScene(),",
+                "        ICE_WOLF_SYNC_INFECT_RANGE,",
+                "        iceWolfSyncInfectSeat(input.target)",
+                "      );",
+                "      if (choice.ok) {",
+                "        const victim = choice.seat === ownSeat",
+                "          ? player",
+                "          : (actors.find((candidate) => Math.round(Number(candidate.__iceWolfV110Seat)) === choice.seat) || null);",
+                "        if (victim) {",
+                "          victim.getVariables().get('State').setString('FrozenWolfCandidate');",
+                "          vars.get('InfectionUsed').setBoolean(true);",
+                "          infectFires += 1;",
+                "          for (const obj of runtimeScene.getObjects('ActionFeedbackText')) {",
+                "            if (typeof obj.setString === 'function') {",
+                "              obj.setString(choice.id ? '「' + choice.id + '」を人狼役に設定（正体は秘密）' : '人狼役に設定（正体は秘密）');",
+                "            }",
+                "            if (typeof obj.hide === 'function') obj.hide(false);",
+                "          }",
+                "          vars.get('FeedbackLeft').setNumber(1.5);",
+                "        }",
+                "      }",
+                "    }",
                 "    if (role === 'Wolf') {",
                 "      let modeLeft = av.get('AIWolfModeLeft').getAsNumber();",
                 "      let cooldownLeft = av.get('AIWolfCooldownLeft').getAsNumber();",
@@ -17516,6 +18260,7 @@
                 "  count('OnlineRemoteSwitchCount', vars.get('OnlineRemoteSwitchCount').getAsNumber() + switchFires);",
                 "  count('OnlineRemoteRescueCount', vars.get('OnlineRemoteRescueCount').getAsNumber() + rescueFires);",
                 "  count('OnlineRemoteFreezeCount', vars.get('OnlineRemoteFreezeCount').getAsNumber() + freezeFires);",
+                "  count('OnlineRemoteInfectCount', vars.get('OnlineRemoteInfectCount').getAsNumber() + infectFires);",
                 "  count('OnlineSyncActorCount', actors.length);",
                 "  vars.get('OnlineSyncLocalMode').setString('host');",
                 "  vars.get('OnlineSyncReady').setBoolean(true);",
@@ -17600,6 +18345,8 @@
                 "  }",
                 "  const obj = objectForSeat(target.seat);",
                 "  if (!obj) continue;",
+                "  /* The id the picker prints and the infect request names. */",
+                "  obj.__iceWolfV110SeatId = iceWolfSyncSeatId(target.seat);",
                 "  const blend = iceWolfSyncBlend(obj.getX(), obj.getY(), target.x, target.y, dtMs, {",
                 "    snapDistance: ICE_WOLF_SYNC_SNAP_DISTANCE,",
                 "    blendMs: ICE_WOLF_SYNC_BLEND_MS",
@@ -17695,6 +18442,12 @@
                 "vars.get('GateOpenIndex').setNumber(Math.round(Number(((snapshot.gates || {}).openIndex)) || 0));",
                 "vars.get('GateOpenFloor').setString(String(((snapshot.gates || {}).openFloor) || ''));",
                 "const winId = iceWolfSyncWinId(snapshot.winId || snapshot.win);",
+                "/* Phase 2c: why the round ended and whether the designation is spent are the",
+                " * host's words, so a guest's result screen and its wolf button agree with the",
+                " * host's phone instead of guessing from the win word alone. */",
+                "const winBy = String(snapshot.winBy || '');",
+                "vars.get('EscapeWonByGate').setBoolean(winBy === 'gate');",
+                "vars.get('InfectionUsed').setBoolean(snapshot.infectUsed === true);",
                 "const counts = iceWolfSyncCounts(snapshot.players);",
                 "vars.get('OnlineSyncWinId').setString(winId);",
                 "vars.get('OnlineSyncAlive').setNumber(counts.alive);",
@@ -17703,7 +18456,6 @@
                 "if (winId && !vars.get('GameOver').getAsBoolean()) {",
                 "  const line = iceWolfSyncWinText(winId);",
                 "  vars.get('GameOver').setBoolean(true);",
-                "  vars.get('EscapeWonByGate').setBoolean(winId === 'human');",
                 "  for (const obj of runtimeScene.getObjects('WinText')) {",
                 "    if (typeof obj.setString === 'function') obj.setString(line);",
                 "    if (typeof obj.hide === 'function') obj.hide(false);",
@@ -18325,7 +19077,7 @@
       "lastRunDurationMs": 0,
       "lastRunFramesExecuted": 0,
       "lastRunStatus": "",
-      "source": "/* v1.1.0 — the Pro (in-app purchase) shipping check, run through the game's\n * own harness.\n *\n * It proves four things:\n *   1. without StoreKit (the browser / GDevelop preview) the screen still works\n *      and pressing purchase says \"App Store version only\" instead of throwing,\n *   2. with StoreKit present the price and the entitlement are read, and the\n *      purchase / cancel / pending / failure / restore answers land in the right\n *      state (locked stays locked, only a real purchase unlocks),\n *   3. a purchase unlocks Pro once and a second press never buys twice,\n *   4. every Pro line on the screen is in the chosen language, in all twelve.\n *\n * The fake StoreKit is the game's own (scene variable `ProTestAdapter`), so this\n * test needs no App Store account and no network.\n */\nconst num = (name) => harness.getSceneVariable(name)?.value ?? -1;\nconst str = (name) => harness.getSceneVariable(name)?.value ?? '';\nconst flag = (name) => harness.getSceneVariable(name)?.value === true;\nconst KANA = /[\\u3040-\\u30fa\\u30fc-\\u30ff]/;\nconst LANGS = ['ja', 'en', 'zh-Hans', 'zh-Hant', 'ko', 'es', 'fr', 'de', 'pt', 'it', 'hi', 'id'];\nconst i18n = () => runtimeScene.__iceWolfI18n;\nconst t = (key) => (i18n() && typeof i18n().t === 'function' ? i18n().t(key) : '');\nconst command = async (name) => {\n  harness.setSceneVariable('ProCommand', name);\n  await harness.stepFrames(2);\n};\nconst setLanguage = async (code) => {\n  harness.setSceneVariable('LanguageCommand', code);\n  await harness.stepFrames(2);\n};\n\nawait harness.goToScene('FROST LAB');\nawait harness.stepFrames(3);\n\n// 0. the screen is there and the product is the one App Store Connect will hold\nharness.assert(flag('ProUiReady'), 'the Pro screen is built');\nharness.assert(str('ProProductId') === 'jp.signlink.IceWolf.pro', `the product id is the non-consumable jp.signlink.IceWolf.pro: ${str('ProProductId')}`);\nharness.assert(str('ProStatus') === 'idle', `nothing is bought before the store is asked: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'the free version starts locked');\n\n// 1. no StoreKit at all (browser preview): graceful, not broken\nharness.setSceneVariable('ProTestAdapter', '');\nawait command('refresh');\nharness.assert(flag('ProAvailable') === false, 'without StoreKit the store is reported unavailable');\nharness.assert(str('ProStatus') === 'unavailable', `the status says so: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.storeUnavailable', `the screen explains where to buy: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'nothing is unlocked by a missing store');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'unavailable', 'pressing purchase without StoreKit does not throw and does not unlock');\nharness.assert(flag('ProUnlocked') === false, 'still locked');\nawait command('restore');\nharness.assert(str('ProStatus') === 'unavailable', 'pressing restore without StoreKit is safe too');\n\n// 2. StoreKit present: the price and the entitlement are read\nharness.setSceneVariable('ProTestAdapter', 'ok');\nharness.setSceneVariable('ProTestPrice', '¥610');\nawait command('refresh');\nharness.assert(flag('ProAvailable'), 'StoreKit is reachable');\nharness.assert(str('ProPriceText') === '¥610', `the price comes from the store: ${str('ProPriceText')}`);\nharness.assert(str('ProStatus') === 'ready', `the store answered: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'a free player is still free after a status read');\nharness.assert(str('ProViewPrice').indexOf('¥610') >= 0, `the price line shows the store price: ${str('ProViewPrice')}`);\n\n// 3. the answers that must NOT unlock\nharness.setSceneVariable('ProTestAdapter', 'cancel');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'cancelled', `cancelling is reported: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.cancelled', `the screen says cancelled: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'cancelling does not unlock');\nharness.setSceneVariable('ProTestAdapter', 'pending');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'pending', `a deferred purchase is reported: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'a pending purchase does not unlock yet');\nharness.setSceneVariable('ProTestAdapter', 'fail');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'failed', `a failed purchase is reported: ${str('ProStatus')}`);\nharness.assert(str('ProLastError') !== '', `the failure reason is kept: ${str('ProLastError')}`);\nharness.assert(flag('ProUnlocked') === false, 'a failure does not unlock');\nharness.setSceneVariable('ProTestAdapter', 'restoreNone');\nawait command('restore');\nharness.assert(str('ProStatus') === 'nothing', `an empty restore is reported: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.nothingToRestore', `the screen says nothing was found: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'an empty restore does not unlock');\n\n// 4. the purchase that does unlock, exactly once\nharness.setSceneVariable('ProTestAdapter', 'ok');\nawait command('purchase');\nharness.assert(flag('ProUnlocked'), 'a purchased result unlocks Pro');\nharness.assert(str('ProStatus') === 'purchased', `the status is purchased: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.thanks', `the screen thanks the player: ${str('ProMessage')}`);\nharness.assert(num('ProPurchaseCount') === 1, `one purchase was made: ${num('ProPurchaseCount')}`);\nharness.assert(str('ProSource') === 'purchase', `the unlock came from a purchase: ${str('ProSource')}`);\nharness.assert(str('ProTransactionId') === 'fake-transaction', `the transaction is remembered: ${str('ProTransactionId')}`);\nharness.assert(str('ProViewBuy') === t('pro.owned'), `the buy button becomes owned: ${str('ProViewBuy')}`);\nawait command('purchase');\nharness.assert(num('ProPurchaseCount') === 1, 'pressing purchase again while Pro is owned does not buy twice');\n\n// 5. restore\nharness.setSceneVariable('ProTestAdapter', 'restore');\nawait command('restore');\nharness.assert(str('ProStatus') === 'restored', `a restore is reported: ${str('ProStatus')}`);\nharness.assert(num('ProRestoreCount') === 1, `one restore was made: ${num('ProRestoreCount')}`);\nharness.assert(str('ProSource') === 'restore', `the entitlement came from a restore: ${str('ProSource')}`);\nharness.assert(flag('ProUnlocked'), 'Pro stays unlocked after a restore');\n\n// 6. twelve languages on the Pro screen (Pro owned, restore message showing)\nconst keys = (i18n() && typeof i18n().keys === 'function' ? i18n().keys() : []).filter((key) => key.indexOf('pro.') === 0);\nharness.assert(keys.length >= 28, `the Pro screen has its full set of lines: ${keys.length}`);\nfor (const key of keys) {\n  const entry = i18n().ja(key);\n  harness.assert(typeof entry === 'string' && entry.length > 0, `${key} has a Japanese line`);\n}\nconst EXPECT = {\n  ja: { badge: 'PRO', buy: '購入済み', restore: '購入を復元', close: 'とじる' },\n  en: { badge: 'PRO', buy: 'Purchased', restore: 'Restore Purchases', close: 'Close' },\n  ko: { badge: 'PRO', buy: '구매 완료', restore: '구매 복원', close: '닫기' },\n  de: { badge: 'PRO', buy: 'Gekauft', restore: 'Käufe wiederherstellen', close: 'Schließen' }\n};\nfor (const code of LANGS) {\n  await setLanguage(code);\n  harness.assert(str('ProViewBadge') === t('pro.unlocked'), `${code}: the badge reads the table: ${str('ProViewBadge')}`);\n  harness.assert(str('ProViewStatus') === t('pro.statusPro'), `${code}: the status line reads the table: ${str('ProViewStatus')}`);\n  harness.assert(str('ProViewRestore') === t('pro.restore'), `${code}: the restore label reads the table: ${str('ProViewRestore')}`);\n  harness.assert(str('ProViewClose') === t('pro.close'), `${code}: the close label reads the table: ${str('ProViewClose')}`);\n  harness.assert(str('ProViewMessage') === t('pro.restored'), `${code}: the message reads the table: ${str('ProViewMessage')}`);\n  harness.assert(str('ProViewBuy').length > 0, `${code}: the buy label is filled`);\n  if (code !== 'ja' && code !== 'zh-Hans' && code !== 'zh-Hant') {\n    harness.assert(!KANA.test(str('ProViewStatus')), `${code}: the status is not Japanese: ${str('ProViewStatus')}`);\n    harness.assert(!KANA.test(str('ProViewRestore')), `${code}: restore is not Japanese: ${str('ProViewRestore')}`);\n  }\n  if (EXPECT[code]) {\n    harness.assert(str('ProViewBadge') === EXPECT[code].badge, `${code}: badge \"${str('ProViewBadge')}\"`);\n    harness.assert(str('ProViewBuy') === EXPECT[code].buy, `${code}: buy \"${str('ProViewBuy')}\"`);\n    harness.assert(str('ProViewRestore') === EXPECT[code].restore, `${code}: restore \"${str('ProViewRestore')}\"`);\n    harness.assert(str('ProViewClose') === EXPECT[code].close, `${code}: close \"${str('ProViewClose')}\"`);\n  }\n}\nawait setLanguage('ja');\nharness.assert(str('ProViewStatus') === 'プロ版が有効です。今後追加される内容がすべて使えます。', `Japanese comes back unharmed: ${str('ProViewStatus')}`);\nawait setLanguage('en');\n\n// 7. the screen opens and closes from the same command the menu button uses\nawait command('open');\nharness.assert(flag('ProOpen'), 'the Pro screen opens');\nawait command('close');\nharness.assert(flag('ProOpen') === false, 'the Pro screen closes again');\n"
+      "source": "/* v1.1.0 — the Pro (in-app purchase) shipping check, run through the game's\n * own harness.\n *\n * It proves four things:\n *   1. without StoreKit (the browser / GDevelop preview) the screen still works\n *      and pressing purchase says \"App Store version only\" instead of throwing,\n *   2. with StoreKit present the price and the entitlement are read, and the\n *      purchase / cancel / pending / failure / restore answers land in the right\n *      state (locked stays locked, only a real purchase unlocks),\n *   3. a purchase unlocks Pro once and a second press never buys twice,\n *   4. every Pro line on the screen is in the chosen language, in all twelve.\n *\n * The fake StoreKit is the game's own (scene variable `ProTestAdapter`), so this\n * test needs no App Store account and no network.\n */\nconst num = (name) => harness.getSceneVariable(name)?.value ?? -1;\nconst str = (name) => harness.getSceneVariable(name)?.value ?? '';\nconst flag = (name) => harness.getSceneVariable(name)?.value === true;\nconst KANA = /[\\u3040-\\u30fa\\u30fc-\\u30ff]/;\nconst LANGS = ['ja', 'en', 'zh-Hans', 'zh-Hant', 'ko', 'es', 'fr', 'de', 'pt', 'it', 'hi', 'id'];\nconst i18n = () => runtimeScene.__iceWolfI18n;\nconst t = (key) => (i18n() && typeof i18n().t === 'function' ? i18n().t(key) : '');\nconst command = async (name) => {\n  harness.setSceneVariable('ProCommand', name);\n  await harness.stepFrames(2);\n};\nconst setLanguage = async (code) => {\n  harness.setSceneVariable('LanguageCommand', code);\n  await harness.stepFrames(2);\n};\n\nawait harness.goToScene('FROST LAB');\nawait harness.stepFrames(3);\n\n// 0. the screen is there and the product is the one App Store Connect will hold\nharness.assert(flag('ProUiReady'), 'the Pro screen is built');\nharness.assert(str('ProProductId') === 'jp.signlink.IceWolf.pro', `the product id is the non-consumable jp.signlink.IceWolf.pro: ${str('ProProductId')}`);\nharness.assert(str('ProStatus') === 'idle', `nothing is bought before the store is asked: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'the free version starts locked');\n\n// 1. no StoreKit at all (browser preview): graceful, not broken\nharness.setSceneVariable('ProTestAdapter', '');\nawait command('refresh');\nharness.assert(flag('ProAvailable') === false, 'without StoreKit the store is reported unavailable');\nharness.assert(str('ProStatus') === 'unavailable', `the status says so: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.storeUnavailable', `the screen explains where to buy: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'nothing is unlocked by a missing store');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'unavailable', 'pressing purchase without StoreKit does not throw and does not unlock');\nharness.assert(flag('ProUnlocked') === false, 'still locked');\nawait command('restore');\nharness.assert(str('ProStatus') === 'unavailable', 'pressing restore without StoreKit is safe too');\n\n// 2. StoreKit present: the price and the entitlement are read\nharness.setSceneVariable('ProTestAdapter', 'ok');\nharness.setSceneVariable('ProTestPrice', '¥500');\nawait command('refresh');\nharness.assert(flag('ProAvailable'), 'StoreKit is reachable');\nharness.assert(str('ProPriceText') === '¥500', `the price comes from the store: ${str('ProPriceText')}`);\nharness.assert(str('ProStatus') === 'ready', `the store answered: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'a free player is still free after a status read');\nharness.assert(str('ProViewPrice').indexOf('¥500') >= 0, `the price line shows the store price: ${str('ProViewPrice')}`);\n\n// 3. the answers that must NOT unlock\nharness.setSceneVariable('ProTestAdapter', 'cancel');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'cancelled', `cancelling is reported: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.cancelled', `the screen says cancelled: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'cancelling does not unlock');\nharness.setSceneVariable('ProTestAdapter', 'pending');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'pending', `a deferred purchase is reported: ${str('ProStatus')}`);\nharness.assert(flag('ProUnlocked') === false, 'a pending purchase does not unlock yet');\nharness.setSceneVariable('ProTestAdapter', 'fail');\nawait command('purchase');\nharness.assert(str('ProStatus') === 'failed', `a failed purchase is reported: ${str('ProStatus')}`);\nharness.assert(str('ProLastError') !== '', `the failure reason is kept: ${str('ProLastError')}`);\nharness.assert(flag('ProUnlocked') === false, 'a failure does not unlock');\nharness.setSceneVariable('ProTestAdapter', 'restoreNone');\nawait command('restore');\nharness.assert(str('ProStatus') === 'nothing', `an empty restore is reported: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.nothingToRestore', `the screen says nothing was found: ${str('ProMessage')}`);\nharness.assert(flag('ProUnlocked') === false, 'an empty restore does not unlock');\n\n// 4. the purchase that does unlock, exactly once\nharness.setSceneVariable('ProTestAdapter', 'ok');\nawait command('purchase');\nharness.assert(flag('ProUnlocked'), 'a purchased result unlocks Pro');\nharness.assert(str('ProStatus') === 'purchased', `the status is purchased: ${str('ProStatus')}`);\nharness.assert(str('ProMessage') === 'pro.thanks', `the screen thanks the player: ${str('ProMessage')}`);\nharness.assert(num('ProPurchaseCount') === 1, `one purchase was made: ${num('ProPurchaseCount')}`);\nharness.assert(str('ProSource') === 'purchase', `the unlock came from a purchase: ${str('ProSource')}`);\nharness.assert(str('ProTransactionId') === 'fake-transaction', `the transaction is remembered: ${str('ProTransactionId')}`);\nharness.assert(str('ProViewBuy') === t('pro.owned'), `the buy button becomes owned: ${str('ProViewBuy')}`);\nawait command('purchase');\nharness.assert(num('ProPurchaseCount') === 1, 'pressing purchase again while Pro is owned does not buy twice');\n\n// 5. restore\nharness.setSceneVariable('ProTestAdapter', 'restore');\nawait command('restore');\nharness.assert(str('ProStatus') === 'restored', `a restore is reported: ${str('ProStatus')}`);\nharness.assert(num('ProRestoreCount') === 1, `one restore was made: ${num('ProRestoreCount')}`);\nharness.assert(str('ProSource') === 'restore', `the entitlement came from a restore: ${str('ProSource')}`);\nharness.assert(flag('ProUnlocked'), 'Pro stays unlocked after a restore');\n\n// 6. twelve languages on the Pro screen (Pro owned, restore message showing)\nconst keys = (i18n() && typeof i18n().keys === 'function' ? i18n().keys() : []).filter((key) => key.indexOf('pro.') === 0);\nharness.assert(keys.length >= 28, `the Pro screen has its full set of lines: ${keys.length}`);\nfor (const key of keys) {\n  const entry = i18n().ja(key);\n  harness.assert(typeof entry === 'string' && entry.length > 0, `${key} has a Japanese line`);\n}\nconst EXPECT = {\n  ja: { badge: 'PRO', buy: '購入済み', restore: '購入を復元', close: 'とじる' },\n  en: { badge: 'PRO', buy: 'Purchased', restore: 'Restore Purchases', close: 'Close' },\n  ko: { badge: 'PRO', buy: '구매 완료', restore: '구매 복원', close: '닫기' },\n  de: { badge: 'PRO', buy: 'Gekauft', restore: 'Käufe wiederherstellen', close: 'Schließen' }\n};\nfor (const code of LANGS) {\n  await setLanguage(code);\n  harness.assert(str('ProViewBadge') === t('pro.unlocked'), `${code}: the badge reads the table: ${str('ProViewBadge')}`);\n  harness.assert(str('ProViewStatus') === t('pro.statusPro'), `${code}: the status line reads the table: ${str('ProViewStatus')}`);\n  harness.assert(str('ProViewRestore') === t('pro.restore'), `${code}: the restore label reads the table: ${str('ProViewRestore')}`);\n  harness.assert(str('ProViewClose') === t('pro.close'), `${code}: the close label reads the table: ${str('ProViewClose')}`);\n  harness.assert(str('ProViewMessage') === t('pro.restored'), `${code}: the message reads the table: ${str('ProViewMessage')}`);\n  harness.assert(str('ProViewBuy').length > 0, `${code}: the buy label is filled`);\n  if (code !== 'ja' && code !== 'zh-Hans' && code !== 'zh-Hant') {\n    harness.assert(!KANA.test(str('ProViewStatus')), `${code}: the status is not Japanese: ${str('ProViewStatus')}`);\n    harness.assert(!KANA.test(str('ProViewRestore')), `${code}: restore is not Japanese: ${str('ProViewRestore')}`);\n  }\n  if (EXPECT[code]) {\n    harness.assert(str('ProViewBadge') === EXPECT[code].badge, `${code}: badge \"${str('ProViewBadge')}\"`);\n    harness.assert(str('ProViewBuy') === EXPECT[code].buy, `${code}: buy \"${str('ProViewBuy')}\"`);\n    harness.assert(str('ProViewRestore') === EXPECT[code].restore, `${code}: restore \"${str('ProViewRestore')}\"`);\n    harness.assert(str('ProViewClose') === EXPECT[code].close, `${code}: close \"${str('ProViewClose')}\"`);\n  }\n}\nawait setLanguage('ja');\nharness.assert(str('ProViewStatus') === 'プロ版が有効です。今後追加される内容がすべて使えます。', `Japanese comes back unharmed: ${str('ProViewStatus')}`);\nawait setLanguage('en');\n\n// 7. the screen opens and closes from the same command the menu button uses\nawait command('open');\nharness.assert(flag('ProOpen'), 'the Pro screen opens');\nawait command('close');\nharness.assert(flag('ProOpen') === false, 'the Pro screen closes again');\n"
     },
     {
       "name": "v1.1.0 Stage and outfits test",

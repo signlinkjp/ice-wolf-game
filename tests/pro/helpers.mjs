@@ -117,7 +117,7 @@ export const loadProCode = () => {
    * host's timers so the timeout path can be tested for real. */
   const context = vm.createContext({ setTimeout, clearTimeout, console });
   vm.runInContext(
-    `${code}\n;globalThis.__pro = { createIceWolfProStore, iceWolfProView, createIceWolfProFakeAdapter, ICE_WOLF_PRO_PRODUCT_ID, ICE_WOLF_PRO_STORAGE_KEY };`,
+    `${code}\n;globalThis.__pro = { createIceWolfProStore, iceWolfProView, createIceWolfProFakeAdapter, ICE_WOLF_PRO_PRODUCT_ID, ICE_WOLF_PRO_STORAGE_KEY, ICE_WOLF_PRO_FALLBACK_PRICE, ICE_WOLF_PRO_FALLBACK_PRICE_US, iceWolfProFallbackPrice };`,
     context,
     { filename: 'game.json#v1.1.0 Pro store' }
   );

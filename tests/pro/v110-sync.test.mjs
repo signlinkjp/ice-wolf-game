@@ -764,7 +764,7 @@ test('a guest frame puts the host’s snapshot on the ice, the HUD and the endin
       openIndex: 2, openFloor: '1F', unlocked: true, serial: 4,
       layout: [{ x: -650, y: -650 }, { x: 590, y: 590 }, { x: -48, y: -48 }]
     },
-    win: '人間の勝利', winId: 'human'
+    win: '人間の勝利', winId: 'human', winBy: 'gate'
   };
   const online = { payload: { kind: 'start', roster }, seat: 2, inputs: {}, snapshot };
   const scene = makeScene({
@@ -933,8 +933,8 @@ test('the sync group is the last block, carries its markers, and its state has i
   /* The online group offers the room; the sync block is the only place the
    * snapshot becomes an arena. */
   const online = groupCode(ONLINE_GROUP);
-  assert.ok(online.includes('iceWolfOnlineInput(online.sequence, moveX, moveY, action, pose)'),
-    'the guest sends its pose with its input');
+  assert.ok(online.includes('iceWolfOnlineInput(online.sequence, moveX, moveY, action, pose, infectNow ? infectTarget : \'\')'),
+    'the guest sends its pose and its infect target with its input');
   assert.ok(online.includes("winId: winIdNow"), 'the host sends the ending as a word');
   assert.ok(online.includes('layout: layoutDue ? switches.map'), 'and the switch layout, when it changes');
   assert.ok(online.includes("online.lastLayoutSerial !== layoutSerial"), 'the pads only travel on a new draw');

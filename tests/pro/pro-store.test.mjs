@@ -22,7 +22,7 @@ const makeStore = (options = {}) => {
 };
 
 const adapter = (methods) => ({
-  proStatus: async () => ({ supported: true, priceText: '¥610', pro: false }),
+  proStatus: async () => ({ supported: true, priceText: '¥500', pro: false }),
   purchase: async () => ({ result: 'purchased', pro: true, transactionId: 'tx-1' }),
   restore: async () => ({ result: 'restored', pro: true, productIds: ['jp.signlink.IceWolf.pro'] }),
   ...methods
@@ -35,7 +35,7 @@ test('the store asks for the one non-consumable product', async () => {
   const state = await store.refresh();
   assert.equal(state.status, 'ready');
   assert.equal(state.available, true);
-  assert.equal(state.priceText, '¥610');
+  assert.equal(state.priceText, '¥500');
   assert.equal(state.pro, false);
   assert.equal(state.ready, true);
   assert.equal(state.checkedAt, 1000);
@@ -86,7 +86,7 @@ test('a cached entitlement paints Pro before StoreKit answers, and the store sti
   // the store now says the product is not owned (refunded): the store wins
   const refunded = makeStore({
     storage,
-    getAdapter: () => adapter({ proStatus: async () => ({ supported: true, priceText: '¥610', pro: false }) })
+    getAdapter: () => adapter({ proStatus: async () => ({ supported: true, priceText: '¥500', pro: false }) })
   });
   refunded.store.hydrate();
   const state = await refunded.store.refresh();
@@ -171,7 +171,7 @@ test('a synchronous test adapter settles the whole purchase in one call', async 
   const calls = [];
   const store = createIceWolfProStore({
     storage: memoryStorage(),
-    getAdapter: () => createIceWolfProFakeAdapter('ok', { priceText: '¥610' }),
+    getAdapter: () => createIceWolfProFakeAdapter('ok', { priceText: '¥500' }),
     onUpdate: (snapshot) => calls.push(snapshot.status)
   });
   await store.refresh();
@@ -186,7 +186,7 @@ test('the fake adapter covers the states the game test drives', async () => {
     const store = createIceWolfProStore({
       storage: memoryStorage(),
       timeoutMs: 20,
-      getAdapter: () => createIceWolfProFakeAdapter(mode, { priceText: '¥610' })
+      getAdapter: () => createIceWolfProFakeAdapter(mode, { priceText: '¥500' })
     });
     await store.refresh();
     return mode === 'restoreNone' || mode === 'restore' ? store.restore() : store.purchase();

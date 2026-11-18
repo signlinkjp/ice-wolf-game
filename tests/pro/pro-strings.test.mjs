@@ -60,9 +60,9 @@ test('the view model speaks all twelve languages in every state', () => {
   const { i18n } = createI18n();
   const { iceWolfProView } = loadProCode();
   const states = [
-    { name: 'free, store present', snapshot: { status: 'ready', pro: false, available: true, priceText: '¥610' }, message: '' },
+    { name: 'free, store present', snapshot: { status: 'ready', pro: false, available: true, priceText: '¥500' }, message: '' },
     { name: 'free, no store', snapshot: { status: 'unavailable', pro: false, available: false }, message: 'pro.storeUnavailable' },
-    { name: 'purchased', snapshot: { status: 'purchased', pro: true, available: true, priceText: '¥610' }, message: 'pro.thanks' },
+    { name: 'purchased', snapshot: { status: 'purchased', pro: true, available: true, priceText: '¥500' }, message: 'pro.thanks' },
     { name: 'restored', snapshot: { status: 'restored', pro: true, available: true }, message: 'pro.restored' },
     { name: 'cancelled', snapshot: { status: 'cancelled', pro: false, available: true }, message: 'pro.cancelled' },
     { name: 'pending', snapshot: { status: 'pending', pro: false, available: true }, message: 'pro.pending' },
@@ -73,7 +73,7 @@ test('the view model speaks all twelve languages in every state', () => {
   for (const lang of LANGS) {
     i18n.setLang(lang);
     for (const state of states) {
-      const view = iceWolfProView(state.snapshot, (key, params) => i18n.t(key, params));
+      const view = iceWolfProView(state.snapshot, (key, params) => i18n.t(key, params), lang);
       const where = `${state.name} [${lang}]`;
       assert.equal(view.title, i18n.t('pro.title'), `${where}: title`);
       assert.equal(view.status, i18n.t(state.snapshot.pro ? 'pro.statusPro' : (state.snapshot.available === false && state.snapshot.status !== 'idle' ? 'pro.statusWeb' : 'pro.statusFree')), `${where}: status line`);
@@ -89,7 +89,12 @@ test('the view model speaks all twelve languages in every state', () => {
         assert.equal(view.priceLine, i18n.t('pro.priceLine', { p: state.snapshot.priceText }), `${where}: price line`);
         assert.ok(view.priceLine.includes(state.snapshot.priceText), `${where}: the store price is shown verbatim`);
       } else {
-        assert.equal(view.priceLine, '', `${where}: no price line before the store answers`);
+        /* No store answer yet: the settled price may stand in — ¥500 in Japanese,
+         * the nearest US tier in English, and nothing where a currency guess
+         * would be worse than an empty line. */
+        const fallback = state.snapshot.pro === true ? '' : (lang === 'ja' ? '¥500' : (lang === 'en' ? '$2.99' : ''));
+        assert.equal(view.priceLine, fallback ? i18n.t('pro.priceLine', { p: fallback }) : '',
+          `${where}: the settled price, or nothing before the store answers`);
       }
       if (lang !== 'ja' && lang !== 'zh-Hans' && lang !== 'zh-Hant') {
         for (const line of [view.status, view.restoreLabel, view.closeLabel, view.note, view.soonNote, view.buyLabel]) {
