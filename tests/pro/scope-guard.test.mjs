@@ -184,10 +184,20 @@ test('the branch only touches the files the v1.1.0 work owns', { skip }, () => {
     'package-lock.json', 'tests/pro/', 'docs/v110-', 'README.md',
     'scripts/ios/inject-online-config.py', 'scripts/ios/build-and-upload-testflight.sh',
     'tools/supabase-realtime-smoke.mjs', 'tools/supabase-realtime-game-smoke.mjs'];
+  /* The stage art: the fifteen textures the five v1.1.0 stages own (named one by
+   * one, so a 1.0.0 asset can never slip in) and the script that draws them. */
+  const stageTextures = ['wall', 'cap', 'floor'].flatMap((kind) =>
+    ['aquarium', 'park', 'lodge', 'school', 'space'].map((stage) => `assets/${kind}_${stage}.png`));
+  const stageArt = new Set(stageTextures.concat(['tools/make_stage_textures.py']));
   for (const file of diff) {
+    if (stageArt.has(file)) continue;
     assert.ok(allowedPrefixes.some((prefix) => file === prefix || file.startsWith(prefix)),
       `${file} is part of the v1.1.0 work`);
   }
+  /* The 1.0.0 assets the Classic arena plays on are frozen. */
+  const frozen = ['assets/floor_frostlab.png', 'assets/wall_frostlab.png', 'assets/ice_freeze.png',
+    'assets/pad_speed.png', 'assets/pad_warp.png', 'assets/menu_hero.png', 'assets/freeze_crack.wav'];
+  for (const file of frozen) assert.equal(diff.includes(file), false, `${file} is a 1.0.0 asset and is untouched`);
 });
 
 test('the version is 1.1.0 in one place on every side, on a build after 1.0.0', () => {

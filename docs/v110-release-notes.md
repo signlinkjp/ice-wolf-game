@@ -45,7 +45,8 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 ・ホストが退出したときは次の席が引き継ぎ、誰も残っていないときは試合を終了して部屋の画面に戻ります
 
 ■ そのほか
-・12言語すべての文言を見直しました（勝ち方の説明をそろえました）
+・5つの新ステージは、壁・床・天端のテクスチャと3Dの飾り（水槽・遊園地・暖炉・教室・宇宙船）まで、ステージごとの専用になりました
+・12言語すべての文言を見直しました（勝ち方の説明をそろえ、SETTINGSのカメラ行も日本語にしました）
 ```
 
 ### English
@@ -62,6 +63,10 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
   - If the host leaves, the next seat takes over; if nobody is left, the match
     ends cleanly back on the online screen
 - All twelve languages reviewed, with the win conditions worded the same way
+  and the SETTINGS camera row no longer left in English
+- Every new stage now has its own walls, floor and 3D set dressing: tanks and
+  coral, a ferris wheel and tents, a hearth and pines, desks and chalkboards,
+  hull panels and a reactor
 ```
 
 > **オンラインの状態（確定）**: オンライン対戦は Supabase の本番プロジェクト
