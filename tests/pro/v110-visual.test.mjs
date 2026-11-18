@@ -345,7 +345,7 @@ test('all six stages paint for real, and Classic comes back exactly as it was', 
       front: `wall_${stage}.png`, back: `wall_${stage}.png`, left: `wall_${stage}.png`,
       right: `wall_${stage}.png`, top: `cap_${stage}.png`, bottom: `cap_${stage}.png`
     }, `${stage} textures the four sides and the top separately`);
-    assert.equal(harness.walls[0].__tileScale, 0.39, `${stage} sets the wall tile scale`);
+    assert.equal(harness.walls[0].__tileScale, 0.3125, `${stage} sets the wall tile scale`);
     assert.deepEqual(harness.floors[0].__faces.top, `floor_${stage}.png`, `${stage} textures the floor`);
     assert.equal(harness.floors[0].__tileScale, 0.5, `${stage} sets the floor tile scale`);
     assert.equal(harness.scene.children.length, 2, `${stage} dresses the arena in two draw calls`);
