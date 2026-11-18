@@ -150,12 +150,28 @@ test('the beats are the same on both phones because they read the same clock', (
   const code = groupCode(GIMMICK_GROUP);
   assert.ok(code.includes("vars.get('MatchDuration').getAsNumber()"), 'the beat reads MatchDuration');
   assert.ok(code.includes("vars.get('MatchTimeLeft').getAsNumber()"), 'and MatchTimeLeft, which the host syncs');
+  assert.ok(code.includes("vars.get('OnlineStartSeconds')"), 'in a room the length is the host start payload');
   const sync = groupCode('v1.1.0 オンライン対戦同期');
   assert.ok(sync.includes("vars.get('MatchTimeLeft').setNumber"), 'the guest is given the host time');
   const names = sceneOf(readGame()).events.map((group) => group.name);
   assert.equal(names[names.length - 1], 'v1.1.0 オンライン対戦同期', 'the sync block still runs last');
   assert.ok(names.indexOf(GIMMICK_GROUP) < names.indexOf('v1.1.0 オンライン対戦同期'),
     'so the snapshot publishes the position a zone has just produced');
+});
+
+test('a guest times its beats against the host length, not its own default', () => {
+  const harness = makeHarness();
+  harness.set('StageApplied', 'aquarium');
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('OnlineRoomActive', true);
+  harness.set('OnlineIsHost', false);
+  harness.set('OnlineStartSeconds', 180);
+  harness.set('MatchDuration', 210); /* the guest never picked a time */
+  harness.set('MatchTimeLeft', 180 - 10);
+  harness.run();
+  assert.equal(harness.get('StageGimmickElapsed'), 10, 'the elapsed time follows the host length');
+  assert.equal(harness.get('StageGimmickActive'), true, 'so the manta lands on the host beat');
 });
 
 test('every zone sits inside its floor and is reached only by that floor', () => {
@@ -438,6 +454,30 @@ test('the block runs for every stage and dresses each one', () => {
   for (const mesh of harness.scene.children) {
     assert.ok(mesh.name.startsWith('iceWolfV111'), `every mesh is this block's: ${mesh.name}`);
   }
+
+  /* The aquarium in full: the manta, the current (arrows and bubbles), a
+   * whirlpool on each warp and a bubble lift on each stair, beside the two zone
+   * decals. */
+  harness.set('StageApplied', 'aquarium');
+  harness.run();
+  const names = harness.scene.children.map((mesh) => mesh.name);
+  const count = (kind) => names.filter((name) => name === kind).length;
+  assert.equal(count('iceWolfV111Manta'), 2, 'a manta for each floor');
+  assert.equal(count('iceWolfV111Zone'), 2, 'a current lane on each floor');
+  assert.ok(count('iceWolfV111Arrow') >= 10, 'the lane is drawn with arrows');
+  assert.ok(count('iceWolfV111Bubble') >= 6, 'and with bubbles');
+  assert.equal(count('iceWolfV111Whirl'), 2, 'both warps wear a whirlpool');
+  assert.equal(count('iceWolfV111Lift'), 4, 'all four stairs wear a bubble lift');
+
+  /* The park hangs a bulb string, the spaceship a row of alarm lamps. */
+  harness.set('StageApplied', 'park');
+  harness.run();
+  assert.equal(harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Bulbs').length, 1,
+    'the park has its string of bulbs');
+  harness.set('StageApplied', 'space');
+  harness.run();
+  assert.equal(harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Lamps').length, 1,
+    'the spaceship has its alarm lamps');
 });
 
 test('the manta crosses on the beat, and is hidden between beats', () => {
