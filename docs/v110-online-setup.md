@@ -27,12 +27,20 @@ Supabase のプロジェクトを1つ作り、URL と anon key をアプリに�
 | ゲスト側の CPU AI 停止 / 自分の入力の予測と補正 / 5Hzの補間 | **実装済み**（Phase 2b・§7） |
 | スイッチの配置・点灯・ゲート開放・タイマー・生存数・勝敗の同期 | **実装済み**（Phase 2b・§7） |
 | 凍結したときの観戦カメラ（オンライン対戦中） | **実装済み**（状態が同期されるので Phase 1 のカメラがそのまま動く） |
+| ゲストの人狼の「人狼役」指名（infect）をホストが実行 | **実装済み**（Phase 2c・§7.1） |
+| ホストが落ちたときの引き継ぎ／試合の終了 | **実装済み**（Phase 2c・§7.2） |
+| 勝敗の理由（ゲート／時間切れ／全凍結）を全員で共有 | **実装済み**（Phase 2c・§7.3） |
 | Supabase の URL / anon key | **未設定**（この資料の §3 で入れる。ここだけが残り） |
 
 設定が空のあいだは **練習モード** になります。部屋を作ると「この端末の中だけ」の
 部屋ができ、席・ルール・開始・スタンプ・HUD を1台で全部ためせます（画面に
 `練習` バッジが出ます）。合言葉で **入る** 方は、設定が入るまで動きません
 （入る先のサーバーが無いため）。
+
+**設定が空のときはソケットを開きません。** URL と key の両方が揃って正しい形のときだけ
+Realtime に接続し、片方でも欠けていれば `iceWolfOnlineConfig()` が理由
+（`online.notConfigured` / `online.badUrl` / `online.badKey`）を返して練習モードに留まります。
+壊れたURLで接続を試みて失敗する、ということは起きません。
 
 ---
 
@@ -156,16 +164,21 @@ location.reload();
 - チャンネル名: `realtime:ice-wolf-room-<合言葉>`
 - 合言葉: 6文字・英数字、紛らわしい `0 O 1 I` は使いません（入る側は小文字・空白・
   ハイフンを許し、`O→Q` / `I→J` に読み替えます）
-- クライアント → ホスト: `input` `{seq, moveX, moveY, action, x, y, yaw}` を 10Hz
-  （`action` は `none` / `wolf` / `rescue` / `switch`。`x,y,yaw` は自分の予測位置で、
-  ホストは 2,000px を超える飛びを捨てる。1.5秒の沈黙のあとは復帰とみなす）
-- ホスト → 全員: `snapshot` `{t, phase, timer, players[10], switches, gates, win, winId}` を 5Hz
+- クライアント → ホスト: `input` `{seq, moveX, moveY, action, x, y, yaw, target}` を 10Hz
+  （`action` は `none` / `wolf` / `rescue` / `switch` / `infect`。`x,y,yaw` は自分の予測位置で、
+  ホストは 2,000px を超える飛びを捨てる。1.5秒の沈黙のあとは復帰とみなす。
+  `target` は `infect` のときだけ載る席名 `YOU` / `A`〜`I`）
+- ホスト → 全員: `snapshot` `{t, phase, timer, players[10], switches, gates, win, winId, winBy, infectUsed}` を 5Hz
   - `players[]` は `{id, x, y, z, yaw, floor, role, state, mode}`。`state` は
     `Active` / `Frozen` / `FrozenWolfCandidate` / `Escaped` / `Out`
   - `switches` は `{active, triggered, enabled, serial, on[], spent[], layout[]}`、
     `gates` は `{openIndex, openFloor, unlocked, serial, layout[]}`。
     配置（`layout`）はホストが引いたもので、変わったときだけ載ります
   - `winId` は `wolf` / `human` の**単語**（画面の文は各端末の言語で書きます）
+  - `winBy` は `gate`（ゲートから脱出）/ `time`（時間切れ）/ `frozen`（全員凍結）/ 空。
+    これが無いと「人間の勝利」がゲート脱出なのか時間切れなのか区別できません
+  - `infectUsed` は「この試合の人狼役の指名を使ったか」。ゲストの端末はこれで
+    ボタンを隠します
 - 部屋の状態: `room`（席・ルール・ステージ）。変更時と0.5秒ごと
 - 開始: `start` `{stageId, playerCount, wolfCount, switchCount, matchSeconds, seed, roster, startAt}`
 - スタンプ: `stamp` `{stampId, sender}`（**キーだけ**。文章は送りません）
@@ -208,14 +221,55 @@ location.reload();
 - **頭のラベル**: オンラインでは文字（A〜I）ではなく、ロビーで入力した名前を
   出します（CPU は文字のまま）。
 
+## 7.1 Phase 2c — ゲストの人狼の「人狼役」指名
+
+人狼だけが1試合に1度、凍った人間を「人狼役」に指名できます。ホストの端末では
+これまでどおりボタン1つですが、**ゲストの端末でも同じことができる**ようになりました。
+
+- ゲストの人狼の画面にも `[ 人狼役にする ]` が出ます（凍った人間が140px以内にいるとき）。
+- 押すと、その場では何も変えません。`OnlineInfectRequest`（席名）と
+  `OnlineInfectRequestLeft`（1.2秒）を置くだけで、次の 10Hz 入力から
+  `action: 'infect', target: 'B'` として**1.2秒間くり返し**送ります。
+- **決めるのはホスト**です。ホストは `InfectionUsed` を持っていて、
+  指定された席が「凍った人間」で「その人狼から140px以内」のときだけ
+  `FrozenWolfCandidate` にします。遠い席を指定されたら**別の囚人で代用しません**（拒否）。
+  同じ入力が10回届いても2人目は生まれません。
+- 凍った人間が2人以上いる場合は、これまでどおり選択UI（`WolfRolePickOpen`）が開きます。
+  ゲストの選択UIは**席名（A〜I）**で並び、範囲も140pxに合わせています。
+- 指名された側・ほかの全員は、次のスナップショットの `infectUsed` と
+  `state: FrozenWolfCandidate` で同じ画面になります。
+
+## 7.2 Phase 2c — ホストが落ちたとき
+
+ホストの端末が試合中に消えたとき、ほかの端末が「固まった氷の上」で待ち続けないように
+しました（`iceWolfOnlineHostCheck`、`tests/pro/v110-phase2c.test.mjs`）。
+
+| 状況 | 動き |
+| --- | --- |
+| ホストの席が生きていて、スナップショットが12秒以内 | そのまま（`none`） |
+| ホストの席が `Out`、自分が次の席 | **その端末がホストを引き継ぐ**（`takeover`）。同じ部屋・同じ試合が続きます |
+| ホストの席が `Out`、次の席が別の端末 | その端末の引き継ぎを待つ（`wait`、12秒の猶予） |
+| 12秒たってもスナップショットが来ない／次の席が無い | **試合を終了**（`end`）。メニューに戻り、ONLINE 画面が開いて理由を出します |
+| 自分の回線が切れた（`closed`） | 試合中なら同じ後始末（相手に `bye`、部屋を閉じる、メニューへ） |
+
+終了の後始末は1か所（`endOnlineRound`）だけで、部屋・送信・`OnlineRoomActive`・
+`RoundCommand` をまとめて片づけます。メニューのHUDだけが残る、ジョイスティックが
+効いたまま結果画面が乗る、といった「抜けきらない」状態にはなりません。
+
+## 7.3 Phase 2c — 勝敗の理由をそろえる
+
+「人間の勝利」には2通り（ゲートから脱出／時間切れ）あります。これまでは
+ゲストの端末が `winId: 'human'` だけを見て **どちらも「ゲートから脱出！」** と
+表示していました。いまはホストが `winBy`（`gate` / `time` / `frozen`）を載せるので、
+結果画面の見出しと注記（`hud.gateEscape` / `result.noteGate` / `result.noteTime`）が
+ホストと同じになります。
+
 ### まだ残っている作業
 
 - **Supabase の URL と anon key を入れる**（§3）。これだけで2台の実機対戦ができます。
 - 試合中の途中観戦（`SpectatorActive` を presence の `spectator` 席に使う）
 - 結果を `room_events` テーブルに残す（Phase 3 のランキング。そのときだけ RLS と
   テーブルが必要になります）
-- ゲストの人狼の「感染（3人目の人狼）」は、いまはホストだけが決めます
-  （ゲストの端末ではボタンを出しません）。Phase 2c で入力の `infect` を足すところです。
 
 ## 8. 審査・プライバシーのメモ
 
@@ -241,5 +295,6 @@ location.reload();
 | `anon key が短すぎます` | 別の鍵を貼った | **anon public** を貼る（`service_role` は使いません） |
 | `サーバーにつながりません` | WebSocket が開けない | 機内モード・Wi-Fi・Realtime が ON か |
 | `入室できませんでした` | 合言葉違い／部屋が閉じた | 6文字を確認。ホストが退出すると部屋は閉じます |
+| `ホストとの通信が切れました。試合を終了します。` | ホストの端末が12秒以上応答していない（または次の席が無い） | 仕様どおり。ONLINE 画面から部屋を作り直すか、同じ合言葉で入り直す |
 | `このステージは PRO 専用です` | 無料で Pro ステージの部屋に入ろうとした | 仕様どおり（§5）。クラシック／水族館の部屋を選ぶ |
 | スタンプが `少し待ってから` | 2秒クールダウン | 2秒待つ（1試合30回まで） |

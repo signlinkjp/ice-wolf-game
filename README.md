@@ -11,8 +11,9 @@ SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
 **v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) is the Pro release, in two parts:
 
 - the Pro in-app purchase foundation: a StoreKit 2 plugin for the non-consumable
-  `jp.signlink.IceWolf.pro`, a purchase / restore screen reachable from the menu
-  and SETTINGS, and the twelve-language lines for it (`docs/v110-pro-iap.md`);
+  `jp.signlink.IceWolf.pro` at **¥500** (non-consumable, one-time), a purchase /
+  restore screen reachable from the menu and SETTINGS, and the twelve-language
+  lines for it (`docs/v110-pro-iap.md`, `docs/v110-release-notes.md`);
 - **Phase 1 gameplay**: five new stages (Deep-Sea Aquarium free, Misty Amusement
   Park / Snowy Mountain Lodge / Abandoned School / Spaceship with Pro) with their
   own floor plans and atmosphere, stage-linked block-toy outfits, matches of up to
@@ -26,6 +27,12 @@ SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
   interface with an in-memory hub for the tests. Creating a room and the ten
   player / two wolf / custom rules are Pro; joining Classic and Deep-Sea Aquarium
   is free, joining a Pro stage is not (`docs/v110-online-setup.md`).
+- **Phase 2c**: the guest wolf's one-per-match designation travels to the host
+  as `infect` + a seat name and is applied there (never a closer captive); the
+  snapshot now carries `winBy` (gate / time / frozen) and `infectUsed` so a guest's
+  result screen and wolf button match the host's; and a host that leaves or goes
+  silent hands the room to the next seat or ends the round cleanly on the ONLINE
+  screen instead of leaving the guests on a frozen arena.
 
 The movement, hitbox, camera distances, freeze/rescue, switch hold, stairs, warp
 and AI keep their 1.0.0 numbers; `tests/pro/scope-guard.test.mjs` compares them
@@ -89,14 +96,14 @@ Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
 Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
 `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
 down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
-In progress: **v1.1.0 (Build 15)** — the Pro purchase foundation, Phase 1
-(6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera) and
-Phase 2 (online rooms, host authority, eight translated quick stamps) on
-`feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`, `docs/v110-phase1-stages.md`,
-`docs/v110-online-setup.md`).
+In progress: **v1.1.0 (Build 16)** — the Pro purchase foundation (¥500), Phase 1
+(6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera), Phase 2
+(online rooms, host authority, eight translated quick stamps), Phase 2b (the 3D
+snapshot sync) and Phase 2c (guest designation relay, host-loss recovery, one win
+reason everywhere) on `feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`,
+`docs/v110-phase1-stages.md`, `docs/v110-online-setup.md`,
+`docs/v110-release-notes.md`).
 The online rooms need one external step: a Supabase project URL and its anon key
 (`docs/v110-online-setup.md` §3). Until they are set the game says so and the
-lobby runs as a one-phone practice room. Remote players' positions are received
-and validated but not yet drawn by the 3D scene — that swap of the CPU block is
-the next build (`docs/v110-online-setup.md` §7).
+lobby runs as a one-phone practice room; no socket is ever opened without them.
 Version history and the verification of each step live in `docs/`.

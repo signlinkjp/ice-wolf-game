@@ -1,9 +1,9 @@
-# ICE WOLF v1.1.0 — Pro（買い切り課金）の土台
+# ICE WOLF v1.1.0 — Pro（買い切り課金）
 
-v1.1.0 は **「まず課金の仕組みだけ」** を入れる版です。ゲーム本体（3Dの当たり判定・速度・
-マップ・スイッチ・ゲート・階段・AI・サウンド）は **1行も変えていません**。追加したのは、
-StoreKit 2 のネイティブプラグイン、その JS 橋渡し、メニュー / SETTINGS から開ける
-Pro 画面、そして 12言語の文言です。
+v1.1.0 は **Pro の買い切り課金**と、その中身（6ステージ・衣装・10人戦・2人狼・
+カスタムルール・観戦カメラ・オンライン対戦）を入れた版です。価格は **¥500**。
+文面と価格ティアは `docs/v110-release-notes.md`、通信は `docs/v110-online-setup.md`、
+ステージは `docs/v110-phase1-stages.md` にあります。
 
 > `1.0.0 (Build 12)` は App Store 審査中なので、この作業は `main` から切った
 > `feat/ice-wolf-v1.1.0-pro` の上だけで行い、`main` へはマージしていません。
@@ -14,8 +14,15 @@ Pro 画面、そして 12言語の文言です。
 | --- | --- |
 | 商品ID | `jp.signlink.IceWolf.pro` |
 | 種類 | 非消耗型（買い切り。サブスクリプションではない） |
-| 価格 | App Store Connect で決めた価格をそのまま表示（`Product.displayPrice`） |
+| 価格 | **¥500**（日本）。画面は StoreKit の `displayPrice` をそのまま表示 |
+| 米国 | $2.99（近い下のティア）または $3.99（近い上のティア）。App Store Connect で選択 |
 | 復元 | 必須。Pro 画面に「購入を復元」を常設 |
+
+**価格の出どころは1か所だけ**: アプリは `Product.displayPrice` を読むので、
+価格を変えるときは App Store Connect 側だけです（再ビルド不要）。ストアがまだ答えて
+いないときの仮表示だけがコード側にあり、日本語は `¥500`、英語は `$2.99`、他の10言語は
+「通貨を推測しない」ため空です（`ICE_WOLF_PRO_FALLBACK_PRICE` /
+`ICE_WOLF_PRO_FALLBACK_PRICE_US` / `iceWolfProFallbackPrice(lang)`）。
 
 アプリ内に新しい権利の概念は増やしていません。**Pro かどうかは StoreKit の
 `Transaction.currentEntitlements`（ローカルJWS検証つき）だけが決めます。**
@@ -55,15 +62,15 @@ App Store
 
 ## 3. 画面
 
-- **メニュー**: START / HOW TO PLAY / RECORD / SETTINGS の下に **PRO** ボタン。
+- **メニュー**: START / HOW TO PLAY / RECORD / SETTINGS / ONLINE の下に **PRO** ボタン。
 - **SETTINGS**: 「PRO / プロ版」の行。右側のボタンは StoreKit の答えに応じて `FREE ›` / `PRO ›`。
 - **Pro 画面**（新規オーバーレイ、既存の `.iw-*` の配色に合わせた `.iwp-*`）:
   - タイトルとバッジ（FREE / PRO）
   - 状態の1行（無料版 / Pro有効 / App Store版でのみ購入可）
-  - 価格（ストアの表示価格をそのまま）
+  - 価格（ストアの表示価格をそのまま。無いときは §1 の仮表示）
   - 結果メッセージ（購入しました / キャンセル / 承認待ち / 復元しました / 見つかりません / 失敗）
-  - **これから追加する内容の枠**（追加ステージ / キャラクタースキン / 追加モード・ルール）と
-    「プロ版の内容は今後のアップデートで追加されます。このバージョンにはまだ含まれていません。」
+  - **Pro の内容**（6ステージのうち4つ、衣装、10人戦・2人狼・カスタムルール、観戦カメラ）
+    と「このバージョンから収録されています」の注記
   - ボタン: プロ版を購入する / 購入を復元 / とじる
 - 文言はすべて12言語の表（`pro.*` 28キー × 12言語）。横向き390px高では
   ボタンが2列・行が詰まるメディアクエリを入れ、カードは縦スクロールできます。
@@ -73,30 +80,31 @@ App Store
 
 | 検証 | 結果 |
 | --- | --- |
-| `npm test`（Node / 20テスト） | **20 pass / 0 fail** |
-| うち 12言語（表の欠落・日本語混入・Pro画面の全状態×12言語） | **PASS**（138キー / missing 0 / leaks 0） |
+| `npm test`（Node / 9ファイル） | **109 pass / 0 fail** |
+| うち 12言語（表の欠落・日本語混入・Pro画面の全状態×12言語） | **PASS**（139キー / missing 0 / leaks 0） |
+| うち 価格（`¥500` の仮表示・ストア価格の優先・所有時は非表示・`¥610` が残っていない） | **PASS**（`tests/pro/v110-price-copy.test.mjs`） |
 | うち StoreKit 橋渡し（購入・キャンセル・承認待ち・失敗・復元・復元なし・ネイティブ無し・タイムアウト・キャッシュ） | **PASS** |
 | うち「ゲームを変えていない」ガード（main と比較して Pro グループ以外はリリース表記以外バイト一致、`.github/workflows/` 不変更） | **PASS** |
-| 新 GDevelop テスト `v1.1.0 Pro purchase test`（モックランタイムで実行） | **HARNESS PASS（177アサーション / 57フレーム）** |
-| HUD 多言語の回帰（ja/en/ko/de/hi で役割・カウンタ・スイッチ・ボタン・再使用秒） | **PASS** |
-| JS 構文（全28ブロック + 全43テストソース） | **SYNTAX PASS** |
-| `python3 scripts/ios/verify-ios-project.py`（`1.1.0` / `13`） | **ALL CHECKS PASSED**（StoreKit の18項目を含む） |
+| うち オンライン（部屋・権威・スタンプ・infect 入力・ホスト喪失） | **PASS**（`v110-phase2c.test.mjs` 14件） |
+| JS 構文（全35ブロック + 全47テストソース） | **SYNTAX PASS** |
+| `python3 scripts/ios/verify-ios-project.py`（`1.1.0` / `16`） | **ALL CHECKS PASSED**（StoreKit の18項目を含む） |
 | Swift 構文（`swiftc -parse`） | **PASS**（型チェックは macOS のビルドで） |
 | 実機 Sandbox 購入 | **未実施**（App Store Connect に商品を作ってから） |
 | 844×390 の実ブラウザ実測 | **未実施**（CSSは高さ430px以下のメディアクエリで確認） |
 
 ## 5. 変更ファイル
 
-- `game.json` — 12言語表に `pro.*` 28キー、イベントグループ `v1.1.0 Pro 購入・復元UI`
-  （末尾）、メニューの PRO ボタン、SETTINGS の PRO 行、シーン変数28個、
+- `game.json` — 12言語表に `pro.*` 28キーと `online.hostLost`、イベントグループ
+  `v1.1.0 Pro 購入・復元UI`、メニューの PRO ボタン、SETTINGS の PRO 行、シーン変数、
   新テスト `v1.1.0 Pro purchase test`、リリース表記 `ICE WOLF v1.1.0`
 - `ios/App/App/StoreKitPlugin.swift` — 新規（StoreKit 2 プラグイン + ブリッジVC）
 - `ios/App/App/SceneDelegate.swift` — `IceWolfBridgeViewController` で起動
-- `ios/App/App.xcodeproj/project.pbxproj` — 新ファイルを App ターゲットに追加、`1.1.0 (13)`
-- `scripts/ios/verify-ios-project.py` — StoreKit の検証18項目、既定値 `1.1.0` / `13`
-- `package.json` — `1.1.0`、`npm test`（`node --test tests/pro/*.test.mjs`）、`npm run test:ios`
-- `tests/pro/helpers.mjs` / `pro-strings.test.mjs` / `pro-store.test.mjs` / `scope-guard.test.mjs`
-- `docs/v110-pro-iap.md`（この資料）、`README.md`
+- `ios/App/App.xcodeproj/project.pbxproj` — 新ファイルを App ターゲットに追加、`1.1.0 (16)`
+- `scripts/ios/verify-ios-project.py` — StoreKit の検証18項目、既定値 `1.1.0` / `16`
+- `package.json` — `1.1.0`、`npm test`（9ファイル）、`npm run test:ios`
+- `tests/pro/` — `helpers.mjs` / `pro-strings` / `pro-store` / `scope-guard` /
+  `v110-stage` / `v110-match` / `v110-online` / `v110-sync` / `v110-price-copy` / `v110-phase2c`
+- `docs/v110-pro-iap.md`（この資料）、`docs/v110-release-notes.md`、`README.md`
 
 ## 6. 追加したシーン変数（読み取り専用＋テスト用）
 
@@ -117,8 +125,8 @@ App Store
 1. **App Store Connect → マイApp → ICE WOLF → App 内課金** で新規作成。
    - 種類: **非消耗型（Consumable ではない）**
    - 参照名: 任意（例 `ICE WOLF Pro`）、**製品ID: `jp.signlink.IceWolf.pro`**（後から変えられません）
-   - 価格: 日本を基準に決めて全世界へ（表示は各ストアの現地通貨）
-   - 12言語の表示名・説明（アプリと同じ ja/en/zh-Hans/zh-Hant/ko/es/fr/de/pt/it/hi/id）
+   - 価格: **¥500**（日本）。米国は $2.99 か $3.99（§1）
+   - 表示名・説明: `docs/v110-release-notes.md` §4（12言語の表示名は `ICE WOLF PRO`）
    - 審査用スクリーンショット（Pro 画面）
    - ステータスを「提出準備完了」に
 2. **バージョン 1.1.0 の「App 内課金」欄**にこの商品を追加して、ビルドと一緒に提出。
@@ -132,8 +140,8 @@ App Store
 
 ## 8. まだやっていないこと
 
-- Pro の**中身**（追加ステージ・スキン・モード）。今回は「枠」と「買える仕組み」だけです。
 - 実機での Sandbox 購入（商品作成後）。
+- **Supabase の URL と anon key の設定**（オンライン対戦を出す場合。未設定でも
+  6ステージ・CPU戦・練習モードは全部動きます）。手順は `docs/v110-online-setup.md` §3。
 - Android（Google Play）の課金。今回のプラグインは iOS 専用です。
-- Pro 特典のゲーム内反映（例: 追加ステージを Pro だけに出す）は、中身を作るときに
-  `runtimeScene.__iceWolfV110Pro.snapshot().pro` を見て分岐します。
+- 途中観戦（脱落した人の観戦席）と、結果をサーバーに残すランキング（Phase 3）。
