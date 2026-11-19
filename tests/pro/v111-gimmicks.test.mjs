@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-import { repoRoot, readGame, sceneOf, groupCode, createI18n, LANGS, KANA } from './helpers.mjs';
+import { repoRoot, readGame, sceneOf, groupCode, createI18n, LANGS, KANA, decodePng, assetPath } from './helpers.mjs';
 
 const GIMMICK_GROUP = 'v1.1.0 ステージ固有ギミック';
 const ROSTER_GROUP = 'v1.1.0 人数・2人狼・ルール';
@@ -469,19 +469,27 @@ test('the block runs for every stage and dresses each one', () => {
   assert.equal(count('iceWolfV111Whirl'), 2, 'both warps wear a whirlpool');
   assert.equal(count('iceWolfV111Lift'), 4, 'all four stairs wear a bubble lift');
 
-  /* The park hangs a bulb string, the spaceship a row of alarm lamps. */
+  /* The park hangs a bulb string, the spaceship a row of alarm lamps.
+   * Build 20: the park also lays a light pool on each floor's floor, and puts
+   * two ferris wheels and the balloon bunches on its border (the art block). */
   harness.set('StageApplied', 'park');
   harness.run();
   assert.equal(harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Bulbs').length, 1,
     'the park has its string of bulbs');
+  const pools = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Pool');
+  assert.equal(pools.length, 4, 'two pools on each floor');
+  for (const pool of pools) {
+    assert.ok(pool.position.z > 0 && pool.position.z < 8, 'a pool lies flat on the boards');
+    assert.equal(pool.material.params.transparent, true, 'a pool never hides the floor');
+    assert.equal(pool.frustumCulled, false, 'a pool is drawn from every camera');
+  }
   harness.set('StageApplied', 'space');
   harness.run();
   assert.equal(harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Lamps').length, 1,
     'the spaceship has its alarm lamps');
 });
 
-test('the manta crosses on the beat, and is hidden between beats', () => {
-  const harness = makeHarness();
+test('the manta crosses on the beat, and is hidden between beats', () => {  const harness = makeHarness();
   harness.set('RoundPhase', 'Active');
   harness.set('GameOver', false);
   harness.set('MatchDuration', 180);
@@ -663,4 +671,82 @@ test('Build 19 is the build on every side', () => {
   assert.ok(pkg.scripts.test.includes('v111-gimmicks.test.mjs'), 'npm test runs this file');
   const groups = sceneOf(readGame()).events.map((group) => group.name);
   assert.ok(groups.includes(GIMMICK_GROUP), 'the gimmick group is on the sheet');
+});
+
+/* ------------------------------------------------- Build 20: the park, rebuilt
+ * Build 19's park laid a stripe curtain over the top and bottom 15% of the
+ * screen - exactly where 生存 / スイッチ / ゲート and the clock are - and its wall
+ * was four saturated stripes behind them. These keep the HUD band clear and the
+ * new show in the arena. */
+test('the park never draws over the HUD band', () => {
+  const code = groupCode(GIMMICK_GROUP);
+  assert.doesNotMatch(code, /repeating-linear-gradient\(90deg,rgba\(255,120,210/,
+    'the stripe curtain is gone');
+  assert.doesNotMatch(code, /iwfx-park:before\{top:0\}/, 'nothing sits on the top edge');
+  assert.match(code, /\.iwfx-park\{overflow:hidden;-webkit-mask-image:linear-gradient\(to bottom,rgba\(0,0,0,0\) 0,rgba\(0,0,0,0\) 16%/,
+    'the park layer fades out above the HUD');
+  assert.match(code, /iw111sweep/, 'the spotlights sweep');
+  assert.match(code, /iw111confetti/, 'the beat throws confetti');
+});
+
+test('the park\'s light pools turn all match and open up on the beat', () => {
+  const harness = makeHarness();
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 180);
+  harness.set('MatchTimeLeft', 180);
+  harness.set('StageApplied', 'park');
+  harness.run();
+  const pools = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Pool');
+  assert.equal(pools.length, 4);
+  const before = pools.map((pool) => pool.rotation.z);
+  harness.set('__seconds', 1);
+  harness.set('MatchTimeLeft', 179);
+  harness.run();
+  pools.forEach((pool, index) => assert.notEqual(pool.rotation.z, before[index], 'the pool turned'));
+
+  /* The park beat runs 0-6s of every 16s: 8s in is quiet. */
+  harness.set('MatchTimeLeft', 180 - 8);
+  harness.run();
+  const quiet = pools[0].material.opacity;
+  harness.set('MatchTimeLeft', 180 - 1);
+  harness.run();
+  assert.ok(pools[0].material.opacity > quiet, 'the pool opens up on the beat');
+});
+
+test('the park hangs ferris wheels and balloons on its border, never in a lane', () => {
+  const group = sceneOf(readGame()).events.find((event) => event.name === 'v1.1.0 ステージ・衣装');
+  const code = group.events[group.events.length - 1].inlineCode;
+  const text = Array.isArray(code) ? code.join('\n') : code;
+  assert.ok(text.includes("balloon: ["), 'the balloons are a prop kit of their own');
+  assert.match(text, /if \(stageId === 'park' && art && art\.extra === 'park'\)/, 'the park adds its own dressing');
+  assert.match(text, /kit: 'wheel'/, 'the ferris wheel stands on a side wall');
+  assert.match(text, /kit: 'balloon'/, 'the balloons stand on the south wall');
+  assert.match(text, /if \(y > 10000\) continue;/, 'parked walls are still skipped');
+});
+
+test('the park\'s floor is quiet enough for the toys to read on', () => {
+  /* The three v1.1.0 stage floors keep a local contrast of about 20 levels so
+   * the toys, pads, gates and ice are the bright things in the frame. */
+  const png = decodePng(assetPath('floor_park.png'));
+  const at = (x, y) => {
+    const i = y * png.stride + x * png.channels;
+    if (png.colour === 3) {
+      const index = png.pixels[i] * 3;
+      return [png.palette[index], png.palette[index + 1], png.palette[index + 2]];
+    }
+    return [png.pixels[i], png.pixels[i + 1], png.pixels[i + 2]];
+  };
+  let low = 255;
+  let high = 0;
+  for (let y = 4; y < png.height; y += 8) {
+    for (let x = 4; x < png.width; x += 8) {
+      const [r, g, b] = at(x, y);
+      const level = 0.299 * r + 0.587 * g + 0.114 * b;
+      low = Math.min(low, level);
+      high = Math.max(high, level);
+    }
+  }
+  assert.ok(high - low < 46, `the park floor stays quiet (${(high - low).toFixed(1)})`);
+  assert.ok(low > 120, `the park floor is warm and light, so the dark outfits read (${low.toFixed(1)})`);
 });

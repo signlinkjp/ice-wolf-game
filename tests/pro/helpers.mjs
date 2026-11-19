@@ -6,10 +6,75 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 export const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const gamePath = path.join(repoRoot, 'game.json');
+export const assetPath = (name) => path.join(repoRoot, 'assets', name);
+
+/* The smallest PNG reader the checks need: an 8-bit picture, palette or RGB,
+ * read back into pixels so a texture can be measured rather than described. */
+export const decodePng = (file) => {
+  const buffer = fs.readFileSync(file);
+  if (buffer.toString('latin1', 1, 4) !== 'PNG') throw new Error(`${path.basename(file)} is not a PNG`);
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  let depth = 8;
+  let colour = 2;
+  let palette = null;
+  const chunks = [];
+  while (offset < buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.toString('ascii', offset + 4, offset + 8);
+    const data = buffer.subarray(offset + 8, offset + 8 + length);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      depth = data[8];
+      colour = data[9];
+    } else if (type === 'PLTE') {
+      palette = data;
+    } else if (type === 'IDAT') {
+      chunks.push(data);
+    } else if (type === 'IEND') {
+      break;
+    }
+    offset += 12 + length;
+  }
+  if (depth !== 8) throw new Error(`${path.basename(file)} is not an 8-bit PNG`);
+  const channels = colour === 6 ? 4 : colour === 2 ? 3 : 1;
+  const raw = zlib.inflateSync(Buffer.concat(chunks));
+  const stride = width * channels;
+  const pixels = Buffer.alloc(height * stride);
+  let previous = Buffer.alloc(stride);
+  let cursor = 0;
+  for (let y = 0; y < height; y += 1) {
+    const filter = raw[cursor];
+    cursor += 1;
+    const line = Buffer.from(raw.subarray(cursor, cursor + stride));
+    cursor += stride;
+    for (let x = 0; x < stride; x += 1) {
+      const left = x >= channels ? line[x - channels] : 0;
+      const up = previous[x];
+      const upLeft = x >= channels ? previous[x - channels] : 0;
+      if (filter === 1) line[x] = (line[x] + left) & 255;
+      else if (filter === 2) line[x] = (line[x] + up) & 255;
+      else if (filter === 3) line[x] = (line[x] + ((left + up) >> 1)) & 255;
+      else if (filter === 4) {
+        const estimate = left + up - upLeft;
+        const pa = Math.abs(estimate - left);
+        const pb = Math.abs(estimate - up);
+        const pc = Math.abs(estimate - upLeft);
+        line[x] = (line[x] + (pa <= pb && pa <= pc ? left : pb <= pc ? up : upLeft)) & 255;
+      }
+    }
+    line.copy(pixels, y * stride);
+    previous = line;
+  }
+  return { width, height, colour, channels, palette, pixels, stride };
+};
 
 export const LANGS = ['ja', 'en', 'zh-Hans', 'zh-Hant', 'ko', 'es', 'fr', 'de', 'pt', 'it', 'hi', 'id'];
 export const KANA = /[\u3040-\u30fa\u30fc-\u30ff]/;

@@ -422,159 +422,159 @@ def build_aquarium_floor() -> Image.Image:
 
 
 # ----------------------------------------------------------------------- park
-PARK_STRIPES = [(252, 232, 198), (236, 96, 160), (124, 78, 198), (250, 178, 94)]
+# Build 20: the misty park, rebuilt so the arena reads.
+#
+# Build 19's park was four saturated stripes (cream / pink / purple / orange) on
+# the walls with a scalloped valance, a pink striped canopy on every wall top, a
+# purple floor with a neon grid and painted stars, and a DOM layer that laid a
+# stripe curtain over the top and bottom of the screen - exactly where the HUD
+# lines sit. Everything in that list was high contrast, so the white 生存 /
+# スイッチ / ゲート lines had nothing quiet to stand on and the dark park outfits
+# sank into the floor.
+#
+# Build 20 keeps one idea per surface:
+#   wall      deep plum tent panels, one gold thread per seam, one dim bulb
+#             string - quiet enough for the HUD, dark enough for white text;
+#   wall top  a plum canopy with a cream seam cross and a few bulbs;
+#   floor     warm sawdust boards, two tones 14 levels apart, no grid, no stars,
+#             so the toys, the cyan switch pads, the yellow stairs, the red
+#             gates and the ice are the only bright things in the frame.
+PARK_PLUM = (54, 42, 74)
+PARK_PLUM_LIGHT = (64, 50, 88)
+PARK_PLUM_DARK = (44, 34, 62)
+PARK_SEAM = (150, 120, 78)
+PARK_CREAM = (236, 224, 198)
+PARK_GOLD = (214, 176, 104)
+PARK_BULB = (255, 232, 176)
+PARK_FLOOR = (202, 190, 168)
+PARK_FLOOR_DARK = (196, 183, 161)
+PARK_FLOOR_SEAM = (176, 160, 136)
 
 
 def build_park_wall() -> Image.Image:
-    rng = random.Random(2201)
-    image = Image.new("RGB", (SIZE, SIZE), (232, 96, 160))
-    draw = ImageDraw.Draw(image)
-    width = SIZE // 8
-    for i in range(8):
-        base = PARK_STRIPES[i % len(PARK_STRIPES)]
-        x0 = i * width
-        for x in range(x0, x0 + width):
-            f = (x - x0) / float(width)
-            draw.line([(x, 0), (x, SIZE)], fill=shade(base, 0.18 * math.sin(f * math.pi) - 0.12))
-        line(draw, [(x0 + width * 0.5, 0), (x0 + width * 0.5, SIZE)], shade(base, -0.2), width=2)
-        # the seam between two stripe panels sits exactly on the boundary, so the
-        # left edge of one stripe and the right edge of the previous one match
-        line(draw, [(x0, 0), (x0, SIZE)], (120, 40, 96), width=3)
-        line(draw, [(x0 + 4, 0), (x0 + 4, SIZE)], shade(base, -0.3), width=2)
+    """Deep plum tent panels, symmetric top-to-bottom so any slice of a face reads.
 
-    # Drape shading: darker toward the top and bottom of the panel.
-    drape = vertical_gradient((0, 0, 0), (0, 0, 0))
-    drape_draw = ImageDraw.Draw(drape)
+    The tile is symmetric about its middle line: a 32px interior wall face shows
+    one fifth of it, a 160px border face shows all of it, and both look like the
+    same tent.
+    """
+    image = Image.new("RGB", (SIZE, SIZE), PARK_PLUM)
+    draw = ImageDraw.Draw(image)
+    pleat = SIZE // 4
+    for i in range(4):
+        base = PARK_PLUM_LIGHT if i % 2 == 0 else PARK_PLUM
+        x0 = i * pleat
+        for x in range(x0, x0 + pleat):
+            f = (x - x0) / float(pleat)
+            # a pleat: a soft light down its middle, 12 levels at most
+            draw.line([(x, 0), (x, SIZE)], fill=shade(base, 0.045 * math.sin(f * math.pi) - 0.02))
+    for i in range(4):
+        x = i * pleat
+        line(draw, [(x, 0), (x, SIZE)], PARK_PLUM_DARK, width=4)
+        line(draw, [(x + 5, 0), (x + 5, SIZE)], PARK_SEAM, width=1)
+
+    # The air of the park: a soft plum haze toward both edges of the face, which
+    # keeps a wall from ending in a hard line under the HUD.
+    haze = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
+    haze_draw = ImageDraw.Draw(haze)
     for y in range(SIZE):
         f = abs(y / (SIZE - 1.0) - 0.5) * 2.0
-        tone = int(52 * f ** 2.2)
-        drape_draw.line([(0, y), (SIZE, y)], fill=(tone, tone, tone))
-    image = ImageChops.subtract(image, drape)
+        tone = int(26 * f ** 1.6)
+        haze_draw.line([(0, y), (SIZE, y)], fill=(tone, tone, tone + 6))
+    image = ImageChops.subtract(image, haze)
 
+    # One dim string of bulbs along both edges (the tile repeats, so a face wears
+    # a string at its top and at its bottom).
+    glow = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
     draw = ImageDraw.Draw(image)
-    # Scalloped valance at both edges of the panel (the tile is symmetric about
-    # its middle line, so it reads the same whichever way the face is mapped).
-    for top in (False, True):
-        base = width // 2 if top else SIZE - width // 2
-        for i in range(8):
-            cx = i * width + width // 2
-            start, end = (0, 180) if top else (180, 360)
-            pie(draw, cx - width // 2, base - width // 2, cx + width // 2, base + width // 2,
-                start, end, (252, 240, 218))
-            arc(draw, cx - width // 2, base - width // 2, cx + width // 2, base + width // 2,
-                start, end, (206, 96, 150), width=4)
-            dot(draw, cx, base + (-1 if top else 1) * width // 4, 4, (255, 220, 120))
-        line(draw, [(0, base), (SIZE, base)], (188, 74, 132), width=5)
-        line(draw, [(0, base + (-5 if top else 5)), (SIZE, base + (-5 if top else 5))],
-             (255, 214, 160), width=2)
-
-    # A string of carnival bulbs at both edges too.
-    bulb_glow = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
-    bulb_draw = ImageDraw.Draw(bulb_glow)
-    for top in (False, True):
-        string_y = 66 if top else SIZE - 66
-        sign = 1 if top else -1
-        line(draw, [(0, string_y), (SIZE, string_y)], (58, 24, 66), width=4)
-        for bx in range(22, SIZE, 44):
-            by = string_y + sign * (12 + 8 * math.sin(bx / 60.0))
-            line(draw, [(bx, string_y), (bx, by)], (58, 24, 66), width=2)
-            dot(draw, bx, by + sign * 7, 8, (255, 238, 168))
-            dot(bulb_draw, bx, by + sign * 7, 11, (255, 198, 96))
-    image = ImageChops.add(image, wrapped_blur(bulb_glow, 7), scale=1.25)
-
-    draw = ImageDraw.Draw(image)
-    for top in (False, True):
-        string_y = 66 if top else SIZE - 66
-        sign = 1 if top else -1
-        for bx in range(22, SIZE, 44):
-            by = string_y + sign * (12 + 8 * math.sin(bx / 60.0))
-            dot(draw, bx, by + sign * 7, 5, (255, 252, 226))
+    for edge in (False, True):
+        y = 22 if not edge else SIZE - 22
+        line(draw, [(0, y), (SIZE, y)], shade(PARK_PLUM_DARK, -0.2), width=3)
+        for bx in range(16, SIZE, 32):
+            sag = 5 * math.sin(bx / 96.0 * math.pi)
+            by = y + (sag if not edge else -sag)
+            dot(draw, bx, by, 3, PARK_BULB)
+            dot(glow_draw, bx, by, 7, (150, 118, 62))
+    image = ImageChops.add(image, wrapped_blur(glow, 8), scale=1.0)
     return image.filter(ImageFilter.SMOOTH)
 
 
 def build_park_cap() -> Image.Image:
-    rng = random.Random(2202)
-    image = Image.new("RGB", (SIZE, SIZE), (236, 96, 160))
+    """The tent roof seen from above: two plums, one cream seam cross, bulbs."""
+    image = Image.new("RGB", (SIZE, SIZE), PARK_PLUM_LIGHT)
     draw = ImageDraw.Draw(image)
-    # Tent canopy from above: stripes fanning out from the tile centre.
-    band = SIZE // 12
-    for i in range(-18, 18):
-        colour = PARK_STRIPES[i % len(PARK_STRIPES)]
-        poly(draw, [(SIZE // 2 + i * band, 0), (SIZE // 2 + (i + 1) * band, 0),
-                    (SIZE // 2 + (i + 1) * band * 2.4, SIZE), (SIZE // 2 + i * band * 2.4, SIZE)],
-             fill=colour)
+    half = SIZE // 2
+    # A tent roof from above is one calm cloth with seams, not a pattern: two
+    # broad panels per half, one tone apart, so it never competes with the HUD.
+    for j in range(2):
+        for i in range(2):
+            if (i + j) % 2 == 0:
+                continue
+            box(draw, i * half, j * half, (i + 1) * half, (j + 1) * half, fill=PARK_PLUM)
     overlay = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    ImageDraw.Draw(overlay).rectangle([0, 0, SIZE, SIZE], fill=(60, 10, 60, 28))
+    ImageDraw.Draw(overlay).rectangle([0, 0, SIZE, SIZE], fill=(30, 16, 46, 18))
     image = Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
-    # Rope seams and bulbs where they cross.
-    bulb_glow = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
-    glow_draw = ImageDraw.Draw(bulb_glow)
-    for t in (0, SIZE // 2):
-        for k in range(9):
-            dot(glow_draw, t + 6, 32 + k * 56, 10, (255, 206, 110))
-            dot(glow_draw, 32 + k * 56, t + 6, 10, (255, 206, 110))
-    image = ImageChops.add(image, wrapped_blur(bulb_glow, 7), scale=1.3)
+
     draw = ImageDraw.Draw(image)
-    for t in (0, SIZE // 2):
-        line(draw, [(t, 0), (t, SIZE)], (86, 34, 78), width=8)
-        line(draw, [(t + 4, 0), (t + 4, SIZE)], (232, 178, 216), width=2)
-        line(draw, [(0, t), (SIZE, t)], (86, 34, 78), width=8)
-        line(draw, [(0, t + 4), (SIZE, t + 4)], (232, 178, 216), width=2)
-        for k in range(9):
-            dot(draw, t + 6, 32 + k * 56, 5, (255, 250, 220))
-            dot(draw, 32 + k * 56, t + 6, 5, (255, 250, 220))
+    for t in (0, half):
+        line(draw, [(t, 0), (t, SIZE)], PARK_PLUM_DARK, width=7)
+        line(draw, [(t + 4, 0), (t + 4, SIZE)], PARK_CREAM, width=2)
+        line(draw, [(0, t), (SIZE, t)], PARK_PLUM_DARK, width=7)
+        line(draw, [(0, t + 4), (SIZE, t + 4)], PARK_CREAM, width=2)
+    glow = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    for t in (0, half):
+        for k in range(6):
+            offset = 42 + k * 86
+            dot(glow_draw, t + 6, offset, 8, (140, 112, 58))
+            dot(glow_draw, offset, t + 6, 8, (140, 112, 58))
+    image = ImageChops.add(image, wrapped_blur(glow, 7), scale=1.0)
+    draw = ImageDraw.Draw(image)
+    for t in (0, half):
+        for k in range(6):
+            offset = 42 + k * 86
+            dot(draw, t + 6, offset, 4, PARK_BULB)
+            dot(draw, offset, t + 6, 4, PARK_BULB)
     return image.filter(ImageFilter.SMOOTH)
 
 
 def build_park_floor() -> Image.Image:
-    """The fairground floor: two close, warm tones and a soft neon grid.
+    """Warm sawdust boards: one calm tone, wide seams, no grid and no stars.
 
-    Build 17's floor was a near-white / near-black checkerboard with confetti on
-    it, and the toys disappeared into it. Both cell tones now sit within a few
-    steps of each other, the confetti is gone, and only the grid still glows.
+    Build 17 was a near-white / near-black checkerboard and Build 19 a purple
+    grid with painted stars; both put more contrast in the floor than in the
+    characters. This floor is the quietest surface of the five stages: two tones
+    16 levels apart, a seam only at the board edge, and the warm pools the
+    strings overhead would really throw.
     """
     rng = random.Random(2203)
-    cell = SIZE // 2
-    image = Image.new("RGB", (SIZE, SIZE), (150, 128, 158))
+    image = Image.new("RGB", (SIZE, SIZE), PARK_FLOOR)
     draw = ImageDraw.Draw(image)
-    for j in range(2):
-        for i in range(2):
-            colour = (146, 122, 156) if (i + j) % 2 == 0 else (166, 148, 158)
-            x0, y0 = i * cell, j * cell
-            box(draw, x0, y0, x0 + cell, y0 + cell, fill=colour)
-    # Soft lamps thrown by the strings overhead, generous and low contrast.
-    image = blend_spots(image, (182, 156, 170), [(150, 140, 190, 150), (390, 380, 200, 160)], 56, 0.5)
-    image = blend_spots(image, (132, 112, 146), [(392, 130, 170, 140), (120, 380, 160, 130)], 56, 0.4)
+    board = SIZE // 8
+    for i in range(8):
+        tone = PARK_FLOOR if i % 2 == 0 else PARK_FLOOR_DARK
+        y0 = i * board
+        box(draw, 0, y0, SIZE, y0 + board, fill=tone)
+        line(draw, [(0, y0), (SIZE, y0)], PARK_FLOOR_SEAM, width=2)
+    # No board ends: a staggered seam every board would read as brickwork. One
+    # line per board edge is all the floor needs to look laid, not printed.
+    # sawdust: a fine grain, two levels either way, so a big floor is not a flat
+    # fill on a phone screen
+    grain = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
+    grain_draw = ImageDraw.Draw(grain)
+    for _ in range(2600):
+        gx = rng.uniform(0, SIZE)
+        gy = rng.uniform(0, SIZE)
+        tone = rng.choice(((6, 5, 4), (5, 4, 3), (4, 4, 4)))
+        dot(grain_draw, gx, gy, rng.choice((0.6, 0.8, 1.0)), tone)
+    image = ImageChops.add(image, wrapped_blur(grain, 0.6))
 
-    draw = ImageDraw.Draw(image)
-    # Grout lines on the cell boundaries (drawn wrapped, so the tile edge matches).
-    for t in range(0, SIZE, cell):
-        line(draw, [(t, 0), (t, SIZE)], (128, 108, 138), width=3)
-        line(draw, [(0, t), (SIZE, t)], (128, 108, 138), width=3)
+    image = blend_spots(image, (230, 216, 190), [(150, 140, 190, 170), (382, 372, 200, 180)], 70, 0.5)
+    image = blend_spots(image, (192, 176, 152), [(398, 128, 160, 130), (118, 396, 150, 130)], 70, 0.35)
 
-    # A thin neon strip along the tile grid, bright enough to read as a fair-
-    # ground but narrow enough not to compete with the players.
-    neon = Image.new("RGB", (SIZE, SIZE), (0, 0, 0))
-    neon_draw = ImageDraw.Draw(neon)
-    for t in (0, SIZE // 2):
-        neon_draw.line([(0, t), (SIZE, t)], (255, 96, 196), width=4)
-        neon_draw.line([(t, 0), (t, SIZE)], (255, 96, 196), width=4)
-    image = ImageChops.add(image, wrapped_blur(neon, 8), scale=1.1)
-    draw = ImageDraw.Draw(image)
-    for t in (0, SIZE // 2):
-        line(draw, [(0, t), (SIZE, t)], (255, 176, 232), width=2)
-        line(draw, [(t, 0), (t, SIZE)], (255, 176, 232), width=2)
-
-    # One painted star, quiet, the fairground's own mark.
-    sx, sy, r = 330, 130, 40
-    star = []
-    for i in range(10):
-        a = math.radians(-90 + i * 36)
-        rr = r if i % 2 == 0 else r * 0.45
-        star.append((sx + math.cos(a) * rr, sy + math.sin(a) * rr))
-    poly(draw, star, fill=(206, 190, 150))
-    for _ in range(24):
-        dot(draw, rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.choice((1, 2)), (176, 160, 168))
+    # The carousel ring is a 3D decal on two fixed spots of the map, not a print
+    # in the tile: a motif in the tile would repeat every 256px across the floor.
     return image.filter(ImageFilter.SMOOTH)
 
 
