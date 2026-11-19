@@ -41,8 +41,9 @@ const model = () => blockBetween(groupCode(GIMMICK_GROUP),
     'iceWolfGimmickElapsed', 'iceWolfGimmickPhase', 'iceWolfGimmickBeat',
     'iceWolfGimmickFloorOf', 'iceWolfGimmickZoneAt', 'iceWolfGimmickDrift', 'iceWolfGimmickStandable',
     'iceWolfGimmickBeatKey', 'ICE_WOLF_SCHOOL_ROOMS', 'ICE_WOLF_SCHOOL_DOORS',
-    'ICE_WOLF_SCHOOL_DOORS_BY_FLOOR', 'iceWolfSchoolRoomIndex',
-    'iceWolfSchoolDoor', 'iceWolfSchoolDoorStep', 'ICE_WOLF_GRAVITY',
+    'ICE_WOLF_SCHOOL_DOORS_BY_FLOOR', 'iceWolfSchoolRoomIndex', 'iceWolfSchoolRoomTouch',
+    'iceWolfSchoolDoor', 'iceWolfSchoolDoorStep', 'iceWolfSchoolDoorSide',
+    'iceWolfSchoolDoorSweep', 'iceWolfSchoolDoorHold', 'ICE_WOLF_GRAVITY',
     'iceWolfGravityRandom', 'iceWolfGravityCells', 'iceWolfGravityCellAt',
     'ICE_WOLF_PARK', 'iceWolfParkStep'].join(', '));
 
@@ -738,6 +739,273 @@ test('a shut door puts a body back on its own side, along the door alone', () =>
   assert.ok(walked.x >= -660 + half - 0.01, `held inside the room (${walked.x})`);
 });
 
+/* ------------------------------------ Build 22: a door that cannot be slipped
+ * Build 21's seal moved a body to its own face — and, when that exact spot was
+ * "taken", to the far face or to nowhere at all. The wall rectangles carry their
+ * 7px margin, so the few pixels beside a doorway are always "taken": a player
+ * brushing a doorway edge walked straight through the shut leaf, and the end
+ * doors posted bodies into the classroom. These walk every door of both floors —
+ * from the hall and from the classroom, at the doorway centre and at its edges —
+ * at a walking step, at a lagged frame and in one 240px jump, for the player, a
+ * CPU and the wolf, and no body ever ends on the other side. */
+const schoolHarness = () => {
+  const harness = makeHarness();
+  harness.world.walls = schoolWalls().map((rect) => ({
+    name: 'Wall',
+    getX: () => rect.x,
+    getY: () => rect.y,
+    getWidth: () => rect.w,
+    getHeight: () => rect.h
+  }));
+  harness.runtimeScene.__iceWolfV074Rects = null;
+  harness.set('StageApplied', 'school');
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 180);
+  return harness;
+};
+const doorsAt = (harness, elapsed) => harness.set('MatchTimeLeft', 180 - elapsed);
+
+/* The three bodies the game moves: the player (human or wolf, one object), and
+ * the CPUs. The seal reads `State` and the guest flag only, so what it does for
+ * one it does for all three. */
+const wolfActor = (harness) => {
+  const wolf = harness.world.actors[1];
+  wolf.getVariables = () => ({ get: (key) => ({
+    getAsString: () => (key === 'State' ? 'Active' : key === 'Role' ? 'Wolf' : ''),
+    setString() {}
+  }) });
+  return wolf;
+};
+
+/* One walk at a shut door: the doors are open for one frame first, the way a
+ * round always is, so the shut's first frame knows the spot the body held. */
+const walkAtDoor = ({ harness, body, start, dx, dy, step, frames = 70, insideOf }) => {
+  body.setX(start.x);
+  body.setY(start.y);
+  body.__iceWolfV111Seal = null;
+  doorsAt(harness, 20);
+  harness.run();
+  doorsAt(harness, 9);
+  const startedInside = insideOf(body.getCenterXInScene(), body.getCenterYInScene());
+  for (let i = 0; i < frames; i += 1) {
+    body.setX(body.getX() + dx * step);
+    body.setY(body.getY() + dy * step);
+    harness.run();
+    const inside = insideOf(body.getCenterXInScene(), body.getCenterYInScene());
+    if (inside !== startedInside) {
+      return { frame: i + 1, x: Math.round(body.getCenterXInScene()), y: Math.round(body.getCenterYInScene()) };
+    }
+  }
+  return null;
+};
+
+/* Where a body starts for one side of one door, and which way it walks. */
+const doorApproach = (door, fromRoom, gap) => {
+  const roomIsGreater = door.side > 0;
+  if (door.axis === 'y') {
+    const y = (fromRoom === roomIsGreater)
+      ? (roomIsGreater ? door.y + door.h + gap : door.y - gap)
+      : (roomIsGreater ? door.y - gap : door.y + door.h + gap);
+    return { start: { y }, dx: 0, dy: y > door.y + door.h / 2 ? -1 : 1 };
+  }
+  const x = (fromRoom === roomIsGreater)
+    ? (roomIsGreater ? door.x + door.w + gap : door.x - gap)
+    : (roomIsGreater ? door.x - gap : door.x + door.w + gap);
+  return { start: { x }, dx: x > door.x + door.w / 2 ? -1 : 1, dy: 0 };
+};
+
+test('a shut door holds the player, a CPU and the wolf — walked, lagged or jumped at', () => {
+  const pure = model();
+  const insideOf = (x, y) => pure.iceWolfSchoolRoomIndex(x, y) >= 0;
+  const harness = schoolHarness();
+  const kinds = [
+    ['player', () => harness.world.player],
+    ['cpu', () => harness.world.actors[0]],
+    ['wolf', () => wolfActor(harness)]
+  ];
+  for (const [kind, pick] of kinds) {
+    for (const door of pure.ICE_WOLF_SCHOOL_DOORS) {
+      const gap = door.axis === 'y' ? 90 : 40;
+      for (const fromRoom of [true, false]) {
+        const approach = doorApproach(door, fromRoom, gap);
+        const start = door.axis === 'y'
+          ? { x: door.x + door.w / 2 - 8.5, y: approach.start.y - 8.5 }
+          : { x: approach.start.x - 8.5, y: door.y + door.h / 2 - 8.5 };
+        for (const step of [4.3, 8.7, 60, 240]) {
+          const leak = walkAtDoor({ harness, body: pick(), start, dx: approach.dx, dy: approach.dy, step, insideOf });
+          const doorName = `${door.floor} ${door.axis} door at ${door.x},${door.y}`;
+          assert.equal(leak, null, `${kind} (${step}px a frame) from ${fromRoom ? 'the classroom' : 'the hall'} through the ${doorName}: ${JSON.stringify(leak)}`);
+        }
+      }
+    }
+  }
+  /* The shut really was shut while all of that was walked. */
+  assert.equal(harness.get('StageGimmickDoor'), 'shut');
+});
+
+test('a doorway edge is as solid as its middle', () => {
+  const pure = model();
+  const insideOf = (x, y) => pure.iceWolfSchoolRoomIndex(x, y) >= 0;
+  const harness = schoolHarness();
+  const body = harness.world.player;
+  for (const door of pure.ICE_WOLF_SCHOOL_DOORS) {
+    const edge = door.axis === 'y'
+      ? [door.x + 2, door.x + 8, door.x + door.w - 8, door.x + door.w - 2]
+      : [door.y + 2, door.y + 8, door.y + door.h - 8, door.y + door.h - 2];
+    for (const spot of edge) {
+      for (const fromRoom of [true, false]) {
+        const approach = doorApproach(door, fromRoom, door.axis === 'y' ? 70 : 40);
+        const start = door.axis === 'y'
+          ? { x: spot - 8.5, y: approach.start.y - 8.5 }
+          : { x: approach.start.x - 8.5, y: spot - 8.5 };
+        for (const step of [4.3, 8.7, 60]) {
+          const leak = walkAtDoor({ harness, body, start, dx: approach.dx, dy: approach.dy, step, insideOf });
+          assert.equal(leak, null,
+            `the ${door.floor} door at ${door.x},${door.y} leaks at its edge ${spot} (${step}px, from ${fromRoom ? 'the room' : 'the hall'}): ${JSON.stringify(leak)}`);
+        }
+      }
+    }
+  }
+});
+
+test('the end doors never post a body into the classroom', () => {
+  const pure = model();
+  const insideOf = (x, y) => pure.iceWolfSchoolRoomIndex(x, y) >= 0;
+  const harness = schoolHarness();
+  const body = harness.world.player;
+  /* Build 21 shoved a body standing in the last few pixels of the hall — the own
+   * face sat inside a wall's margin — onto the far face, i.e. into the room. */
+  const cases = [
+    { floor: '1F', x: -697, y: 0 },
+    { floor: '1F', x: -690, y: 60 },
+    { floor: '2F', x: 1100, y: -300 },
+    { floor: '2F', x: 1120, y: 0 },
+    { floor: '2F', x: 1990, y: 0 }
+  ];
+  for (const spot of cases) {
+    for (const dx of [1, -1]) {
+      for (const step of [4.3, 26, 120]) {
+        const start = { x: spot.x - 8.5, y: spot.y - 8.5 };
+        const leak = walkAtDoor({ harness, body, start, dx, dy: 0, step, insideOf });
+        assert.equal(leak, null, `${spot.floor} hall spot ${spot.x},${spot.y} walking ${dx > 0 ? 'east' : 'west'} at ${step}px: ${JSON.stringify(leak)}`);
+      }
+    }
+  }
+});
+
+test('a body the shut caught inside stays inside, even at a run', () => {
+  const pure = model();
+  const insideOf = (x, y) => pure.iceWolfSchoolRoomIndex(x, y) >= 0;
+  const harness = schoolHarness();
+  const body = harness.world.player;
+  for (const door of pure.ICE_WOLF_SCHOOL_DOORS) {
+    const gap = door.axis === 'y' ? 90 : 40;
+    const approach = doorApproach(door, true, gap);
+    const start = door.axis === 'y'
+      ? { x: door.x + door.w / 2 - 8.5, y: approach.start.y - 8.5 }
+      : { x: approach.start.x - 8.5, y: door.y + door.h / 2 - 8.5 };
+    for (const step of [4.3, 26, 60, 240]) {
+      const leak = walkAtDoor({ harness, body, start, dx: approach.dx, dy: approach.dy, step, insideOf });
+      assert.equal(leak, null, `a body inside the ${door.floor} door at ${door.x},${door.y} got out at ${step}px: ${JSON.stringify(leak)}`);
+    }
+  }
+});
+
+test('the door model reads the side from the step, and the step cannot jump the leaf', () => {
+  const pure = model();
+  const door = pure.ICE_WOLF_SCHOOL_DOORS[0];
+  const half = 8.5;
+  assert.equal(pure.iceWolfSchoolDoorSide(door, -410, -300, false), -1, 'from the hall it stays on the hall side');
+  assert.equal(pure.iceWolfSchoolDoorSide(door, -410, 0, true), 1, 'from the room it stays on the room side');
+  assert.equal(pure.iceWolfSchoolDoorSide(door, -410, -300, true), -1, 'the step wins over the room it claims');
+  const face = pure.iceWolfSchoolDoorHold(door, -410, -140, half, -1, () => true);
+  assert.equal(face.x, -410, 'a body is only moved across its door');
+  assert.equal(face.y, door.y - half, 'the free face is the face itself');
+  const pushed = pure.iceWolfSchoolDoorHold(door, -410, -140, half, -1, (x, y) => y <= door.y - 20);
+  assert.ok(pushed.y <= door.y - 20, `a taken face steps away from the door, never across it (${JSON.stringify(pushed)})`);
+  assert.equal(pure.iceWolfSchoolDoorHold(door, -410, -140, half, -1, () => false), null, 'no free spot reports null');
+  /* The sweep: a step that starts and ends clear of the leaf but crosses it. */
+  assert.equal(pure.iceWolfSchoolDoorSweep(door, -410, -200, -410, 0, half), true, 'a 200px jump is caught');
+  assert.equal(pure.iceWolfSchoolDoorSweep(door, -410, -200, -410, -160, half), false, 'a short step outside is not');
+  assert.equal(pure.iceWolfSchoolDoorSweep(door, -410, -148.5, -300, -148.5, half), false, 'sliding along the face is not a crossing');
+  assert.equal(pure.iceWolfSchoolDoorSweep(door, -700, -170, -410, -170, half), false, 'walking past it, clear of the wall, is not');
+  /* The body's own box, not its centre, decides which classroom it belongs to. */
+  assert.ok(pure.iceWolfSchoolRoomTouch(door.x + 40, door.y + door.h + 4, half) >= 0, 'half inside the inner face is inside');
+  assert.equal(pure.iceWolfSchoolRoomTouch(door.x + 40, door.y - 40, half), -1, 'out in the hall is out');
+});
+
+/* ------------------------------------ Build 22: the doors count down, in words
+ * チャイム中は「あと3秒で教室が閉まる」、ロック中は「あと5秒」…と1秒ずつ減る。 */
+test('the school counts down to the shut and back to open', () => {
+  const pure = model();
+  const cycle = pure.ICE_WOLF_GIMMICK_CYCLES.school;
+  const at = (offset) => pure.iceWolfSchoolDoor(cycle.offset + offset);
+  assert.equal(at(0).chime, true);
+  assert.equal(at(0).closingLeft, 3, 'the chime starts at three seconds');
+  assert.equal(at(1).closingLeft, 2);
+  assert.equal(at(2).closingLeft, 1);
+  assert.equal(at(2.5).chime, false, 'the chime is over when the doors shut');
+  assert.equal(at(2.5).shut, true);
+  assert.equal(at(2.5).left, 5, 'the lock opens at five seconds');
+  assert.equal(at(3.5).left, 4);
+  assert.equal(at(4.5).left, 3);
+  assert.equal(at(5.5).left, 2);
+  assert.equal(at(6.5).left, 1);
+  assert.equal(at(7.4).left, 1, 'the last second is still shown');
+  assert.equal(at(7.5).shut, false, 'and then the doors are open');
+  for (let t = 0; t < cycle.warn; t += 0.1) {
+    assert.equal(at(t).closingLeft, Math.ceil(cycle.warn - t), `whole seconds before the shut at ${t}`);
+  }
+  for (let t = cycle.warn; t < cycle.length; t += 0.05) {
+    const door = at(t);
+    assert.equal(door.left, Math.ceil(cycle.length - t), `whole seconds of lock at ${t}`);
+    assert.ok(door.left >= 1 && door.left <= cycle.shut, `the lock reads 1..5 (${door.left})`);
+  }
+});
+
+test('the lock banner counts down in the chosen language and never blinks', () => {
+  const harness = schoolHarness();
+  const i18n = createI18n({ language: 'ja' }).i18n;
+  harness.runtimeScene.__iceWolfI18n = i18n;
+  const fx = () => harness.document.body.children[0].__fx;
+  const pill = () => fx().banner;
+  const text = () => fx()['banner-text'];
+  /* The chime: あと3秒 → 2 → 1. */
+  doorsAt(harness, 6.2);
+  harness.run();
+  assert.equal(harness.get('StageGimmickDoor'), 'chime');
+  assert.equal(harness.get('StageGimmickCountdown'), 3);
+  assert.equal(text().textContent, '🔔 あと3秒で教室が閉まる');
+  doorsAt(harness, 7.2);
+  harness.run();
+  assert.equal(harness.get('StageGimmickCountdown'), 2);
+  assert.equal(text().textContent, '🔔 あと2秒で教室が閉まる');
+  /* The lock: あと5秒 → 4 → … → 1, and the pill stays up the whole time. */
+  const seen = [];
+  for (let tenths = 0; tenths < 50; tenths += 1) {
+    doorsAt(harness, 8.5 + tenths * 0.1);
+    harness.run();
+    assert.equal(harness.get('StageGimmickDoor'), 'shut');
+    assert.equal(pill().classList.contains('iwfx-on'), true, `the pill is up ${tenths / 10}s into the lock`);
+    const left = harness.get('StageGimmickCountdown');
+    assert.ok(left >= 1 && left <= 5, `the lock counts 1..5 (${left})`);
+    assert.equal(text().textContent, `🔒 教室ロック中 あと${left}秒`);
+    if (seen[seen.length - 1] !== left) seen.push(left);
+  }
+  assert.deepEqual(seen, [5, 4, 3, 2, 1], 'one step a second, in order, with no gaps');
+  /* And every language names the number. */
+  for (const lang of LANGS) {
+    i18n.setLang(lang);
+    for (const key of ['fx.school.chime', 'fx.school.doors']) {
+      const line = i18n.t(key, { n: 3 });
+      assert.ok(line.includes('3'), `${key} [${lang}] counts in the sentence: ${line}`);
+      assert.equal(line.includes('{n}'), false, `${key} [${lang}] filled the number in`);
+    }
+  }
+  i18n.setLang('ja');
+});
+
 test('the doors never take a switch away for good', () => {
   const pure = model();
   const cycle = pure.ICE_WOLF_GIMMICK_CYCLES.school;
@@ -994,12 +1262,12 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
   assert.equal(audit.leaks.length, 0, `no Japanese leaked: ${[...audit.leaks].join(',')}`);
 });
 
-test('Build 21 is the build on every side', () => {
+test('Build 22 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['21', '21'], 'both configurations are Build 21');
+  assert.deepEqual(builds, ['22', '22'], 'both configurations are Build 22');
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "21"'), 'the verifier defaults to 21');
+  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "22"'), 'the verifier defaults to 22');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v111-gimmicks.test.mjs'), 'npm test runs this file');
   const groups = sceneOf(readGame()).events.map((group) => group.name);

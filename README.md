@@ -99,14 +99,16 @@ Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
 Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
 `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
 down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
-In progress: **v1.1.0 (Build 21)** — the Pro purchase foundation (¥500), Phase 1
+In progress: **v1.1.0 (Build 22)** — the Pro purchase foundation (¥500), Phase 1
 (6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera), Phase 2
 (online rooms, host authority, eight translated quick stamps), Phase 2b (the 3D
 snapshot sync), Phase 2c (guest designation relay, host-loss recovery, one win
 reason everywhere) and a stage rule for each of the five new stages on
 `feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`,
 `docs/v110-phase1-stages.md`, `docs/v110-online-setup.md`,
-`docs/v110-stage-gimmicks.md`, `docs/v110-release-notes.md`).
+`docs/v110-stage-gimmicks.md`, `docs/v110-release-notes.md`). Build 22 closes the
+Abandoned School's shut doors (a body brushing a doorway edge could walk through)
+and counts the chime and the lock down a second at a time.
 The online rooms run on the Supabase project **`games-realtime`**
 (`siivncidktbuyqwsjeqd`): the TestFlight build writes the project URL and its
 publishable key into `window.ICE_WOLF_ONLINE_CONFIG` at build time

@@ -4,7 +4,7 @@
 アプリの作りは `docs/v110-pro-iap.md`、通信は `docs/v110-online-setup.md`、
 Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 
-- 版: `1.1.0`（Build 21）
+- 版: `1.1.0`（Build 22）
 - 商品: `jp.signlink.IceWolf.pro`（非消耗型・買い切り）
 - 価格: **¥500**（日本）。表示は StoreKit の `displayPrice`（各ストアの現地通貨）
 
