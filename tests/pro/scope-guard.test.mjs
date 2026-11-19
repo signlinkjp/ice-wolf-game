@@ -34,7 +34,11 @@ const NEW_GROUPS = [
   'v1.1.0 オンライン対戦同期',
   /* Build 19: one gimmick per v1.1.0 stage, before the sync so the snapshot
    * publishes the position a zone has just produced. */
-  'v1.1.0 ステージ固有ギミック'
+  'v1.1.0 ステージ固有ギミック',
+  /* Build 25: the wolf's own board, and the block that closes a wolf mode that
+   * outlived its timer - both after the sync, so they read the settled frame. */
+  'v1.1.0 鬼の仲間HUD',
+  'v1.1.0 鬼の状態リセット'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });

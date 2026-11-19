@@ -167,23 +167,33 @@ test('the camera hands over to the picked actor and stands the old group down', 
   assert.ok(groups.includes('v1.1.0 観戦カメラ（追従）'), 'the follow group is on the sheet');
   const follow = scene.events.find((group) => group.name === 'v1.1.0 観戦カメラ（追従）');
   const actions = follow.events.flatMap((event) => event.actions || []);
-  assert.equal(actions.length, 2, 'a chase camera and an overview camera');
+  assert.equal(actions.length, 3, 'a chase camera, an overview camera, and Build 25\'s frozen view');
   for (const action of actions) {
-    assert.equal(action.parameters[1], 'Actor', 'the camera looks at an Actor');
     assert.equal(action.parameters[2], 'Object3D', 'through the 3D behaviour');
   }
+  assert.equal(actions[0].parameters[1], 'Actor', 'the chase looks at an Actor');
   assert.equal(actions[0].parameters[3], '600', 'the shipped chase distance');
   assert.equal(actions[0].parameters[5], '53', 'the shipped chase height');
+  assert.equal(actions[1].parameters[1], 'Actor', 'the overview looks at an Actor');
   assert.equal(actions[1].parameters[3], '1050', 'the shipped overview distance');
   assert.equal(actions[1].parameters[5], '78', 'the shipped overview height');
-  for (const event of follow.events) {
+  /* Build 25: frozen, the camera goes above the player's own ice and shows the
+   * whole floor, which is what a frozen player asked for. */
+  assert.equal(actions[2].parameters[1], 'Player', 'the frozen view looks at the player');
+  assert.equal(actions[2].parameters[3], '1500', 'from far enough up to see the floor');
+  assert.equal(actions[2].parameters[5], '86', 'and steep enough to read as a plan');
+  for (const event of follow.events.slice(0, 2)) {
     const conditions = event.conditions.map((condition) => condition.parameters?.[0]);
     assert.ok(conditions.includes('SpectatorActive'), 'only while spectating');
     assert.ok(conditions.includes('Actor'), 'picking the focused actor');
+    assert.ok(conditions.includes('SpectatorFrozen'), 'and never while the frozen view is on');
     const focus = event.conditions.find((condition) => condition.parameters?.[1] === 'SpectatorFocus');
     assert.ok(focus, 'through the SpectatorFocus marker');
     assert.equal(focus.parameters[3], '"1"', 'the marked instance only');
   }
+  const frozenEvent = follow.events[2];
+  const frozenFlags = frozenEvent.conditions.map((condition) => condition.parameters?.[0]);
+  assert.ok(frozenFlags.includes('SpectatorFrozen'), 'the frozen view waits for the frozen flag');
   const shipped = scene.events.find((group) => group.name === 'v0.6.4 Normal + Overview camera');
   for (const event of shipped.events) {
     const conditions = event.conditions.map((condition) => condition.parameters?.[0]);

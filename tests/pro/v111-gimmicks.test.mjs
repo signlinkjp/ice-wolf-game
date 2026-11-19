@@ -43,9 +43,10 @@ const model = () => blockBetween(groupCode(GIMMICK_GROUP),
     'iceWolfGimmickBeatKey', 'ICE_WOLF_SCHOOL_ROOMS', 'ICE_WOLF_SCHOOL_DOORS',
     'ICE_WOLF_SCHOOL_DOORS_BY_FLOOR', 'iceWolfSchoolRoomIndex', 'iceWolfSchoolRoomTouch',
     'iceWolfSchoolDoor', 'iceWolfSchoolDoorStep', 'iceWolfSchoolDoorSide',
-    'iceWolfSchoolDoorSweep', 'iceWolfSchoolDoorHold', 'ICE_WOLF_GRAVITY',
-    'iceWolfGravityRandom', 'iceWolfGravityCells', 'iceWolfGravityCellAt',
-    'ICE_WOLF_PARK', 'iceWolfParkStep'].join(', '));
+    'iceWolfSchoolDoorSweep', 'iceWolfSchoolDoorHold', 'iceWolfGimmickHash',
+    'ICE_WOLF_PARK', 'iceWolfParkStep', 'ICE_WOLF_SPACE', 'iceWolfSpaceMode',
+    'iceWolfSpaceStep', 'ICE_WOLF_SEA_CREATURES', 'ICE_WOLF_SEA_SCALE', 'iceWolfSeaPick',
+    'iceWolfGimmickBeatKey'].join(', '));
 
 /* The school's wall plan, read out of the stage block so the doors are checked
  * against the walls that actually ship. */
@@ -152,14 +153,22 @@ test('the five v1.1.0 stages have a gimmick, and Classic has none', () => {
 test('the beats run off the match clock, on the period and length each stage wants', () => {
   const pure = model();
   const cycles = pure.ICE_WOLF_GIMMICK_CYCLES;
-  assert.ok(cycles.aquarium.period >= 25 && cycles.aquarium.period <= 30, 'the manta comes every 25-30s');
-  assert.ok(cycles.aquarium.length >= 2.5 && cycles.aquarium.length <= 3, 'and stays 2.5-3s');
+  assert.ok(cycles.aquarium.period >= 25 && cycles.aquarium.period <= 30, 'the creature comes every 25-30s');
+  assert.ok(cycles.aquarium.length >= 4.5 && cycles.aquarium.length <= 5.5, 'and stays long enough to cross a big screen');
   assert.ok(cycles.lodge.length >= 3, 'the blizzard holds a few seconds');
   assert.ok(cycles.school.warn >= 2 && cycles.school.warn <= 3, 'the chime rings 2-3 s before the doors');
   assert.equal(cycles.school.shut, 5, 'the classroom doors shut for five seconds');
   assert.equal(cycles.school.length, cycles.school.warn + cycles.school.shut, 'the beat is chime + shut');
-  assert.ok(cycles.space.warn >= 2, 'the gravity warning comes before the cells');
-  assert.ok(cycles.space.heavy >= 8, 'the cells stay up around ten seconds');
+  /* Build 25: the ship's ten-second window carries the heavy run and the rocket
+   * run, and the twelve quiet seconds before it are the plain ship. */
+  const space = pure.ICE_WOLF_SPACE;
+  assert.equal(space.heavy, 5, 'heavy gravity lasts five seconds');
+  assert.equal(space.rocket, 5, 'the rocket lasts five seconds');
+  assert.equal(cycles.space.length, space.heavy + space.rocket, 'the window is both runs');
+  assert.equal(cycles.space.period, space.normal + space.heavy + space.rocket, 'and a period is the quiet twelve plus both runs');
+  assert.equal(cycles.space.offset, space.normal, 'the first twelve seconds of a match are the plain ship');
+  assert.ok(space.heavySpeed < 1 && space.heavySpeed >= 0.5, `heavy gravity slows everyone (${space.heavySpeed})`);
+  assert.ok(space.rocketSpeed >= 1.8, `the rocket nearly doubles every step (${space.rocketSpeed})`);
   for (const stage of pure.ICE_WOLF_GIMMICK_STAGES) {
     const cycle = cycles[stage];
     assert.ok(cycle.length < cycle.period, `${stage}: the beat is shorter than its period`);
@@ -191,7 +200,8 @@ test('the beats are the same on both phones because they read the same clock', (
   const sync = groupCode('v1.1.0 オンライン対戦同期');
   assert.ok(sync.includes("vars.get('MatchTimeLeft').setNumber"), 'the guest is given the host time');
   const names = sceneOf(readGame()).events.map((group) => group.name);
-  assert.equal(names[names.length - 1], 'v1.1.0 オンライン対戦同期', 'the sync block still runs last');
+  assert.equal(names[names.length - 3], 'v1.1.0 オンライン対戦同期', 'the sync block still runs last of the writers');
+  assert.deepEqual(names.slice(-2), ['v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット'], 'Build 25 reads after it');
   assert.ok(names.indexOf(GIMMICK_GROUP) < names.indexOf('v1.1.0 オンライン対戦同期'),
     'so the snapshot publishes the position a zone has just produced');
 });
@@ -502,7 +512,10 @@ test('the block runs for every stage and dresses each one', () => {
   harness.run();
   const names = harness.scene.children.map((mesh) => mesh.name);
   const count = (kind) => names.filter((name) => name === kind).length;
-  assert.equal(count('iceWolfV111Manta'), 2, 'a manta for each floor');
+  /* Build 25: five species, each built for both lanes, one shown per beat. */
+  for (const species of model().ICE_WOLF_SEA_CREATURES) {
+    assert.equal(count('iceWolfV111Sea:' + species), 2, `${species} is built for both floors`);
+  }
   assert.equal(count('iceWolfV111Zone'), 2, 'a current lane on each floor');
   assert.ok(count('iceWolfV111Arrow') >= 10, 'the lane is drawn with arrows');
   assert.ok(count('iceWolfV111Bubble') >= 6, 'and with bubbles');
@@ -529,27 +542,56 @@ test('the block runs for every stage and dresses each one', () => {
     'the spaceship has its alarm lamps');
 });
 
-test('the manta crosses on the beat, and is hidden between beats', () => {  const harness = makeHarness();
+test('a giant crosses the aquarium on the beat, hidden between beats, five species deep', () => {
+  const harness = makeHarness();
   harness.set('RoundPhase', 'Active');
   harness.set('GameOver', false);
   harness.set('MatchDuration', 180);
   harness.set('StageApplied', 'aquarium');
   harness.set('MatchTimeLeft', 180);
   harness.run();
-  const mantas = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Manta');
-  assert.equal(mantas.length, 2, 'one manta for each floor');
-  /* The aquarium beat opens 9s in and lasts 3s. */
+  const sea = harness.scene.children.filter((mesh) => mesh.name.startsWith('iceWolfV111Sea:'));
+  assert.equal(sea.length, 10, 'five species on each of two floors');
+  assert.equal(sea.filter((mesh) => mesh.visible).length, 0, 'nothing crosses between beats');
+  /* The aquarium beat opens 9s in and lasts 5s. */
   harness.set('MatchTimeLeft', 180 - 10);
   harness.run();
-  assert.equal(mantas[0].visible, true, 'the manta is out during the beat');
-  const startX = mantas[0].position.x;
+  const shown = sea.filter((mesh) => mesh.visible);
+  assert.equal(shown.length, 2, 'one animal on each floor');
+  const firstFloor = shown.find((mesh) => mesh.position.x < 792);
+  const secondFloor = shown.find((mesh) => mesh.position.x >= 792);
+  const startX = firstFloor.position.x;
   harness.set('MatchTimeLeft', 180 - 11.5);
   harness.run();
-  assert.ok(mantas[0].position.x > startX, 'and it travels');
-  assert.notEqual(mantas[0].position.z, mantas[1].position.z, 'the two floors are separate lanes');
+  assert.ok(firstFloor.position.x > startX, 'and it travels across the lane');
+  assert.notEqual(firstFloor.position.z, secondFloor.position.z, 'the two floors are separate lanes');
   harness.set('MatchTimeLeft', 180 - 20);
   harness.run();
-  assert.equal(mantas[0].visible, false, 'and it is gone between beats');
+  assert.equal(sea.filter((mesh) => mesh.visible).length, 0, 'and it is gone between beats');
+});
+
+test('the aquarium draws one of five species, two sizes up, the same on both phones', () => {
+  const sea = model();
+  assert.deepEqual(Array.from(sea.ICE_WOLF_SEA_CREATURES), ['manta', 'crab', 'octopus', 'squid', 'shark']);
+  for (const species of sea.ICE_WOLF_SEA_CREATURES) {
+    assert.ok(sea.ICE_WOLF_SEA_SCALE[species] >= 1.9, `${species} is drawn about two sizes bigger (${sea.ICE_WOLF_SEA_SCALE[species]})`);
+  }
+  const seen = new Set();
+  for (let beat = 0; beat < 40; beat += 1) seen.add(sea.iceWolfSeaPick(4242, beat, 0));
+  assert.equal(seen.size, 5, 'a match shows all five');
+  assert.equal(sea.iceWolfSeaPick(4242, 3, 0), sea.iceWolfSeaPick(4242, 3, 0), 'the same seed and beat pick the same animal');
+  const host = [];
+  const guest = [];
+  for (let beat = 0; beat < 6; beat += 1) {
+    host.push(sea.iceWolfSeaPick(777, beat, 1));
+    guest.push(sea.iceWolfSeaPick(777, beat, 1));
+  }
+  assert.deepEqual(host, guest, 'both phones read the same seed, so both watch the same animal');
+  let differs = 0;
+  for (let beat = 0; beat < 12; beat += 1) {
+    if (sea.iceWolfSeaPick(777, beat, 1) !== sea.iceWolfSeaPick(778, beat, 1)) differs += 1;
+  }
+  assert.ok(differs >= 4, `a new round draws a different show (${differs} of 12 beats changed)`);
 });
 
 test('the blizzard darkens the air; the school locks a room and the ship warns', () => {
@@ -586,18 +628,27 @@ test('the blizzard darkens the air; the school locks a room and the ship warns',
   harness.run();
   assert.equal(harness.get('StageGimmickDoor'), 'open', 'five seconds later they open on their own');
 
-  /* The ship warns, and then the screen is left alone while the cells are up. */
+  /* Build 25: the ship is the plain ship for twelve seconds, then five of heavy
+   * gravity and five of rocket, and the banner counts both runs down. */
   harness.set('StageApplied', 'space');
   harness.set('MatchTimeLeft', 180 - 9);
   harness.run();
   const warn = harness.document.body.children[0].__fx.warn;
-  assert.equal(warn.classList.contains('iwfx-on'), true, 'the gravity warning is a small one');
-  assert.equal(harness.get('StageGimmickKey'), 'fx.space.alarm');
-  harness.set('MatchTimeLeft', 180 - 12);
+  assert.equal(warn.classList.contains('iwfx-on'), false, 'there is no warning flash any more');
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'normal', 'the match opens on the plain ship');
+  assert.equal(harness.get('StageGimmickKey'), '');
+  harness.set('MatchTimeLeft', 180 - 13);
   harness.run();
-  assert.equal(warn.classList.contains('iwfx-on'), false, 'and it clears when the cells come up');
-  assert.equal(harness.get('StageGimmickKey'), 'fx.space.gravity');
-  assert.equal(harness.get('StageGimmickGravity'), 6, 'six heavy cells are up');
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'heavy', 'then heavy gravity');
+  assert.equal(harness.get('StageGimmickSpaceLeft'), 4, 'counted down on the banner');
+  assert.equal(harness.get('StageGimmickKey'), 'fx.space.heavy');
+  harness.set('MatchTimeLeft', 180 - 19);
+  harness.run();
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'rocket', 'and then the rocket');
+  assert.equal(harness.get('StageGimmickKey'), 'fx.space.rocket');
+  harness.set('MatchTimeLeft', 180 - 23);
+  harness.run();
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'normal', 'and back to the plain ship');
   assert.equal(harness.document.body.children[0].__fx.alarm, undefined, 'the red screen flood is gone');
 });
 
@@ -1026,111 +1077,85 @@ test('the doors never take a switch away for good', () => {
   }
 });
 
-test('the heavy cells are the same six on every phone', () => {
+test('the ship runs heavy gravity for five seconds, then rocket for five, then rests twelve', () => {
   const pure = model();
-  const walls = [-720, -760, 800, -720, -720, 720, 800, 760];
-  const first = pure.iceWolfGravityCells(4242, walls);
-  const again = pure.iceWolfGravityCells(4242, walls);
-  const other = pure.iceWolfGravityCells(4243, walls);
-  assert.equal(first.length, 6, 'six cells');
-  assert.deepEqual(first, again, 'the same seed draws the same six');
-  assert.notDeepEqual(first, other, 'a new round draws new ones');
-  assert.equal(first.filter((cell) => cell.floor === '1F').length, 3, 'three on each floor');
-  assert.equal(first.filter((cell) => cell.floor === '2F').length, 3);
-  for (let i = 0; i < first.length; i += 1) {
-    const cell = first[i];
-    assert.ok(cell.x >= -660 && cell.x <= 2260, 'the cell is on the map');
-    assert.ok(cell.y >= -660 && cell.y <= 660, 'and inside the arena band');
-    if (cell.floor === '1F') assert.ok(cell.x <= 660, 'a 1F cell is on 1F');
-    else assert.ok(cell.x >= 940, 'a 2F cell is on 2F');
-    for (let j = i + 1; j < first.length; j += 1) {
-      const gap = Math.hypot(cell.x - first[j].x, cell.y - first[j].y);
-      assert.ok(gap >= 140, `two cells never overlap (${gap})`);
-    }
+  const space = pure.ICE_WOLF_SPACE;
+  assert.deepEqual(Array.from([space.normal, space.heavy, space.rocket]), [12, 5, 5]);
+  const modes = [];
+  for (let t = 0; t < 22; t += 0.5) {
+    modes.push(pure.iceWolfGimmickBeat('space', 12 + t).active ? pure.iceWolfSpaceMode(t).mode : 'normal');
   }
-  /* A wall keeps a cell off it. */
-  const blocked = pure.iceWolfGravityCells(4242, [400, -60, 700, 60]);
-  for (const cell of blocked) {
-    const hit = cell.x + 70 > 400 && cell.x - 70 < 700 && cell.y + 70 > -60 && cell.y - 70 < 60;
-    assert.equal(hit, false, 'no cell is drawn on a wall');
-  }
-  assert.ok(pure.iceWolfGravityCellAt(first, first[0].x, first[0].y, 8.5), 'the centre of a cell is on it');
-  assert.equal(pure.iceWolfGravityCellAt(first, first[0].x + 200, first[0].y + 200, 8.5), null, 'and 200px away is not');
+  assert.equal(modes.filter((mode) => mode === 'heavy').length, 10, 'ten half-seconds of heavy gravity');
+  assert.equal(modes.filter((mode) => mode === 'rocket').length, 10, 'ten half-seconds of rocket');
+  assert.equal(modes.filter((mode) => mode === 'normal').length, 24, 'twenty-four of the plain ship');
+  assert.equal(pure.iceWolfSpaceMode(0).mode, 'heavy');
+  assert.equal(pure.iceWolfSpaceMode(4.9).left > 0, true, 'the last heavy second is still heavy');
+  assert.equal(pure.iceWolfSpaceMode(5).mode, 'rocket');
+  assert.equal(Math.round(pure.iceWolfSpaceMode(5).left), 5, 'the rocket starts with five seconds');
+  assert.equal(pure.iceWolfSpaceMode(9.9).mode, 'rocket');
+  assert.equal(pure.iceWolfSpaceMode(10).mode, 'normal');
+  /* The whole cycle is the same on every phone because it is the match clock. */
+  assert.equal(pure.iceWolfGimmickBeat('space', 12.2).active, true, 'the runs start twelve seconds into the match');
+  assert.equal(pure.iceWolfGimmickBeat('space', 21.9).active, true, 'and the window closes at ten seconds');
+  assert.equal(pure.iceWolfGimmickBeat('space', 22.2).active, false, 'then the ship rests');
+  assert.equal(pure.iceWolfGimmickBeat('space', 34.2).active, true, 'and the next runs start a period later');
 });
 
-test('a body on a heavy cell moves at 55%, and at full speed once the cells go', () => {
+test('heavy gravity takes 45% of the step, the rocket adds 90%, and a plain ship is plain', () => {
+  const pure = model();
+  const heavy = pure.iceWolfSpaceStep(10, -4, 'heavy');
+  assert.ok(Math.abs(heavy.x + 4.5) < 1e-9, `a 10px step under heavy gravity is 5.5px (${heavy.x})`);
+  assert.ok(Math.abs(heavy.y - 1.8) < 1e-9, 'in the direction the body was already going');
+  const rocket = pure.iceWolfSpaceStep(10, -4, 'rocket');
+  assert.ok(Math.abs(rocket.x - 9) < 1e-9, `a 10px step on the rocket is 19px (${rocket.x})`);
+  const plain = pure.iceWolfSpaceStep(10, -4, 'normal');
+  assert.equal(plain.x === 0 && plain.y === 0, true, 'and the plain ship adds nothing');
+
   const harness = makeHarness();
   harness.set('RoundPhase', 'Active');
   harness.set('GameOver', false);
   harness.set('MatchDuration', 300);
-  harness.set('MatchTimeLeft', 300 - 11); /* 8s offset + 2.5s warning + 0.5s of cells */
   harness.set('StageApplied', 'space');
-  /* A fixed room seed: the cells are drawn once and the test always walks the
-   * same one, instead of depending on the round's own draw. */
-  harness.set('OnlineRoomActive', true);
-  harness.set('OnlineIsHost', true);
-  harness.set('OnlineStartSeed', 4242);
+  harness.world.player.x = 0;
+  harness.world.player.y = 0;
+  /* Twelve seconds in: the heavy run. */
+  harness.set('MatchTimeLeft', 300 - 12);
   harness.run();
-  assert.equal(harness.get('StageGimmickSeed'), 4242);
-  assert.equal(harness.get('StageGimmickGravity'), 6, 'the cells are up');
-  const cells = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Heavy');
-  assert.equal(cells.length, 6, 'one mesh per cell');
-  assert.equal(cells[0].visible, true, 'and they are drawn');
-  const onFirstFloor = cells.find((mesh) => mesh.position.x < 792);
-  harness.world.player.x = onFirstFloor.position.x - 8.5;
-  harness.world.player.y = onFirstFloor.position.y - 8.5;
-  harness.run();
-  harness.run();
-  assert.equal(harness.get('StageGimmickSlow'), true, 'the player feels the gravity');
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'heavy');
   const start = harness.world.player.x;
   for (let i = 0; i < 10; i += 1) {
     harness.world.player.x += 10;
     harness.run();
   }
   const moved = harness.world.player.x - start;
-  assert.ok(moved > 45 && moved < 65, `about 55 of 100px (${moved.toFixed(1)})`);
+  assert.ok(moved > 50 && moved < 60, `100px of walking is about 55px under heavy gravity (${moved.toFixed(1)})`);
   assert.equal(harness.get('StageGimmickZone'), 'heavy');
+  assert.equal(harness.get('StageGimmickSlow'), true);
 
-  /* The window closes ten seconds later: the cells go and the speed is back. */
-  harness.set('MatchTimeLeft', 300 - 25);
+  /* Five seconds later: the rocket. */
+  harness.set('MatchTimeLeft', 300 - 17);
   harness.run();
-  assert.equal(harness.get('StageGimmickGravity'), 0, 'the cells are gone');
-  assert.equal(cells[0].visible, false, 'and their meshes with them');
-  harness.world.player.x = onFirstFloor.position.x - 8.5;
-  harness.run();
-  const freeStart = harness.world.player.x;
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'rocket');
+  const rocketStart = harness.world.player.x;
   for (let i = 0; i < 10; i += 1) {
     harness.world.player.x += 10;
     harness.run();
   }
-  assert.equal(harness.world.player.x - freeStart, 100, 'a plain floor is full speed');
-});
+  const flown = harness.world.player.x - rocketStart;
+  assert.ok(flown > 180 && flown < 200, `100px of walking is about 190px on the rocket (${flown.toFixed(1)})`);
+  assert.equal(harness.get('StageGimmickZone'), 'rocket');
+  assert.equal(harness.get('StageGimmickSpeed'), 1.9);
 
-test('a guest draws its cells from the host seed, not its own round', () => {
-  const harness = makeHarness();
-  harness.set('RoundPhase', 'Active');
-  harness.set('GameOver', false);
-  harness.set('MatchDuration', 300);
-  harness.set('MatchTimeLeft', 300 - 11);
-  harness.set('StageApplied', 'space');
-  harness.set('OnlineRoomActive', true);
-  harness.set('OnlineIsHost', false);
-  harness.set('OnlineStartSeed', 777);
+  /* And the plain ship is full speed again. */
+  harness.set('MatchTimeLeft', 300 - 23);
   harness.run();
-  assert.equal(harness.get('StageGimmickSeed'), 777, 'the host seed is the round seed');
-  const cells = model().iceWolfGravityCells(777, []);
-  assert.ok(cells.length === 6, 'and the host seed deals six cells of its own');
-  const host = makeHarness();
-  host.set('RoundPhase', 'Active');
-  host.set('GameOver', false);
-  host.set('MatchDuration', 300);
-  host.set('MatchTimeLeft', 300 - 11);
-  host.set('StageApplied', 'space');
-  host.set('OnlineRoomActive', true);
-  host.set('OnlineIsHost', true);
-  host.set('OnlineStartSeed', 777);
-  host.run();
-  assert.equal(host.get('StageGimmickSeed'), 777, 'both phones read the same seed');
+  assert.equal(harness.get('StageGimmickSpaceMode'), 'normal');
+  const after = harness.world.player.x;
+  for (let i = 0; i < 10; i += 1) {
+    harness.world.player.x += 10;
+    harness.run();
+  }
+  assert.equal(harness.world.player.x - after, 100, 'a plain floor is full speed');
 });
 
 test('the beat shows its line in the chosen language', () => {
@@ -1230,8 +1255,8 @@ test('Classic is left exactly as 1.0.0 shipped it', () => {
 
 test('the stage cards name the gimmick each stage now has, in twelve languages', () => {
   const { i18n } = createI18n();
-  const keys = ['fx.aquarium.manta', 'fx.park.lights', 'fx.lodge.blizzard', 'fx.school.chime', 'fx.school.doors',
-    'fx.space.alarm', 'fx.space.gravity',
+  const keys = ['fx.aquarium.manta', 'fx.park.coaster', 'fx.lodge.blizzard', 'fx.school.chime', 'fx.school.doors',
+    'fx.space.heavy', 'fx.space.rocket',
     'stage.aquarium.gimmick', 'stage.park.gimmick', 'stage.lodge.gimmick', 'stage.school.gimmick', 'stage.space.gimmick'];
   for (const key of keys) {
     for (const lang of LANGS) {
@@ -1244,17 +1269,21 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
     }
   }
   i18n.setLang('ja');
-  assert.ok(i18n.t('stage.aquarium.gimmick').includes('マンタ'));
+  assert.ok(i18n.t('stage.aquarium.gimmick').includes('巨大生物5種'), 'Build 25: the card names the five giants');
   assert.ok(i18n.t('stage.lodge.gimmick').includes('氷床'));
-  /* Build 21: the park's card and banner say what the parade does, and for how
-   * long, in every language. */
-  assert.match(i18n.t('fx.park.lights'), /パレード/);
-  assert.match(i18n.t('fx.park.lights'), /5秒/);
-  assert.match(i18n.t('stage.park.gimmick'), /スピードUP（5秒）/);
+  /* Build 25: the park's banner is the coaster, counted down in every language,
+   * and the cards name the two rules that replaced the cells and the parade. */
+  assert.match(i18n.t('fx.park.coaster'), /ジェットコースター/);
+  assert.match(i18n.t('fx.park.coaster', { n: 3 }), /あと3秒/);
+  assert.match(i18n.t('stage.park.gimmick'), /ジェットコースター/);
+  assert.match(i18n.t('fx.space.heavy', { n: 2 }), /あと2秒/);
+  assert.match(i18n.t('fx.space.rocket', { n: 5 }), /ロケットモード/);
   for (const lang of LANGS) {
     i18n.setLang(lang);
-    assert.match(i18n.t('fx.park.lights'), /5/, `fx.park.lights [${lang}] names the five seconds`);
-    assert.match(i18n.t('stage.park.gimmick'), /5/, `stage.park.gimmick [${lang}] names the five seconds`);
+    assert.match(i18n.t('fx.park.coaster', { n: 3 }), /3/, `fx.park.coaster [${lang}] names the seconds`);
+    assert.match(i18n.t('fx.space.heavy', { n: 2 }), /2/, `fx.space.heavy [${lang}] names the seconds`);
+    assert.match(i18n.t('fx.space.rocket', { n: 1 }), /1/, `fx.space.rocket [${lang}] names the second`);
+    assert.match(i18n.t('stage.space.gimmick'), /5/, `stage.space.gimmick [${lang}] names the five seconds`);
   }
   i18n.setLang('ja');
   const audit = i18n.audit();
@@ -1262,12 +1291,13 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
   assert.equal(audit.leaks.length, 0, `no Japanese leaked: ${[...audit.leaks].join(',')}`);
 });
 
-test('Build 24 is the build on every side', () => {
+test('the build is one number on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['24', '24'], 'both configurations are Build 24');
+  assert.equal(new Set(builds).size, 1, `both configurations carry one build (${builds.join(', ')})`);
+  assert.ok(Number(builds[0]) >= 24, `Build ${builds[0]} is past Build 24`);
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "24"'), 'the verifier defaults to 24');
+  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), `the verifier defaults to ${builds[0]}`);
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v111-gimmicks.test.mjs'), 'npm test runs this file');
   /* Build 23: the ONLINE button is pressed in a test of its own now, so the
@@ -1299,12 +1329,12 @@ test('the park parade speeds everyone up for five seconds', () => {
   const pure = model();
   const cycle = pure.ICE_WOLF_GIMMICK_CYCLES.park;
   assert.equal(cycle.length, 5, 'the parade lasts five seconds');
-  assert.equal(cycle.key, 'fx.park.lights');
-  assert.ok(cycle.period >= cycle.length * 2, 'and leaves more quiet time than parade time');
-  assert.equal(pure.ICE_WOLF_PARK.speed, 1.35, 'everyone runs at 135%');
+  assert.equal(cycle.key, 'fx.park.coaster');
+  assert.ok(cycle.period >= cycle.length * 2, 'and leaves more quiet time than coaster time');
+  assert.equal(pure.ICE_WOLF_PARK.speed, 1.55, 'everyone runs at 155%');
   const boost = pure.iceWolfParkStep(10, -4, true);
-  assert.ok(Math.abs(boost.x - 3.5) < 1e-9, `a 10px step becomes 13.5px (${boost.x})`);
-  assert.ok(Math.abs(boost.y + 1.4) < 1e-9, 'in the direction the body was already going');
+  assert.ok(Math.abs(boost.x - 5.5) < 1e-9, `a 10px step becomes 15.5px (${boost.x})`);
+  assert.ok(Math.abs(boost.y + 2.2) < 1e-9, 'in the direction the body was already going');
   const still = pure.iceWolfParkStep(10, -4, false);
   assert.equal(still.x === 0 && still.y === 0, true, 'and nothing outside the parade');
 
@@ -1316,7 +1346,7 @@ test('the park parade speeds everyone up for five seconds', () => {
   assert.ok(Math.abs(parade - cycle.length * 2) < 0.3, `two parades in two periods (${parade})`);
 });
 
-test('every body on the park floor moves at 135% during the parade', () => {
+test('every body on the park floor moves at 155% during the coaster', () => {
   const harness = makeHarness();
   harness.set('RoundPhase', 'Active');
   harness.set('GameOver', false);
@@ -1327,8 +1357,8 @@ test('every body on the park floor moves at 135% during the parade', () => {
   harness.world.player.y = 0;
   const actorStart = harness.world.actors[0].x;
   harness.run();
-  assert.equal(harness.get('StageGimmickParade'), true, 'the parade is on');
-  assert.equal(harness.get('StageGimmickSpeed'), 1.35);
+  assert.equal(harness.get('StageGimmickParade'), true, 'the coaster is on');
+  assert.equal(harness.get('StageGimmickSpeed'), 1.55);
   const start = harness.world.player.x;
   for (let i = 0; i < 10; i += 1) {
     harness.world.player.x += 10;
@@ -1336,14 +1366,14 @@ test('every body on the park floor moves at 135% during the parade', () => {
     harness.run();
   }
   const moved = harness.world.player.x - start;
-  assert.ok(moved > 130 && moved < 140, `100px of walking is about 135px (${moved.toFixed(1)})`);
-  assert.ok(harness.world.actors[0].x - actorStart > 130, 'and the CPUs it drives get it too');
+  assert.ok(moved > 150 && moved < 160, `100px of walking is about 155px (${moved.toFixed(1)})`);
+  assert.ok(harness.world.actors[0].x - actorStart > 150, 'and the CPUs it drives get it too');
   assert.equal(harness.get('StageGimmickZone'), 'parade');
 
   /* The parade ends: the same walk is the plain 100px again. */
   harness.set('MatchTimeLeft', 300 - 8);
   harness.run();
-  assert.equal(harness.get('StageGimmickParade'), false, 'the parade is over');
+  assert.equal(harness.get('StageGimmickParade'), false, 'the coaster has stopped');
   assert.equal(harness.get('StageGimmickSpeed'), 1);
   const after = harness.world.player.x;
   for (let i = 0; i < 10; i += 1) {
