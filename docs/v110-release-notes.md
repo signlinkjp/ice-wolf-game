@@ -4,7 +4,7 @@
 アプリの作りは `docs/v110-pro-iap.md`、通信は `docs/v110-online-setup.md`、
 Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 
-- 版: `1.1.0`（Build 19）
+- 版: `1.1.0`（Build 21）
 - 商品: `jp.signlink.IceWolf.pro`（非消耗型・買い切り）
 - 価格: **¥500**（日本）。表示は StoreKit の `displayPrice`（各ストアの現地通貨）
 
@@ -36,7 +36,7 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 ```
 ■ PRO版（¥500・買い切り）を追加しました
 ・6ステージ：クラシック／深海水族館は無料。霧の遊園地・雪山ロッジ・廃校・宇宙船はPRO版で解放
-・ステージごとの専用ギミック：巨大マンタと海流の深海水族館、電飾とコースターの遊園地、吹雪と氷床の雪山ロッジ、停電の廃校、警報と低重力の宇宙船
+・ステージごとの専用ギミック：巨大マンタと海流の深海水族館、パレードで全員加速する遊園地、吹雪と氷床の雪山ロッジ、教室のドアが5秒閉まる廃校、高重力マスと低重力の宇宙船
 ・ステージごとの衣装、10人戦、2人狼、カスタムルール（スイッチ3/5/7/10個・正解3/5・1〜5分）
 ・凍結中に仲間を観戦できるカメラ
 
@@ -56,9 +56,10 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 - PRO (one-time purchase, $2.99) is here
   - Six stages: Classic and Deep-Sea Aquarium are free; Misty Amusement Park,
     Snowy Mountain Lodge, Abandoned School and Spaceship are PRO
-  - A gimmick per stage: a giant manta and current lanes in the aquarium, marquee
-    lights and coaster speed in the park, a blizzard and ice in the lodge, a
-    blackout at the school, an alarm and low gravity on the spaceship
+  - A gimmick per stage: a giant manta and current lanes in the aquarium, a
+    five-second parade that speeds everyone up in the park, a blizzard and ice in
+    the lodge, classroom doors that shut for five seconds at the school, and
+    heavy-gravity cells on the spaceship
   - Stage outfits, 10-player matches, two wolves, custom rules (3/5/7/10 switches,
     3 or 5 correct, 1-5 minutes), and a spectator camera while you are frozen
 - Online matches

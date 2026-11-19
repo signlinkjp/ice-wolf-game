@@ -39,10 +39,35 @@ const model = () => blockBetween(groupCode(GIMMICK_GROUP),
   '/* ==== v1.1.0 gimmick model', '/* ==== end v1.1.0 gimmick model ==== */',
   ['ICE_WOLF_GIMMICK_STAGES', 'ICE_WOLF_GIMMICK_CYCLES', 'ICE_WOLF_GIMMICK_ZONES',
     'iceWolfGimmickElapsed', 'iceWolfGimmickPhase', 'iceWolfGimmickBeat',
-    'iceWolfGimmickZoneAt', 'iceWolfGimmickDrift', 'iceWolfGimmickStandable',
-    'iceWolfGimmickBeatKey', 'ICE_WOLF_SCHOOL_ROOMS', 'iceWolfSchoolRoomIndex',
-    'iceWolfSchoolDoor', 'iceWolfSchoolSealStep', 'ICE_WOLF_GRAVITY',
-    'iceWolfGravityRandom', 'iceWolfGravityCells', 'iceWolfGravityCellAt'].join(', '));
+    'iceWolfGimmickFloorOf', 'iceWolfGimmickZoneAt', 'iceWolfGimmickDrift', 'iceWolfGimmickStandable',
+    'iceWolfGimmickBeatKey', 'ICE_WOLF_SCHOOL_ROOMS', 'ICE_WOLF_SCHOOL_DOORS',
+    'ICE_WOLF_SCHOOL_DOORS_BY_FLOOR', 'iceWolfSchoolRoomIndex',
+    'iceWolfSchoolDoor', 'iceWolfSchoolDoorStep', 'ICE_WOLF_GRAVITY',
+    'iceWolfGravityRandom', 'iceWolfGravityCells', 'iceWolfGravityCellAt',
+    'ICE_WOLF_PARK', 'iceWolfParkStep'].join(', '));
+
+/* The school's wall plan, read out of the stage block so the doors are checked
+ * against the walls that actually ship. */
+const schoolWalls = () => {
+  const code = groupCode('v1.1.0 ステージ・衣装');
+  const from = code.indexOf('  school: {');
+  const to = code.indexOf('  space: {');
+  if (from < 0 || to < 0) throw new Error('the school plan is missing');
+  const plan = code.slice(from, to);
+  const rects = [];
+  for (const line of plan.split('\n')) {
+    const match = /'(\d+)x(\d+)': \[(.*)\]/.exec(line);
+    if (!match) continue;
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    for (const pair of match[3].matchAll(/\[(-?\d+), (-?\d+)\]/g)) {
+      rects.push({ x: Number(pair[1]), y: Number(pair[2]), w: width, h: height });
+    }
+  }
+  return rects;
+};
+const overlaps = (a, b, pad = 0) => a.x < b.x + b.w - pad && a.x + a.w > b.x + pad
+  && a.y < b.y + b.h - pad && a.y + a.h > b.y + pad;
 
 const chips = () => blockBetween(groupCode(ROSTER_GROUP),
   '/* ==== v1.1.0 roster rules', '/* ==== end v1.1.0 roster rules ==== */',
@@ -584,26 +609,26 @@ test('the classroom doors shut for five seconds and nobody crosses them', () => 
   harness.set('StageApplied', 'school');
   harness.world.player.x = 0;
   harness.world.player.y = 0; /* inside the 1F classroom band */
-  harness.world.actors[0].x = 500;
-  harness.world.actors[0].y = 0; /* outside, east of the door */
+  harness.world.actors[0].x = 620;
+  harness.world.actors[0].y = 0; /* outside, east of the east door */
   harness.run();
   assert.equal(harness.get('StageGimmickDoor'), 'shut');
   assert.ok(harness.get('StageGimmickSealed') >= 1, 'the body in the classroom is held');
 
-  /* The player inside walks at the west door: the wall of the seal holds it. */
+  /* The player inside walks at the west door: the door face holds it. */
   for (let i = 0; i < 30; i += 1) {
     harness.world.player.x -= 12;
     harness.run();
   }
-  assert.ok(harness.world.player.x >= -399, `the body stays in the classroom (${harness.world.player.x})`);
-  assert.equal(harness.world.player.y, 0);
+  assert.ok(harness.world.player.x >= -652, `the body stays in the classroom (${harness.world.player.x})`);
+  assert.equal(harness.world.player.y, 0, 'and is not pushed along the room');
 
   /* The body outside walks at the east door: it never gets in. */
   for (let i = 0; i < 30; i += 1) {
     harness.world.actors[0].x -= 12;
     harness.run();
   }
-  assert.ok(harness.world.actors[0].getCenterXInScene() > 421, 'the body outside stays outside');
+  assert.ok(harness.world.actors[0].getCenterXInScene() > 555, 'the body outside stays outside');
   assert.equal(harness.world.actors[0].y, 0);
 
   /* Five seconds later the doors open by themselves. */
@@ -615,6 +640,102 @@ test('the classroom doors shut for five seconds and nobody crosses them', () => 
   harness.world.player.x -= 12;
   harness.run();
   assert.ok(harness.world.player.x < 0, 'and the classroom lets the runner out again');
+});
+
+test('the doors fill the doorways the classroom walls leave', () => {
+  const pure = model();
+  const walls = schoolWalls();
+  assert.ok(walls.length >= 20, `the school plan is read (${walls.length} walls)`);
+  const doors = pure.ICE_WOLF_SCHOOL_DOORS;
+  assert.ok(doors.length >= 10, `${doors.length} doors`);
+
+  /* No door stands in a wall, sits on another door, or wears a width of its own:
+   * each is as deep as the wall it fills. */
+  for (const door of doors) {
+    for (const wall of walls) {
+      assert.equal(overlaps(door, wall, 0.5), false,
+        `the ${door.floor} door at ${door.x},${door.y} is not inside a wall`);
+    }
+    const depth = door.axis === 'y' ? door.h : door.w;
+    assert.ok(depth >= 18 && depth <= 32, `a door is a wall leaf (${depth})`);
+    assert.equal(pure.iceWolfGimmickFloorOf(door.x + door.w / 2), door.floor);
+  }
+  for (let i = 0; i < doors.length; i += 1) {
+    for (let j = i + 1; j < doors.length; j += 1) {
+      assert.equal(overlaps(doors[i], doors[j], 0.5), false, 'two doors never share a space');
+    }
+  }
+
+  /* Every doorway is exactly spanned by one door: both ends of a bar's door touch
+   * a wall of that same bar, so a panel can never sit beside the gap it belongs
+   * to, and an end door is at least as tall as the band it closes. */
+  for (const door of doors) {
+    if (door.axis === 'y') {
+      const left = walls.filter((wall) => Math.abs(wall.y - door.y) < 1
+        && Math.abs(wall.x + wall.w - door.x) < 1);
+      const right = walls.filter((wall) => Math.abs(wall.y - door.y) < 1
+        && Math.abs(wall.x - (door.x + door.w)) < 1);
+      assert.equal(left.length, 1, `the ${door.floor} door at x ${door.x} starts at a wall end`);
+      assert.equal(right.length, 1, `and ends at a wall end (${door.x + door.w})`);
+      continue;
+    }
+    const room = pure.ICE_WOLF_SCHOOL_ROOMS.find((entry) => entry.floor === door.floor);
+    assert.ok(door.h >= room.h, 'an end door covers the whole end of the band');
+    const edge = door.side > 0 ? room.x : room.x + room.w;
+    assert.equal(Math.abs(door.x + (door.side > 0 ? door.w : 0) - edge) < 1, true,
+      'and it is fitted to that end');
+  }
+
+  /* Nothing walks around a door either: every point of the room's boundary is a
+   * wall or a shut door, so the room is sealed. */
+  for (const room of pure.ICE_WOLF_SCHOOL_ROOMS) {
+    const floorDoors = pure.ICE_WOLF_SCHOOL_DOORS_BY_FLOOR[room.floor];
+    const covered = (x, y) => walls.concat(floorDoors).some((rect) => x >= rect.x - 1 && x <= rect.x + rect.w + 1
+      && y >= rect.y - 1 && y <= rect.y + rect.h + 1);
+    for (let x = room.x; x <= room.x + room.w; x += 2) {
+      assert.equal(covered(x, room.y), true, `${room.floor} north edge is sealed at x ${x}`);
+      assert.equal(covered(x, room.y + room.h), true, `${room.floor} south edge is sealed at x ${x}`);
+    }
+    for (let y = room.y; y <= room.y + room.h; y += 2) {
+      assert.equal(covered(room.x, y), true, `${room.floor} west edge is sealed at y ${y}`);
+      assert.equal(covered(room.x + room.w, y), true, `${room.floor} east edge is sealed at y ${y}`);
+    }
+  }
+});
+
+test('a shut door puts a body back on its own side, along the door alone', () => {
+  const pure = model();
+  const doors = pure.ICE_WOLF_SCHOOL_DOORS;
+  const half = 8.5;
+  for (const door of doors) {
+    /* A body that was inside is put on the room side of the door; a body that
+     * was out is put on the other side. Neither is ever left inside the door. */
+    const cx = door.x + door.w / 2;
+    const cy = door.y + door.h / 2;
+    const inside = pure.iceWolfSchoolDoorStep(door, cx, cy, half, true);
+    const outside = pure.iceWolfSchoolDoorStep(door, cx, cy, half, false);
+    const onRoomSide = (step) => (door.axis === 'y'
+      ? (door.side > 0 ? step.y >= door.y + door.h + half - 0.01 : step.y <= door.y - half + 0.01)
+      : (door.side > 0 ? step.x >= door.x + door.w + half - 0.01 : step.x <= door.x - half + 0.01));
+    assert.equal(inside.hit, true, `${door.floor} door ${door.x},${door.y} was hit`);
+    assert.equal(onRoomSide(inside), true, 'the inside body lands on the room face');
+    assert.equal(onRoomSide(outside), false, 'the outside body lands on the far face');
+    if (door.axis === 'y') {
+      assert.equal(inside.x, cx, 'a long door only moves the body across itself');
+      assert.equal(outside.x, cx);
+    } else {
+      assert.equal(inside.y, cy, 'an end door only moves it along the hall');
+      assert.equal(outside.y, cy);
+    }
+    /* Standing clear of the door is left exactly as it is. */
+    const clear = pure.iceWolfSchoolDoorStep(door, cx + door.w * 3, cy + door.h * 3, half, true);
+    assert.equal(clear.hit, false, 'a body outside the door is not moved');
+  }
+  /* The door is solid from the far side too: a body walking at the 1F west door
+   * from the room stops at the room face, never inside the leaf. */
+  const west = doors.find((door) => door.floor === '1F' && door.axis === 'x' && door.side > 0);
+  const walked = pure.iceWolfSchoolDoorStep(west, -650, 0, half, true);
+  assert.ok(walked.x >= -660 + half - 0.01, `held inside the room (${walked.x})`);
 });
 
 test('the doors never take a switch away for good', () => {
@@ -635,24 +756,6 @@ test('the doors never take a switch away for good', () => {
     assert.equal(pure.iceWolfSchoolRoomIndex(room.x + room.w / 2, room.y + room.h / 2) >= 0, true, `${room.floor} room centre`);
     assert.equal(pure.iceWolfSchoolRoomIndex(room.x - 200, room.y + room.h / 2), -1, `${room.floor} outside the room`);
   }
-});
-
-test('a body held inside is put back inside, and one outside is pushed out', () => {
-  const pure = model();
-  const room = pure.ICE_WOLF_SCHOOL_ROOMS[0];
-  const middle = pure.iceWolfSchoolSealStep(room, true, room.x + room.w / 2, room.y + room.h / 2, 8.5);
-  assert.equal(middle.inside, true, 'the middle of the room is inside');
-  const out = pure.iceWolfSchoolSealStep(room, true, room.x - 40, room.y + room.h / 2, 8.5);
-  assert.equal(out.x, room.x + 8.5, 'a body that was inside is held at the door');
-  assert.equal(out.inside, true);
-  const pushed = pure.iceWolfSchoolSealStep(room, false, room.x + 30, room.y + room.h / 2, 8.5);
-  assert.equal(pushed.inside, false, 'a body that steps in is pushed back out');
-  assert.ok(pushed.x <= room.x, `through the west door: ${pushed.x}`);
-  const above = pure.iceWolfSchoolSealStep(room, false, room.x + room.w / 2, room.y + 30, 8.5);
-  assert.equal(above.inside, false);
-  assert.ok(above.y <= room.y, 'and through the long side it goes back out that side');
-  const free = pure.iceWolfSchoolSealStep(room, false, room.x - 200, room.y - 200, 8.5);
-  assert.deepEqual([free.x, free.y, free.inside], [room.x - 200, room.y - 200, false], 'far outside is left alone');
 });
 
 test('the heavy cells are the same six on every phone', () => {
@@ -875,17 +978,28 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
   i18n.setLang('ja');
   assert.ok(i18n.t('stage.aquarium.gimmick').includes('マンタ'));
   assert.ok(i18n.t('stage.lodge.gimmick').includes('氷床'));
+  /* Build 21: the park's card and banner say what the parade does, and for how
+   * long, in every language. */
+  assert.match(i18n.t('fx.park.lights'), /パレード/);
+  assert.match(i18n.t('fx.park.lights'), /5秒/);
+  assert.match(i18n.t('stage.park.gimmick'), /スピードUP（5秒）/);
+  for (const lang of LANGS) {
+    i18n.setLang(lang);
+    assert.match(i18n.t('fx.park.lights'), /5/, `fx.park.lights [${lang}] names the five seconds`);
+    assert.match(i18n.t('stage.park.gimmick'), /5/, `stage.park.gimmick [${lang}] names the five seconds`);
+  }
+  i18n.setLang('ja');
   const audit = i18n.audit();
   assert.equal(audit.missing.length, 0, `no missing line: ${[...audit.missing].join(',')}`);
   assert.equal(audit.leaks.length, 0, `no Japanese leaked: ${[...audit.leaks].join(',')}`);
 });
 
-test('Build 19 is the build on every side', () => {
+test('Build 21 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['19', '19'], 'both configurations are Build 19');
+  assert.deepEqual(builds, ['21', '21'], 'both configurations are Build 21');
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "19"'), 'the verifier defaults to 19');
+  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "21"'), 'the verifier defaults to 21');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v111-gimmicks.test.mjs'), 'npm test runs this file');
   const groups = sceneOf(readGame()).events.map((group) => group.name);
@@ -906,6 +1020,64 @@ test('the park never draws over the HUD band', () => {
     'the park layer fades out above the HUD');
   assert.match(code, /iw111sweep/, 'the spotlights sweep');
   assert.match(code, /iw111confetti/, 'the beat throws confetti');
+});
+
+test('the park parade speeds everyone up for five seconds', () => {
+  const pure = model();
+  const cycle = pure.ICE_WOLF_GIMMICK_CYCLES.park;
+  assert.equal(cycle.length, 5, 'the parade lasts five seconds');
+  assert.equal(cycle.key, 'fx.park.lights');
+  assert.ok(cycle.period >= cycle.length * 2, 'and leaves more quiet time than parade time');
+  assert.equal(pure.ICE_WOLF_PARK.speed, 1.35, 'everyone runs at 135%');
+  const boost = pure.iceWolfParkStep(10, -4, true);
+  assert.ok(Math.abs(boost.x - 3.5) < 1e-9, `a 10px step becomes 13.5px (${boost.x})`);
+  assert.ok(Math.abs(boost.y + 1.4) < 1e-9, 'in the direction the body was already going');
+  const still = pure.iceWolfParkStep(10, -4, false);
+  assert.equal(still.x === 0 && still.y === 0, true, 'and nothing outside the parade');
+
+  /* Two full periods: five of every sixteen seconds are parade time. */
+  let parade = 0;
+  for (let t = 0; t < cycle.period * 2; t += 0.25) {
+    if (pure.iceWolfGimmickBeat('park', t).active) parade += 0.25;
+  }
+  assert.ok(Math.abs(parade - cycle.length * 2) < 0.3, `two parades in two periods (${parade})`);
+});
+
+test('every body on the park floor moves at 135% during the parade', () => {
+  const harness = makeHarness();
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 300);
+  harness.set('MatchTimeLeft', 300 - 2); /* the park beat opens at 0s */
+  harness.set('StageApplied', 'park');
+  harness.world.player.x = 0;
+  harness.world.player.y = 0;
+  const actorStart = harness.world.actors[0].x;
+  harness.run();
+  assert.equal(harness.get('StageGimmickParade'), true, 'the parade is on');
+  assert.equal(harness.get('StageGimmickSpeed'), 1.35);
+  const start = harness.world.player.x;
+  for (let i = 0; i < 10; i += 1) {
+    harness.world.player.x += 10;
+    harness.world.actors[0].x += 10;
+    harness.run();
+  }
+  const moved = harness.world.player.x - start;
+  assert.ok(moved > 130 && moved < 140, `100px of walking is about 135px (${moved.toFixed(1)})`);
+  assert.ok(harness.world.actors[0].x - actorStart > 130, 'and the CPUs it drives get it too');
+  assert.equal(harness.get('StageGimmickZone'), 'parade');
+
+  /* The parade ends: the same walk is the plain 100px again. */
+  harness.set('MatchTimeLeft', 300 - 8);
+  harness.run();
+  assert.equal(harness.get('StageGimmickParade'), false, 'the parade is over');
+  assert.equal(harness.get('StageGimmickSpeed'), 1);
+  const after = harness.world.player.x;
+  for (let i = 0; i < 10; i += 1) {
+    harness.world.player.x += 10;
+    harness.run();
+  }
+  assert.equal(harness.world.player.x - after, 100, 'a plain floor is full speed');
 });
 
 test('the park\'s light pools turn all match and open up on the beat', () => {
