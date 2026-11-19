@@ -59,8 +59,8 @@ where a rule changed under them.
 9. **The CPU wolf recruits.** A CPU wolf that freezes a CPU human turns that
    captive into a second wolf on the spot — the "the wolf is growing" the play
    asked for — once per match, only with three living humans left and never past
-   four wolves, and never a phone's own seat. The board (10) says which wolf came
-   from where.
+   three wolves (Build 26 lowered the ceiling from four), and never a phone's own
+   seat. The board (10) says which wolf came from where.
 10. **The wolf's own board.** A player who is the wolf gets a panel in the top-right
     corner listing every living wolf: 🐺 for the wolf the round opened with, ⚡ for
     one recruited by the trap switch or by an infection, the player marked あなた.

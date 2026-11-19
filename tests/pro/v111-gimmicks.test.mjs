@@ -1272,8 +1272,11 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
   assert.ok(i18n.t('stage.aquarium.gimmick').includes('巨大生物5種'), 'Build 25: the card names the five giants');
   assert.ok(i18n.t('stage.lodge.gimmick').includes('氷床'));
   /* Build 25: the park's banner is the coaster, counted down in every language,
-   * and the cards name the two rules that replaced the cells and the parade. */
-  assert.match(i18n.t('fx.park.coaster'), /ジェットコースター/);
+   * and the cards name the two rules that replaced the cells and the parade.
+   * Build 26 made the banner a slim line under the clock, so the pill's own
+   * wording is the short one; the stage card still names the ride. */
+  assert.match(i18n.t('fx.park.coaster'), /スピードUP/);
+  assert.ok(i18n.t('fx.park.coaster', { n: 5 }).length <= 20, 'and it fits a slim pill');
   assert.match(i18n.t('fx.park.coaster', { n: 3 }), /あと3秒/);
   assert.match(i18n.t('stage.park.gimmick'), /ジェットコースター/);
   assert.match(i18n.t('fx.space.heavy', { n: 2 }), /あと2秒/);

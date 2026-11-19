@@ -87,12 +87,15 @@ test('a rescuer that walks away loses the work, and a stall cannot cheat the gau
   assert.equal(hands.iceWolfRescueHoldStep(NaN, true, 1 / 60, 1.5, 2.2).fired, false, 'a broken gauge starts from zero');
 });
 
-test('a CPU wolf recruits only with a floor of three people and four wolves at most', () => {
+test('a CPU wolf recruits only with a floor of three people and three wolves at most', () => {
   assert.equal(hands.ICE_WOLF_CPU_INFECT.humansNeeded, 3, 'three living humans are still a round');
-  assert.equal(hands.ICE_WOLF_CPU_INFECT.wolvesMax, 4, 'the pack has a ceiling');
+  /* Build 26: the pack's ceiling came down from four to three, so a round that
+   * opens with two wolves has room for exactly one recruit. */
+  assert.equal(hands.ICE_WOLF_CPU_INFECT.wolvesMax, 3, 'the pack has a ceiling');
   assert.equal(hands.iceWolfCpuInfectAllowed(3, 1, false), true, 'three people and one wolf: yes');
   assert.equal(hands.iceWolfCpuInfectAllowed(2, 1, false), false, 'two people: no, the round would end');
-  assert.equal(hands.iceWolfCpuInfectAllowed(6, 4, false), false, 'a full pack: no');
+  assert.equal(hands.iceWolfCpuInfectAllowed(6, 3, false), false, 'a full pack: no');
+  assert.equal(hands.iceWolfCpuInfectAllowed(6, 2, false), true, 'two wolves and a captive: the last seat');
   assert.equal(hands.iceWolfCpuInfectAllowed(6, 1, true), false, 'once per match');
 });
 
@@ -546,9 +549,12 @@ test('the rescue thaws the nearest ally and spends the gauge, never two at once'
 test('Build 25 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['25', '25'], 'both configurations are Build 25');
+  /* Build 26 moved the number on; the rule this file checks is that both
+   * configurations and the verifier carry the one build the project is on. */
+  assert.equal(new Set(builds).size, 1, `both configurations carry one build (${builds.join(', ')})`);
+  assert.ok(Number(builds[0]) >= 25, `Build ${builds[0]} is past Build 24`);
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "25"'), 'the verifier defaults to 25');
+  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier defaults to 25');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v112-build25.test.mjs'), 'npm test runs this file');
 });
