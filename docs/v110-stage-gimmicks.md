@@ -117,7 +117,7 @@ Build 19 の追加は `tests/pro/v111-gimmicks.test.mjs`（18件）：
 - `CURRENT_PROJECT_VERSION` = **19**（`MARKETING_VERSION` は 1.1.0 のまま）
 - `scripts/ios/verify-ios-project.py` の `DEFAULT_BUILD_NUMBER` = **"19"**
 
-## 5. Build 20 — 遊園地の演出を入れ替え（HUDを覆わない）
+## 6. Build 20 — 遊園地の演出を入れ替え（HUDを覆わない）
 
 Build 19 の遊園地は、画面の**上端と下端15%**にピンク／シアン／橙の縦縞カーテン
 （`iwfx-park:before/after` の `repeating-linear-gradient`）を被せていました。そこは
