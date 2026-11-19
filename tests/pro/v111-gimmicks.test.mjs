@@ -1262,14 +1262,17 @@ test('the stage cards name the gimmick each stage now has, in twelve languages',
   assert.equal(audit.leaks.length, 0, `no Japanese leaked: ${[...audit.leaks].join(',')}`);
 });
 
-test('Build 22 is the build on every side', () => {
+test('Build 23 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['22', '22'], 'both configurations are Build 22');
+  assert.deepEqual(builds, ['23', '23'], 'both configurations are Build 23');
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "22"'), 'the verifier defaults to 22');
+  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "23"'), 'the verifier defaults to 23');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v111-gimmicks.test.mjs'), 'npm test runs this file');
+  /* Build 23: the ONLINE button is pressed in a test of its own now, so the
+   * file that catches a dead button runs with the rest. */
+  assert.ok(pkg.scripts.test.includes('v110-online-open.test.mjs'), 'npm test presses the ONLINE button');
   const groups = sceneOf(readGame()).events.map((group) => group.name);
   assert.ok(groups.includes(GIMMICK_GROUP), 'the gimmick group is on the sheet');
 });
