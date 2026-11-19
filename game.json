@@ -2525,11 +2525,6 @@
           "value": ""
         },
         {
-          "name": "WolfOriginFixed",
-          "type": "number",
-          "value": 0
-        },
-        {
           "name": "WolfCpuInfectUsed",
           "type": "boolean",
           "value": false
