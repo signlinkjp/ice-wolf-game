@@ -37,7 +37,7 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
 ■ PRO版（¥500・買い切り）を追加しました
 ・6ステージ：クラシック／深海水族館は無料。霧の遊園地・雪山ロッジ・廃校・宇宙船はPRO版で解放
 ・ステージごとの専用ギミック：巨大マンタと海流の深海水族館、電飾とコースターの遊園地、吹雪と氷床の雪山ロッジ、停電の廃校、警報と低重力の宇宙船
-・ステージごとの衣装、10人戦、2人狼、カスタムルール（スイッチ3/4個・1分/10分）
+・ステージごとの衣装、10人戦、2人狼、カスタムルール（スイッチ3/5/7/10個・正解3/5・1〜5分）
 ・凍結中に仲間を観戦できるカメラ
 
 ■ オンライン対戦
@@ -59,8 +59,8 @@ Phase 1 のステージは `docs/v110-phase1-stages.md` にあります。
   - A gimmick per stage: a giant manta and current lanes in the aquarium, marquee
     lights and coaster speed in the park, a blizzard and ice in the lodge, a
     blackout at the school, an alarm and low gravity on the spaceship
-  - Stage outfits, 10-player matches, two wolves, custom rules (3/4 switches,
-    1/10 minutes), and a spectator camera while you are frozen
+  - Stage outfits, 10-player matches, two wolves, custom rules (3/5/7/10 switches,
+    3 or 5 correct, 1-5 minutes), and a spectator camera while you are frozen
 - Online matches
   - A six-character room code for up to 10 phones; the host phone runs the round
   - Eight one-tap stamps, each shown in the receiver's own language
@@ -159,7 +159,7 @@ SETTINGS → PRO.
 ICE WOLF のPRO版です（買い切り）。
 ・追加ステージ4つ：霧の遊園地、雪山ロッジ、廃校、宇宙船
 ・ステージごとの衣装
-・10人戦、2人狼、カスタムルール（スイッチ3/4個・1分/10分）
+・10人戦、2人狼、カスタムルール（スイッチ3/5/7/10個・正解3/5・1〜5分）
 ・凍結中に仲間を観戦できるカメラ
 購入の復元はアプリの SETTINGS → PRO から行えます。
 ```
@@ -171,7 +171,7 @@ The PRO version of ICE WOLF (one-time purchase).
 - Four more stages: Misty Amusement Park, Snowy Mountain Lodge, Abandoned School,
   Spaceship
 - Stage outfits
-- 10-player matches, two wolves, custom rules (3/4 switches, 1/10 minutes)
+- 10-player matches, two wolves, custom rules (3/5/7/10 switches, 3 or 5 correct, 1-5 minutes)
 - A spectator camera while you are frozen
 Restore your purchase from SETTINGS → PRO in the app.
 ```

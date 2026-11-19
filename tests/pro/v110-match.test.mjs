@@ -25,8 +25,10 @@ const blockBetween = (code, open, close, exported) => {
 const roster = blockBetween(groupCode(ROSTER_GROUP),
   '/* ==== v1.1.0 roster rules', '/* ==== end v1.1.0 roster rules ==== */',
   ['ICE_WOLF_ID_LETTERS', 'ICE_WOLF_PLAYER_MIN', 'ICE_WOLF_PLAYER_MAX', 'ICE_WOLF_PLAYER_FREE_MAX',
-    'ICE_WOLF_DURATIONS', 'ICE_WOLF_DEFAULT_DURATION', 'ICE_WOLF_SWITCH_CHOICES',
-    'iceWolfClampPlayerCount', 'iceWolfWolfCount', 'iceWolfSwitchCount', 'iceWolfMatchSeconds',
+    'ICE_WOLF_DURATIONS', 'ICE_WOLF_DEFAULT_DURATION', 'ICE_WOLF_DURATION_FALLBACK', 'ICE_WOLF_SWITCH_CHOICES',
+    'ICE_WOLF_CORRECT_CHOICES', 'ICE_WOLF_DEFAULT_CORRECT', 'ICE_WOLF_FREE_CORRECT',
+    'iceWolfClampPlayerCount', 'iceWolfWolfCount', 'iceWolfSwitchCount', 'iceWolfCorrectCount',
+    'iceWolfCorrectChoiceOn', 'iceWolfMatchSeconds', 'iceWolfDurationChipOn',
     'iceWolfRosterIds', 'iceWolfWolfSlots', 'iceWolfActorInRound'].join(', '));
 
 const spectator = blockBetween(groupCode(SPECTATOR_GROUP),
@@ -57,30 +59,48 @@ test('one wolf by default, two only with Pro and eight or more players', () => {
   assert.equal(roster.iceWolfWolfCount(10, 9, true), 2, 'two is the maximum');
 });
 
-test('the switch count is 5, or 3 / 4 with Pro, and three are always correct', () => {
-  assert.deepEqual(Array.from(roster.ICE_WOLF_SWITCH_CHOICES), [5, 4, 3]);
+test('the switch count is 3 / 5 / 7 / 10, and 3 or 5 of them are correct', () => {
+  assert.deepEqual(Array.from(roster.ICE_WOLF_SWITCH_CHOICES), [3, 5, 7, 10]);
   assert.equal(roster.iceWolfSwitchCount(5, false), 5);
   assert.equal(roster.iceWolfSwitchCount(3, false), 5, 'three switches need Pro');
-  assert.equal(roster.iceWolfSwitchCount(4, false), 5, 'four switches need Pro');
+  assert.equal(roster.iceWolfSwitchCount(7, false), 5, 'seven switches need Pro');
   assert.equal(roster.iceWolfSwitchCount(3, true), 3);
-  assert.equal(roster.iceWolfSwitchCount(4, true), 4);
+  assert.equal(roster.iceWolfSwitchCount(7, true), 7);
+  assert.equal(roster.iceWolfSwitchCount(10, true), 10);
   assert.equal(roster.iceWolfSwitchCount(5, true), 5);
-  assert.equal(roster.iceWolfSwitchCount(2, true), 5, 'an unknown count falls back to five');
+  assert.equal(roster.iceWolfSwitchCount(4, true), 5, 'an unknown count falls back to five');
+  assert.equal(roster.iceWolfSwitchCount(2, true), 5);
+  /* Build 21: three or five correct, and never more than were drawn. */
+  assert.deepEqual(Array.from(roster.ICE_WOLF_CORRECT_CHOICES), [3, 5]);
+  assert.equal(roster.iceWolfCorrectCount(5, 3, false), 3, 'three is the free answer');
+  assert.equal(roster.iceWolfCorrectCount(5, 5, false), 3, 'five needs Pro');
+  assert.equal(roster.iceWolfCorrectCount(5, 5, true), 5);
+  assert.equal(roster.iceWolfCorrectCount(10, 5, true), 5);
+  assert.equal(roster.iceWolfCorrectCount(7, 3, true), 3);
+  assert.equal(roster.iceWolfCorrectCount(3, 5, true), 3, 'three drawn can only want three');
+  assert.equal(roster.iceWolfCorrectCount(3, 5, false), 3, 'and the guard holds without Pro too');
+  assert.equal(roster.iceWolfCorrectCount(5, 4, true), 3, 'an unknown count is three');
+  assert.equal(roster.iceWolfCorrectChoiceOn(3, 5), false, 'the five chip is off at a total of three');
+  assert.equal(roster.iceWolfCorrectChoiceOn(5, 5), true);
   const core = groupCode('v0.7.0 2階・階段・5スイッチ・3ゲート');
   assert.ok(core.includes("const SWITCH_HOLD = 1.6"), 'the 1.6s hold is untouched');
-  assert.ok(core.includes("vars.get('SwitchCorrectTotal').setNumber(3)"), 'three switches are always correct');
+  assert.ok(core.includes("vars.get('SwitchCorrectTotal').setNumber(deal.correct)"), 'the deal publishes the chosen correct count');
+  assert.ok(core.includes("vars.get('SwitchCorrectPreference').getAsNumber()"), 'the arena reads the correct count');
 });
 
-test('the match time keeps 2/3/5 free and adds 1 and 10 with Pro', () => {
-  assert.deepEqual(Array.from(roster.ICE_WOLF_DURATIONS), [60, 120, 180, 300, 600]);
+test('a match is 1 / 2 / 3 / 5 minutes, and a stored ten minutes comes back as five', () => {
+  assert.deepEqual(Array.from(roster.ICE_WOLF_DURATIONS), [60, 120, 180, 300]);
   assert.equal(roster.ICE_WOLF_DEFAULT_DURATION, 210, 'the untouched default is still 3:30');
   assert.equal(roster.iceWolfMatchSeconds(0, true), 210, 'no choice keeps 3:30');
   assert.equal(roster.iceWolfMatchSeconds(120, false), 120);
   assert.equal(roster.iceWolfMatchSeconds(60, false), 180, 'one minute needs Pro');
-  assert.equal(roster.iceWolfMatchSeconds(600, false), 180, 'ten minutes need Pro');
   assert.equal(roster.iceWolfMatchSeconds(60, true), 60);
-  assert.equal(roster.iceWolfMatchSeconds(600, true), 600);
+  assert.equal(roster.iceWolfMatchSeconds(300, true), 300);
+  assert.equal(roster.iceWolfMatchSeconds(600, false), 300, 'ten minutes is not a match any more');
+  assert.equal(roster.iceWolfMatchSeconds(600, true), 300, 'not even with Pro');
+  assert.equal(roster.ICE_WOLF_DURATION_FALLBACK, 300, 'the fallback is five minutes');
   assert.equal(roster.iceWolfMatchSeconds(999, true), 210, 'an unknown time falls back to the default');
+  assert.equal(roster.iceWolfDurationChipOn(600), 0, 'no chip is lit for a legacy ten');
 });
 
 test('the roster ids are YOU plus A..I, and only the first N-1 CPUs play', () => {
@@ -175,7 +195,7 @@ test('the roster and spectator lines are complete in all twelve languages', () =
   const { i18n } = createI18n();
   const keys = ['settings.players', 'settings.wolves', 'settings.switches', 'players.value', 'wolves.value',
     'switches.value', 'settings.playersNote', 'settings.wolvesNote', 'settings.switchesNote',
-    'duration.1', 'duration.10', 'spec.title', 'spec.prev', 'spec.next', 'spec.hint'];
+    'duration.1', 'settings.correct', 'settings.correctNote', 'spec.title', 'spec.prev', 'spec.next', 'spec.hint'];
   for (const key of keys) {
     for (const lang of LANGS) {
       i18n.setLang(lang);
@@ -198,6 +218,7 @@ test('the settings rows are wired to the Pro screen, not to a dead end', () => {
   assert.ok(code.includes("safeStorageSet('iceWolfPlayerCountV1'"), 'the player count is remembered');
   assert.ok(code.includes("safeStorageSet('iceWolfWolfCountV1'"), 'the wolf count is remembered');
   assert.ok(code.includes("safeStorageSet('iceWolfSwitchCountV1'"), 'the switch count is remembered');
-  assert.ok(code.includes("setNumber(600)") || code.includes('[60, 600]'), '1 and 10 minutes are offered');
-  assert.ok(code.includes("'data-action', 'time'"), 'the extra match times join the existing row');
+  assert.ok(code.includes('for (const value of [60])'), 'one minute joins the existing row');
+  assert.ok(code.includes("safeStorageSet('iceWolfSwitchCorrectV1'"), 'the correct count is remembered');
+  assert.ok(!code.includes('[60, 600]'), 'ten minutes is gone from the row');
 });

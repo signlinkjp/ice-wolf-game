@@ -133,7 +133,7 @@ test('creating a room is Pro, and so is every rule that needs Pro', () => {
 });
 
 test('a free host runs the shipped rules; a Pro host runs what was chosen', () => {
-  const asked = { playerCount: 10, wolfCount: 2, switchCount: 3, matchSeconds: 600 };
+  const asked = { playerCount: 10, wolfCount: 2, switchCount: 3, matchSeconds: 60 };
   const free = online.iceWolfOnlineRoomRules(asked, false);
   assert.deepEqual(plain(free), {
     playerCount: 9, wolfCount: 1, switchCount: 5, matchSeconds: 180,
@@ -143,16 +143,19 @@ test('a free host runs the shipped rules; a Pro host runs what was chosen', () =
   assert.equal(pro.playerCount, 10);
   assert.equal(pro.wolfCount, 2);
   assert.equal(pro.switchCount, 3);
-  assert.equal(pro.matchSeconds, 600);
+  assert.equal(pro.matchSeconds, 60);
   assert.deepEqual(plain(pro.locked), []);
   /* Two wolves need eight players: the game rule is not a Pro question. */
   assert.equal(online.iceWolfOnlineRoomRules({ playerCount: 7, wolfCount: 2 }, true).wolfCount, 1);
   /* Junk falls back to the shipped numbers instead of a room nobody can play. */
-  const junk = online.iceWolfOnlineRoomRules({ playerCount: 99, wolfCount: 9, switchCount: 8, matchSeconds: 7 }, true);
+  const junk = online.iceWolfOnlineRoomRules({ playerCount: 99, wolfCount: 9, switchCount: 11, matchSeconds: 7 }, true);
   assert.equal(junk.playerCount, 10);
   assert.equal(junk.wolfCount, 2);
   assert.equal(junk.switchCount, 5);
   assert.equal(junk.matchSeconds, 180);
+  /* Build 21: ten minutes is gone; a room asking for it runs five. */
+  assert.equal(online.iceWolfOnlineRoomRules({ switchCount: 10, matchSeconds: 600 }, true).switchCount, 10);
+  assert.equal(online.iceWolfOnlineRoomRules({ switchCount: 10, matchSeconds: 600 }, true).matchSeconds, 300);
 });
 
 test('a free player joins Classic and the Aquarium, never a Pro stage', () => {
@@ -220,7 +223,7 @@ test('seats fill in order, stop at the room size, and a ready flag is a seat fla
 test('only the host starts, and the start payload is the whole round', () => {
   let room = online.iceWolfOnlineNewRoom({
     code: 'ABC234', hostId: 'h1', hostName: 'Hana', stageId: 'classic',
-    rules: { playerCount: 10, wolfCount: 2, switchCount: 4, matchSeconds: 60 }, pro: true, now: 1000
+    rules: { playerCount: 10, wolfCount: 2, switchCount: 7, matchSeconds: 60 }, correctCount: 5, pro: true, now: 1000
   });
   room = online.iceWolfOnlineJoinRoom(room, { clientId: 'h1', name: 'Hana' }, 1000).room;
   for (let index = 1; index < 5; index += 1) {
@@ -238,7 +241,8 @@ test('only the host starts, and the start payload is the whole round', () => {
   assert.equal(payload.stageId, 'classic');
   assert.equal(payload.playerCount, 10);
   assert.equal(payload.wolfCount, 2);
-  assert.equal(payload.switchCount, 4);
+  assert.equal(payload.switchCount, 7);
+  assert.equal(payload.correctCount, 5, 'the room carries how many are correct');
   assert.equal(payload.matchSeconds, 60);
   assert.equal(payload.startAt, 2000 + online.ICE_WOLF_ONLINE_COUNTDOWN_MS);
   assert.equal(payload.roster.length, 10, 'ten seats, five phones and five CPUs');

@@ -39,17 +39,20 @@ const model = () => blockBetween(groupCode(GIMMICK_GROUP),
   '/* ==== v1.1.0 gimmick model', '/* ==== end v1.1.0 gimmick model ==== */',
   ['ICE_WOLF_GIMMICK_STAGES', 'ICE_WOLF_GIMMICK_CYCLES', 'ICE_WOLF_GIMMICK_ZONES',
     'iceWolfGimmickElapsed', 'iceWolfGimmickPhase', 'iceWolfGimmickBeat',
-    'iceWolfGimmickZoneAt', 'iceWolfGimmickDrift', 'iceWolfGimmickStandable'].join(', '));
+    'iceWolfGimmickZoneAt', 'iceWolfGimmickDrift', 'iceWolfGimmickStandable',
+    'iceWolfGimmickBeatKey', 'ICE_WOLF_SCHOOL_ROOMS', 'iceWolfSchoolRoomIndex',
+    'iceWolfSchoolDoor', 'iceWolfSchoolSealStep', 'ICE_WOLF_GRAVITY',
+    'iceWolfGravityRandom', 'iceWolfGravityCells', 'iceWolfGravityCellAt'].join(', '));
 
 const chips = () => blockBetween(groupCode(ROSTER_GROUP),
   '/* ==== v1.1.0 roster rules', '/* ==== end v1.1.0 roster rules ==== */',
   'iceWolfDurationChipOn, ICE_WOLF_DURATIONS, iceWolfMatchSeconds');
 
 /* ------------------------------------------------------------- the chips */
-test('exactly one match-time chip is lit for each of the five times', () => {
+test('exactly one match-time chip is lit for each of the four times', () => {
   const { iceWolfDurationChipOn, ICE_WOLF_DURATIONS } = chips();
-  assert.deepEqual(Array.from(ICE_WOLF_DURATIONS), [60, 120, 180, 300, 600]);
-  const times = [60, 120, 180, 300, 600];
+  assert.deepEqual(Array.from(ICE_WOLF_DURATIONS), [60, 120, 180, 300]);
+  const times = [60, 120, 180, 300];
   for (const minutes of times) {
     const lit = times.filter((value) => iceWolfDurationChipOn(value) === value && value === minutes);
     assert.equal(lit.length, 1, `${minutes}s lights exactly one chip`);
@@ -57,43 +60,48 @@ test('exactly one match-time chip is lit for each of the five times', () => {
     assert.deepEqual(others, [], `${minutes}s does not light another chip`);
   }
   assert.equal(iceWolfDurationChipOn(60), 60);
-  assert.equal(iceWolfDurationChipOn(600), 600);
+  assert.equal(iceWolfDurationChipOn(300), 300);
+  assert.equal(iceWolfDurationChipOn(600), 0, 'a stored ten-minute match lights nothing');
   assert.equal(iceWolfDurationChipOn(0), 0, 'the untouched default lights nothing');
   assert.equal(iceWolfDurationChipOn(210), 0, '3:30 is the default, not a chip');
   assert.equal(iceWolfDurationChipOn(999), 0, 'an unknown time lights nothing');
-  assert.equal(iceWolfDurationChipOn('600'), 600, 'a stored string still counts');
+  assert.equal(iceWolfDurationChipOn('300'), 300, 'a stored string still counts');
 });
 
 test('the SETTINGS panel and the extra chips are marked from one duration', () => {
   const menu = groupCode(MENU_GROUP);
-  for (const action of ['time60', 'time120', 'time180', 'time300', 'time600']) {
+  for (const action of ['time60', 'time120', 'time180', 'time300']) {
     assert.ok(menu.includes(`mark('${action}'`), `${action} is marked by the SETTINGS panel`);
   }
+  assert.ok(!menu.includes("mark('time600'"), 'the ten-minute chip is gone');
   assert.ok(menu.includes('__iceWolfV110DurationChip'), 'the panel and the roster block share one answer');
   const roster = groupCode(ROSTER_GROUP);
   assert.ok(roster.includes('runtimeScene.__iceWolfV110DurationChip = iceWolfDurationChipOn'),
     'the roster block publishes the one answer');
-  assert.ok(roster.includes('for (const value of [60, 120, 180, 300, 600])'),
-    'the roster block marks all five chips every frame');
+  assert.ok(roster.includes('for (const value of [60, 120, 180, 300])'),
+    'the roster block marks all four chips every frame');
   assert.ok(roster.includes('updateSettingsUi()'), 'a 1/10-minute tap repaints the SETTINGS panel');
   assert.equal(/chip\.classList\.toggle\('iw-on', duration === value\)/.test(roster), false,
     'the extra chip is no longer lit inside the signature block, where two chips could stay lit');
   assert.ok(/noteNow\.textContent = litTime/.test(roster), 'the note follows the one lit chip');
 });
 
-test('a saved 1 or 10 minute match comes back after a relaunch', () => {
+test('a saved 1 minute comes back, and a saved 10 minutes comes back as 5', () => {
   const menu = groupCode(MENU_GROUP);
-  assert.ok(/storedDuration === 60 && storedDuration === 120/.test(menu)
-    || menu.includes('storedDuration === 60 || storedDuration === 120'), 'the stored time accepts 1 minute');
-  assert.ok(menu.includes('storedDuration === 300 || storedDuration === 600'), 'and 10 minutes');
+  assert.ok(menu.includes('storedDuration === 60 || storedDuration === 120'), 'the stored time accepts 1 minute');
+  assert.ok(menu.includes('storedDuration === 300'), 'and 5 minutes');
+  assert.ok(menu.includes('storedDuration === 600'), 'a legacy ten is recognised');
+  assert.ok(menu.includes("vars.get('DurationPreference').setNumber(300)"), 'and comes back as five minutes');
+  assert.ok(menu.includes("safeStorageSet('iceWolfMatchDuration', '300')"), 'and is rewritten, so it cannot come back');
 });
 
 test('the chosen seconds are what the round reads', () => {
   const { iceWolfMatchSeconds } = chips();
   assert.equal(iceWolfMatchSeconds(60, true), 60);
-  assert.equal(iceWolfMatchSeconds(600, true), 600);
+  assert.equal(iceWolfMatchSeconds(300, true), 300);
+  assert.equal(iceWolfMatchSeconds(600, true), 300, 'a stored ten runs as five');
   assert.equal(iceWolfMatchSeconds(60, false), 180, 'a free player falls back to 3 minutes');
-  assert.equal(iceWolfMatchSeconds(600, false), 180);
+  assert.equal(iceWolfMatchSeconds(600, false), 300);
   const menu = groupCode(MENU_GROUP);
   assert.ok(menu.includes("vars.get('MatchTimeLeft').setNumber(vars.get('MatchDuration').getAsNumber())"),
     'the round starts from MatchDuration');
@@ -121,8 +129,11 @@ test('the beats run off the match clock, on the period and length each stage wan
   assert.ok(cycles.aquarium.period >= 25 && cycles.aquarium.period <= 30, 'the manta comes every 25-30s');
   assert.ok(cycles.aquarium.length >= 2.5 && cycles.aquarium.length <= 3, 'and stays 2.5-3s');
   assert.ok(cycles.lodge.length >= 3, 'the blizzard holds a few seconds');
-  assert.ok(cycles.school.length >= 3, 'the blackout holds a few seconds');
-  assert.ok(cycles.space.length >= 2, 'the alarm holds a few seconds');
+  assert.ok(cycles.school.warn >= 2 && cycles.school.warn <= 3, 'the chime rings 2-3 s before the doors');
+  assert.equal(cycles.school.shut, 5, 'the classroom doors shut for five seconds');
+  assert.equal(cycles.school.length, cycles.school.warn + cycles.school.shut, 'the beat is chime + shut');
+  assert.ok(cycles.space.warn >= 2, 'the gravity warning comes before the cells');
+  assert.ok(cycles.space.heavy >= 8, 'the cells stay up around ten seconds');
   for (const stage of pure.ICE_WOLF_GIMMICK_STAGES) {
     const cycle = cycles[stage];
     assert.ok(cycle.length < cycle.period, `${stage}: the beat is shorter than its period`);
@@ -440,11 +451,14 @@ test('the block runs for every stage and dresses each one', () => {
     assert.equal(harness.get('StageGimmickStage'), stage, `${stage} is the publishing stage`);
     assert.equal(harness.get('StageGimmickReady'), true, `${stage}: the set is built`);
     if (stage === 'school') {
-      /* The school speaks with the screen, not with the map: its blackout is a
-       * full-screen layer, so it has no mesh of its own. */
-      assert.equal(counts[stage], 0, 'the school dresses the screen, not the floor');
-      const blackout = harness.document.body.children[0].__fx.blackout;
-      assert.ok(blackout, 'the school owns the blackout layer');
+      /* Build 21: the classroom doors and the line around the classroom are
+       * meshes, so a player sees which room is about to lock. */
+      assert.equal(counts[stage], 2, 'the school builds its doors and its seal');
+      const names = harness.scene.children.map((mesh) => mesh.name);
+      assert.ok(names.includes('iceWolfV111Door'), 'the doors are meshes');
+      assert.ok(names.includes('iceWolfV111Seal'), 'and so is the sealed boundary');
+      assert.ok(harness.document.body.children[0].__fx.school, 'the school owns the lock layer');
+      assert.equal(harness.document.body.children[0].__fx.blackout, undefined, 'the blackout is gone');
       continue;
     }
     assert.ok(counts[stage] > 0, `${stage}: there is something to see (${counts[stage]})`);
@@ -512,7 +526,7 @@ test('the manta crosses on the beat, and is hidden between beats', () => {  cons
   assert.equal(mantas[0].visible, false, 'and it is gone between beats');
 });
 
-test('the blizzard darkens the air, the blackout and the alarm take the screen', () => {
+test('the blizzard darkens the air; the school locks a room and the ship warns', () => {
   const harness = makeHarness();
   harness.set('RoundPhase', 'Active');
   harness.set('GameOver', false);
@@ -528,20 +542,224 @@ test('the blizzard darkens the air, the blackout and the alarm take the screen',
   harness.run();
   assert.ok(harness.scene.fog.near > 900, 'and the stage air comes back');
 
+  /* The school beat opens 6 s in: 2.5 s of chime, then five shut seconds. */
   harness.set('StageApplied', 'school');
-  harness.set('MatchTimeLeft', 180 - 8);
+  harness.set('MatchTimeLeft', 180 - 7);
   harness.run();
-  const blackout = harness.document.body.children[0].__fx.blackout;
-  assert.equal(blackout.classList.contains('iwfx-on'), true, 'the blackout is on');
-  harness.set('MatchTimeLeft', 180 - 20);
+  const chime = harness.document.body.children[0].__fx.chime;
+  const lock = harness.document.body.children[0].__fx.school;
+  assert.equal(harness.get('StageGimmickDoor'), 'chime', 'the chime is the first half');
+  assert.equal(chime.classList.contains('iwfx-on'), true, 'the chime shows');
+  assert.equal(lock.classList.contains('iwfx-on'), false, 'the doors are still open');
+  harness.set('MatchTimeLeft', 180 - 9);
   harness.run();
-  assert.equal(blackout.classList.contains('iwfx-on'), false, 'and off again');
+  assert.equal(harness.get('StageGimmickDoor'), 'shut', 'then the doors shut');
+  assert.equal(lock.classList.contains('iwfx-on'), true, 'the lock shows');
+  assert.equal(chime.classList.contains('iwfx-on'), false, 'and the chime stops');
+  harness.set('MatchTimeLeft', 180 - 14);
+  harness.run();
+  assert.equal(harness.get('StageGimmickDoor'), 'open', 'five seconds later they open on their own');
 
+  /* The ship warns, and then the screen is left alone while the cells are up. */
   harness.set('StageApplied', 'space');
-  harness.set('MatchTimeLeft', 180 - 6);
+  harness.set('MatchTimeLeft', 180 - 9);
   harness.run();
-  const alarm = harness.document.body.children[0].__fx.alarm;
-  assert.equal(alarm.classList.contains('iwfx-on'), true, 'the alarm is on');
+  const warn = harness.document.body.children[0].__fx.warn;
+  assert.equal(warn.classList.contains('iwfx-on'), true, 'the gravity warning is a small one');
+  assert.equal(harness.get('StageGimmickKey'), 'fx.space.alarm');
+  harness.set('MatchTimeLeft', 180 - 12);
+  harness.run();
+  assert.equal(warn.classList.contains('iwfx-on'), false, 'and it clears when the cells come up');
+  assert.equal(harness.get('StageGimmickKey'), 'fx.space.gravity');
+  assert.equal(harness.get('StageGimmickGravity'), 6, 'six heavy cells are up');
+  assert.equal(harness.document.body.children[0].__fx.alarm, undefined, 'the red screen flood is gone');
+});
+
+test('the classroom doors shut for five seconds and nobody crosses them', () => {
+  const harness = makeHarness();
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 300);
+  harness.set('MatchTimeLeft', 300 - 9); /* 6s offset + 2.5s chime + 0.5s shut */
+  harness.set('StageApplied', 'school');
+  harness.world.player.x = 0;
+  harness.world.player.y = 0; /* inside the 1F classroom band */
+  harness.world.actors[0].x = 500;
+  harness.world.actors[0].y = 0; /* outside, east of the door */
+  harness.run();
+  assert.equal(harness.get('StageGimmickDoor'), 'shut');
+  assert.ok(harness.get('StageGimmickSealed') >= 1, 'the body in the classroom is held');
+
+  /* The player inside walks at the west door: the wall of the seal holds it. */
+  for (let i = 0; i < 30; i += 1) {
+    harness.world.player.x -= 12;
+    harness.run();
+  }
+  assert.ok(harness.world.player.x >= -399, `the body stays in the classroom (${harness.world.player.x})`);
+  assert.equal(harness.world.player.y, 0);
+
+  /* The body outside walks at the east door: it never gets in. */
+  for (let i = 0; i < 30; i += 1) {
+    harness.world.actors[0].x -= 12;
+    harness.run();
+  }
+  assert.ok(harness.world.actors[0].getCenterXInScene() > 421, 'the body outside stays outside');
+  assert.equal(harness.world.actors[0].y, 0);
+
+  /* Five seconds later the doors open by themselves. */
+  harness.set('MatchTimeLeft', 300 - 14);
+  harness.run();
+  assert.equal(harness.get('StageGimmickDoor'), 'open');
+  harness.world.player.x = 0;
+  harness.run();
+  harness.world.player.x -= 12;
+  harness.run();
+  assert.ok(harness.world.player.x < 0, 'and the classroom lets the runner out again');
+});
+
+test('the doors never take a switch away for good', () => {
+  const pure = model();
+  const cycle = pure.ICE_WOLF_GIMMICK_CYCLES.school;
+  /* Walk a whole period: the shut is always followed by open time, whatever the
+   * match clock is doing, so the room cannot stay locked. */
+  let shutSeconds = 0;
+  let openSeconds = 0;
+  for (let t = cycle.offset; t < cycle.offset + cycle.period; t += 0.25) {
+    const door = pure.iceWolfSchoolDoor(t);
+    if (door.shut) shutSeconds += 0.25;
+    else openSeconds += 0.25;
+  }
+  assert.ok(shutSeconds >= cycle.shut - 0.3 && shutSeconds <= cycle.shut + 0.3, `five shut seconds (${shutSeconds})`);
+  assert.ok(openSeconds > cycle.shut * 2, 'and far more open time');
+  for (const room of pure.ICE_WOLF_SCHOOL_ROOMS) {
+    assert.equal(pure.iceWolfSchoolRoomIndex(room.x + room.w / 2, room.y + room.h / 2) >= 0, true, `${room.floor} room centre`);
+    assert.equal(pure.iceWolfSchoolRoomIndex(room.x - 200, room.y + room.h / 2), -1, `${room.floor} outside the room`);
+  }
+});
+
+test('a body held inside is put back inside, and one outside is pushed out', () => {
+  const pure = model();
+  const room = pure.ICE_WOLF_SCHOOL_ROOMS[0];
+  const middle = pure.iceWolfSchoolSealStep(room, true, room.x + room.w / 2, room.y + room.h / 2, 8.5);
+  assert.equal(middle.inside, true, 'the middle of the room is inside');
+  const out = pure.iceWolfSchoolSealStep(room, true, room.x - 40, room.y + room.h / 2, 8.5);
+  assert.equal(out.x, room.x + 8.5, 'a body that was inside is held at the door');
+  assert.equal(out.inside, true);
+  const pushed = pure.iceWolfSchoolSealStep(room, false, room.x + 30, room.y + room.h / 2, 8.5);
+  assert.equal(pushed.inside, false, 'a body that steps in is pushed back out');
+  assert.ok(pushed.x <= room.x, `through the west door: ${pushed.x}`);
+  const above = pure.iceWolfSchoolSealStep(room, false, room.x + room.w / 2, room.y + 30, 8.5);
+  assert.equal(above.inside, false);
+  assert.ok(above.y <= room.y, 'and through the long side it goes back out that side');
+  const free = pure.iceWolfSchoolSealStep(room, false, room.x - 200, room.y - 200, 8.5);
+  assert.deepEqual([free.x, free.y, free.inside], [room.x - 200, room.y - 200, false], 'far outside is left alone');
+});
+
+test('the heavy cells are the same six on every phone', () => {
+  const pure = model();
+  const walls = [-720, -760, 800, -720, -720, 720, 800, 760];
+  const first = pure.iceWolfGravityCells(4242, walls);
+  const again = pure.iceWolfGravityCells(4242, walls);
+  const other = pure.iceWolfGravityCells(4243, walls);
+  assert.equal(first.length, 6, 'six cells');
+  assert.deepEqual(first, again, 'the same seed draws the same six');
+  assert.notDeepEqual(first, other, 'a new round draws new ones');
+  assert.equal(first.filter((cell) => cell.floor === '1F').length, 3, 'three on each floor');
+  assert.equal(first.filter((cell) => cell.floor === '2F').length, 3);
+  for (let i = 0; i < first.length; i += 1) {
+    const cell = first[i];
+    assert.ok(cell.x >= -660 && cell.x <= 2260, 'the cell is on the map');
+    assert.ok(cell.y >= -660 && cell.y <= 660, 'and inside the arena band');
+    if (cell.floor === '1F') assert.ok(cell.x <= 660, 'a 1F cell is on 1F');
+    else assert.ok(cell.x >= 940, 'a 2F cell is on 2F');
+    for (let j = i + 1; j < first.length; j += 1) {
+      const gap = Math.hypot(cell.x - first[j].x, cell.y - first[j].y);
+      assert.ok(gap >= 140, `two cells never overlap (${gap})`);
+    }
+  }
+  /* A wall keeps a cell off it. */
+  const blocked = pure.iceWolfGravityCells(4242, [400, -60, 700, 60]);
+  for (const cell of blocked) {
+    const hit = cell.x + 70 > 400 && cell.x - 70 < 700 && cell.y + 70 > -60 && cell.y - 70 < 60;
+    assert.equal(hit, false, 'no cell is drawn on a wall');
+  }
+  assert.ok(pure.iceWolfGravityCellAt(first, first[0].x, first[0].y, 8.5), 'the centre of a cell is on it');
+  assert.equal(pure.iceWolfGravityCellAt(first, first[0].x + 200, first[0].y + 200, 8.5), null, 'and 200px away is not');
+});
+
+test('a body on a heavy cell moves at 55%, and at full speed once the cells go', () => {
+  const harness = makeHarness();
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 300);
+  harness.set('MatchTimeLeft', 300 - 11); /* 8s offset + 2.5s warning + 0.5s of cells */
+  harness.set('StageApplied', 'space');
+  /* A fixed room seed: the cells are drawn once and the test always walks the
+   * same one, instead of depending on the round's own draw. */
+  harness.set('OnlineRoomActive', true);
+  harness.set('OnlineIsHost', true);
+  harness.set('OnlineStartSeed', 4242);
+  harness.run();
+  assert.equal(harness.get('StageGimmickSeed'), 4242);
+  assert.equal(harness.get('StageGimmickGravity'), 6, 'the cells are up');
+  const cells = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV111Heavy');
+  assert.equal(cells.length, 6, 'one mesh per cell');
+  assert.equal(cells[0].visible, true, 'and they are drawn');
+  const onFirstFloor = cells.find((mesh) => mesh.position.x < 792);
+  harness.world.player.x = onFirstFloor.position.x - 8.5;
+  harness.world.player.y = onFirstFloor.position.y - 8.5;
+  harness.run();
+  harness.run();
+  assert.equal(harness.get('StageGimmickSlow'), true, 'the player feels the gravity');
+  const start = harness.world.player.x;
+  for (let i = 0; i < 10; i += 1) {
+    harness.world.player.x += 10;
+    harness.run();
+  }
+  const moved = harness.world.player.x - start;
+  assert.ok(moved > 45 && moved < 65, `about 55 of 100px (${moved.toFixed(1)})`);
+  assert.equal(harness.get('StageGimmickZone'), 'heavy');
+
+  /* The window closes ten seconds later: the cells go and the speed is back. */
+  harness.set('MatchTimeLeft', 300 - 25);
+  harness.run();
+  assert.equal(harness.get('StageGimmickGravity'), 0, 'the cells are gone');
+  assert.equal(cells[0].visible, false, 'and their meshes with them');
+  harness.world.player.x = onFirstFloor.position.x - 8.5;
+  harness.run();
+  const freeStart = harness.world.player.x;
+  for (let i = 0; i < 10; i += 1) {
+    harness.world.player.x += 10;
+    harness.run();
+  }
+  assert.equal(harness.world.player.x - freeStart, 100, 'a plain floor is full speed');
+});
+
+test('a guest draws its cells from the host seed, not its own round', () => {
+  const harness = makeHarness();
+  harness.set('RoundPhase', 'Active');
+  harness.set('GameOver', false);
+  harness.set('MatchDuration', 300);
+  harness.set('MatchTimeLeft', 300 - 11);
+  harness.set('StageApplied', 'space');
+  harness.set('OnlineRoomActive', true);
+  harness.set('OnlineIsHost', false);
+  harness.set('OnlineStartSeed', 777);
+  harness.run();
+  assert.equal(harness.get('StageGimmickSeed'), 777, 'the host seed is the round seed');
+  const cells = model().iceWolfGravityCells(777, []);
+  assert.ok(cells.length === 6, 'and the host seed deals six cells of its own');
+  const host = makeHarness();
+  host.set('RoundPhase', 'Active');
+  host.set('GameOver', false);
+  host.set('MatchDuration', 300);
+  host.set('MatchTimeLeft', 300 - 11);
+  host.set('StageApplied', 'space');
+  host.set('OnlineRoomActive', true);
+  host.set('OnlineIsHost', true);
+  host.set('OnlineStartSeed', 777);
+  host.run();
+  assert.equal(host.get('StageGimmickSeed'), 777, 'both phones read the same seed');
 });
 
 test('the beat shows its line in the chosen language', () => {
@@ -641,7 +859,8 @@ test('Classic is left exactly as 1.0.0 shipped it', () => {
 
 test('the stage cards name the gimmick each stage now has, in twelve languages', () => {
   const { i18n } = createI18n();
-  const keys = ['fx.aquarium.manta', 'fx.park.lights', 'fx.lodge.blizzard', 'fx.school.blackout', 'fx.space.alarm',
+  const keys = ['fx.aquarium.manta', 'fx.park.lights', 'fx.lodge.blizzard', 'fx.school.chime', 'fx.school.doors',
+    'fx.space.alarm', 'fx.space.gravity',
     'stage.aquarium.gimmick', 'stage.park.gimmick', 'stage.lodge.gimmick', 'stage.school.gimmick', 'stage.space.gimmick'];
   for (const key of keys) {
     for (const lang of LANGS) {

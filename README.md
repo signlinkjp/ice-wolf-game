@@ -17,7 +17,8 @@ SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
 - **Phase 1 gameplay**: five new stages (Deep-Sea Aquarium free, Misty Amusement
   Park / Snowy Mountain Lodge / Abandoned School / Spaceship with Pro) with their
   own floor plans and atmosphere, stage-linked block-toy outfits, matches of up to
-  10 players with two wolves, Pro custom rules (switch count, 1 / 10 minutes) and
+  10 players with two wolves, Pro custom rules (3 / 5 / 7 / 10 switches, 1 to 5
+  minutes) and
   a spectator camera that follows a living player while you are frozen
   (`docs/v110-phase1-stages.md`);
 - **Phase 2 online**: a room with a six-character code, seats and READY, a host
@@ -51,12 +52,14 @@ https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
 - 7 to 10 players on two floors: 1 human player + up to 9 CPUs, 1 or 2 wolves
 - Six stages: Classic Ice Arena, Deep-Sea Aquarium (free), Misty Amusement Park,
   Snowy Mountain Lodge, Abandoned School, Spaceship (Pro), each with its own
-  interior walls, palette, atmosphere and outfits
+  interior walls, palette, atmosphere, outfits and stage rule
 - Wolf / Human roles, 5-second Wolf Mode, freeze and hold-to-rescue
 - Spectator camera: when you are frozen, follow any living player with ‹ ›
 - One secret "wolf role" designation per match (the rescue that is a trap)
-- 2 / 3 / 5 minute matches (1 / 10 with Pro), speed floors, warp pads, stairs between 1F and 2F
-- Five switches (three correct; 3 / 4 with Pro) and three gates; the gate escape wins for the humans
+- 1 / 2 / 3 / 5 minute matches (1 minute with Pro; five is the longest), speed floors,
+  warp pads, stairs between 1F and 2F
+- 3 / 5 / 7 / 10 switches (three correct free, five with Pro) and three gates; the gate
+  escape wins for the humans
 - Compact virtual joystick, normal and overhead camera, effects-only sound
 - Online rooms (up to 10 phones) with eight translated quick stamps; the host
   phone runs the round and the guests see the same arena, roles and HUD
