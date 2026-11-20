@@ -646,14 +646,16 @@ test('a guest whose host left takes the room over instead of ending the round', 
   assert.ok(scene.sent.some((message) => message && message.kind === 'room'), 'the new host tells the room');
 });
 
-test('a wire that dies mid-round ends the round the same clean way', () => {
-  /* The drop itself is delivered by the transport as 'closed'; the behaviour it
-   * reaches (endOnlineRound) is what the two frame tests above prove. This one
-   * keeps the wiring honest: a live round is ended, a lobby only says why. */
+test('a wire that dies mid-round is given the grace, an error ends it at once', () => {
+  /* Build 31: a socket that closes while the phone is in LINE is a pause, not
+   * the end (the frame loop rejoins; see v116-build31.test.mjs). An error from
+   * the server, or a grace that runs out, ends the round exactly as before. The
+   * two frame tests above prove endOnlineRound itself. */
   const code = groupCode(ONLINE_GROUP);
   assert.ok(code.includes("if (kind === 'error' || kind === 'closed')"), 'the wire reports both kinds');
   const branch = code.slice(code.indexOf("if (kind === 'error' || kind === 'closed')"));
-  assert.ok(branch.slice(0, 700).includes('endOnlineRound('), 'a closed wire ends the round');
-  assert.ok(branch.slice(0, 700).includes("online.room.status === 'playing'"), 'and only a live round is ended');
-  assert.ok(branch.slice(0, 900).includes("setError(key)"), 'a lobby just says why');
+  assert.ok(branch.slice(0, 900).includes("online.room.status === 'playing'"), 'and only a live round is concerned');
+  assert.ok(branch.slice(0, 900).includes("online.wireLostAt = clock()"), 'a closed wire opens the grace');
+  assert.ok(branch.slice(0, 900).includes('endOnlineRound('), 'an error still ends the round');
+  assert.ok(branch.slice(0, 1200).includes("setError(key)"), 'a lobby just says why');
 });

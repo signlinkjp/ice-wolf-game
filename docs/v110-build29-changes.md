@@ -10,7 +10,7 @@ of the yard, 10 players, 3:00):
 
 Both are in this build. `npm test` runs 259 checks (19 of them new, in
 `tests/pro/v115-build29.test.mjs`); `python3 scripts/ios/verify-ios-project.py`
-passes; the content ships as **Build 30** (`CURRENT_PROJECT_VERSION = 30` in both
+passes; the content ships as **Build 31** (`CURRENT_PROJECT_VERSION = 31` in both
 configurations and in the verifier — see *The build* below for why it is not 29);
 the GDevelop project stays `1.1.0`.
 
@@ -97,12 +97,15 @@ variables, where nothing of that name exists, so `getAsNumber()` of `undefined`
 would throw on every frozen frame. The pan block writes **scene** variables, and a
 bare name (like `MoveX` in the shipped walk) compiles to
 `runtimeScene.getScene().getVariables().getFromIndex(n)`, the container the block
-writes. Apple refuses a build number twice, so the same content ships as
-**Build 30**, which supersedes Build 29 on TestFlight:
-`CURRENT_PROJECT_VERSION = 30` in both configurations and in the verifier, the
-GDevelop project still `1.1.0`. A test now pins the frozen camera to bare scene
-names and fails on `GlobalVariable(`.
+writes. A test now pins the frozen camera to bare scene names and fails on
+`GlobalVariable(`.
 
-`npm test` is 259 pass; `python3 scripts/ios/verify-ios-project.py` passes; the
+The content therefore ships as **Build 31**: 29 was the broken upload, 30 was
+cancelled mid-upload for the two items the player added while it ran
+(`docs/v110-build31-changes.md` — the share button and the room that survives a
+trip to LINE), and 31 carries all of it. `CURRENT_PROJECT_VERSION = 31` in both
+configurations and in the verifier, the GDevelop project still `1.1.0`.
+
+`npm test` is 271 pass; `python3 scripts/ios/verify-ios-project.py` passes; the
 exported `code1.js` of the shipped build reads
 `runtimeScene.getScene().getVariables().getFromIndex(...)` for all three pan values.

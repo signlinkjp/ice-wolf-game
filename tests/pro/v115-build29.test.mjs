@@ -490,15 +490,16 @@ test('the pan hint is in twelve languages, and Japanese is the only one with kan
 });
 
 /* ------------------------------------------------------------------ the build */
-test('the build is 1.1.0 (30) on every side, and npm test runs this file', () => {
+test('the build is 1.1.0 (31) on every side, and npm test runs this file', () => {
   /* The two features of this build first shipped as 29; the camera read a game
-   * variable instead of the scene variable, so 29 was superseded by 30 (same
-   * content, one reference fixed) - Apple refuses a build number twice. */
+   * variable instead of the scene variable, so 29 was superseded (30 was
+   * cancelled mid-upload, 31 carries the fix and the share/rejoin work of
+   * tests/pro/v116-build31.test.mjs) - Apple refuses a build number twice. */
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['30', '30'], 'both configurations carry Build 30');
+  assert.deepEqual(builds, ['31', '31'], 'both configurations carry Build 31');
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "30"'), 'the verifier builds 30');
+  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "31"'), 'the verifier builds 31');
   assert.ok(verify.includes('DEFAULT_MARKETING_VERSION = "1.1.0"'), 'on 1.1.0');
   const staging = readGame();
   assert.equal(staging.properties.version, '1.1.0', 'the GDevelop project stays 1.1.0');
