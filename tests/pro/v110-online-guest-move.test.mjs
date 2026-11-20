@@ -352,3 +352,125 @@ test('a guest that lets go stands still where it stopped', async () => {
   assert.ok(Math.abs(host.actors[0].getX() - stopped) < 40,
     `and the host’s copy catches up to it: ${host.actors[0].getX().toFixed(1)} vs ${stopped.toFixed(1)}`);
 });
+
+/* Build 27 — the video, not a report. `ScreenRecording_11-20-2026 21-08-28`
+ * shows the guest walking while the ice under it steps backwards about five
+ * times a second: 6.2px a frame for six frames, then -11px in one, again and
+ * again. That is one 32% pull per 5Hz snapshot, and it is what Build 24 still
+ * left: the correction moved from every frame to every snapshot, but the host's
+ * copy of a walking seat is always a stride behind, so every snapshot took a
+ * stride back. The measure here is the one the eye used: over a second of
+ * walking with a host's copy 50px behind, no frame may go backwards. */
+test('a walking guest is never walked backwards by a snapshot', () => {
+  const world = makeWorld();
+  const guest = new Phone(world);
+  const roster = [];
+  for (let seat = 0; seat < 7; seat += 1) {
+    roster.push({
+      seat, id: seat === 0 ? 'YOU' : 'ABCDEFGHI'[seat - 1],
+      clientId: seat === 1 ? 'g1' : '', cpu: seat !== 1, role: 'Human', name: ''
+    });
+  }
+  const snapshot = {
+    kind: 'snapshot', t: 9000, phase: 'Active', timer: 120,
+    players: [
+      { id: 'YOU', x: 0, y: 350, z: 0, yaw: 0, role: 'Human', state: 'Active', mode: 0 },
+      { id: 'A', x: 950, y: 350, z: 0, yaw: 0, role: 'Human', state: 'Active', mode: 0 }
+    ],
+    switches: { active: 0, triggered: 0, enabled: true, serial: 0, on: [], spent: [], layout: [] },
+    gates: { openIndex: 0, openFloor: '', unlocked: false, serial: 0, layout: [] }
+  };
+  guest.scene.__iceWolfV110Online = { payload: { kind: 'start', roster }, seat: 1, inputs: {}, snapshot, syncRolesApplied: true };
+  guest.set('OnlineRoomActive', true);
+  guest.set('OnlineIsHost', false);
+  guest.set('RoundPhase', 'Active');
+  guest.set('GameOver', false);
+  guest.set('RosterDealt', true);
+  guest.set('SpeedFactor', 1);
+  guest.player.setX(1000);
+  guest.player.setY(350);
+  guest.set('JoystickActive', true);
+  guest.set('JoystickX', 1);
+  guest.set('JoystickY', 0);
+  guest.set('MoveX', 1);
+  guest.set('MoveY', 0);
+  guest.scene.__iceWolfV110SyncAt = world.now - 16;
+
+  const speed = 260;
+  let previous = guest.player.getX();
+  let backwards = 0;
+  let worst = 0;
+  let walked = 0;
+  for (let frame = 0; frame < 60; frame += 1) {
+    world.now += 16;
+    guest.player.setX(guest.player.getX() + speed * (16 / 1000));
+    /* Every sixth frame a snapshot lands, and the host's copy of seat A is the
+     * stride behind that a 100ms input interval plus a 90ms blend always is. */
+    if (frame % 6 === 5) {
+      snapshot.t += 200;
+      const seatA = snapshot.players[1];
+      seatA.x = guest.player.getX() - 50;
+      guest.scene.__iceWolfV110SyncAt = world.now - 16;
+    }
+    guest.run(SYNC, 'online sync');
+    const now = guest.player.getX();
+    const step = now - previous;
+    if (step < -0.01) {
+      backwards += 1;
+      worst = Math.min(worst, step);
+    }
+    walked += step;
+    previous = now;
+  }
+  assert.equal(backwards, 0, `no snapshot dragged the walker back: ${backwards} frames, worst ${worst.toFixed(2)}px`);
+  assert.ok(walked > 240 && walked < 260,
+    `a second of walking is a second of walking: ${walked.toFixed(1)}px`);
+
+  /* And the correction still does its job when the thumb is off (Build 24's
+   * case): a guest that stops is settled onto the host's copy, gently. */
+  guest.set('JoystickActive', false);
+  guest.set('JoystickX', 0);
+  guest.set('MoveX', 0);
+  guest.scene.__iceWolfV110Online.driveAt = -1000000;
+  const before = guest.player.getX();
+  for (let frame = 0; frame < 10; frame += 1) {
+    world.now += 16;
+    if (frame % 6 === 5) {
+      snapshot.t += 200;
+      snapshot.players[1].x = 1000;
+      guest.scene.__iceWolfV110SyncAt = world.now - 16;
+    }
+    guest.run(SYNC, 'online sync');
+  }
+  const gap = Math.abs(guest.player.getX() - 1000);
+  assert.ok(gap < Math.abs(before - 1000) - 30,
+    `standing still, it is walked onto the host's copy: ${before.toFixed(1)} → ${guest.player.getX().toFixed(1)}`);
+  assert.ok(gap > 20, `a few snapshots, not one jump: ${gap.toFixed(1)}px left`);
+});
+
+/* Build 27 (放置・切断対策) — a phone that stops answering must not freeze the
+ * other players' round. Three seconds of silence and the host plays that body
+ * with the CPU; the moment the phone speaks again the body is its own. */
+test('a silent guest hands its body to the CPU, and takes it back', async () => {
+  const { world, host, guest } = await openMatch();
+  assert.equal(host.actors[0].__iceWolfV110Remote, true, 'the host knows a phone plays seat 1');
+  /* The guest's phone goes quiet: no frames, no inputs, four seconds. */
+  for (let frame = 0; frame < 40; frame += 1) {
+    world.now += 100;
+    host.frame();
+    await tick();
+  }
+  assert.equal(host.actors[0].__iceWolfV110Remote, false,
+    'after three seconds of silence the host runs that seat with the CPU');
+  /* And when the phone comes back, so does its seat. */
+  guest.set('JoystickActive', true);
+  guest.set('JoystickX', 0);
+  guest.set('JoystickY', 1);
+  for (let frame = 0; frame < 12; frame += 1) {
+    world.now += 16;
+    host.frame();
+    guest.frame();
+    await tick();
+  }
+  assert.equal(host.actors[0].__iceWolfV110Remote, true, 'the seat is the phone’s again');
+});

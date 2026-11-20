@@ -246,9 +246,12 @@ test('the help text names the ceiling in twelve languages', () => {
 test('Build 26 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['26', '26'], 'both configurations are Build 26');
+  /* Build 27 moved the number on; the rule this file checks is that both
+   * configurations and the verifier carry the one build the project is on. */
+  assert.equal(new Set(builds).size, 1, `both configurations carry one build (${builds.join(', ')})`);
+  assert.ok(Number(builds[0]) >= 26, `Build ${builds[0]} is past Build 25`);
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "26"'), 'the verifier defaults to 26');
+  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier defaults to the same build');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v113-build26.test.mjs'), 'npm test runs this file');
 });
