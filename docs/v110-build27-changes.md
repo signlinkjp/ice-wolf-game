@@ -79,6 +79,12 @@ free player who finds nothing is told so and offered Pro.
 
 ## The build
 
-`CURRENT_PROJECT_VERSION = 27` in both configurations and in the verifier; the
-GDevelop project stays `1.1.0`. `python3 scripts/ios/verify-ios-project.py` passes.
-`node --test` over the eighteen files: 239 pass.
+Build 27 went to TestFlight first. The review that followed found one thing
+worth a number of its own: a quick walk that was still out when the player left
+would open a door behind them, so `leave` (and the end of a round) now stops the
+walk, with a test that holds the case. Apple refuses a build number twice, so
+the same content ships as **Build 28**, which supersedes Build 27 on
+TestFlight. `CURRENT_PROJECT_VERSION = 28` in both configurations and in the
+verifier; the GDevelop project stays `1.1.0`.
+`python3 scripts/ios/verify-ios-project.py` passes. `node --test` over the
+eighteen files: 240 pass.

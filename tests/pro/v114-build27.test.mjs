@@ -306,9 +306,14 @@ test('nineteen new lines, twelve languages each, no Japanese left in the others'
 test('Build 27 is the build on every side', () => {
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['27', '27'], 'both configurations are Build 27');
+  /* Build 27 went to TestFlight first; one small fix after that review spends a
+   * number of its own (Apple refuses a number twice), so the rule here is the
+   * one every build keeps: both configurations and the verifier carry one build,
+   * and it is this build or a later one. */
+  assert.equal(new Set(builds).size, 1, `both configurations carry one build (${builds.join(', ')})`);
+  assert.ok(Number(builds[0]) >= 27, `Build ${builds[0]} is this build or later`);
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "27"'), 'the verifier defaults to 27');
+  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier defaults to the same build');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v114-build27.test.mjs'), 'npm test runs this file');
   assert.equal(readGame().properties.version, '1.1.0', 'the GDevelop project stays 1.1.0');
@@ -472,4 +477,28 @@ test('a full door is walked past, not joined', async () => {
   assert.equal(b.get('OnlineRoomCode'), 'MATCH3', `B walked to the next door: ${b.get('OnlineRoomCode')}, mode ${b.get('OnlineMode')}`);
   assert.equal(b.scene.__iceWolfV110Online.isHost, true);
   assert.equal(a.scene.__iceWolfV110Online.room.seats.length, 7, 'A’s room is untouched');
+});
+
+test('leaving a quick walk stops it: no room opens behind the player', async () => {
+  const world = { now: NOW };
+  const a = makePhone(world);
+  a.set('ProUnlocked', true);
+  a.run();
+  const hub = a.scene.__t.createIceWolfMockHub({ now: world.now });
+  a.scene.__iceWolfV110Online.transport = hub.createTransport({ clientId: a.scene.__iceWolfV110Online.clientId, name: 'p' });
+  a.scene.__iceWolfV110Online.local = false;
+  a.scene.__iceWolfV110Online.transport.on(a.scene.__t.handleEvent);
+
+  a.set('OnlineCommand', 'quick');
+  for (let step = 0; step < 3; step += 1) { a.run(); await settle(); }
+  assert.equal(a.get('OnlineQuickSearching'), true);
+  a.set('OnlineCommand', 'leave');
+  for (let step = 0; step < 3; step += 1) { a.run(); await settle(); }
+  assert.equal(a.get('OnlineQuickSearching'), false, 'the walk is off');
+  /* Long past the 1.8 s probe: nothing may be opened in the player's name. */
+  world.now += 10000;
+  for (let step = 0; step < 5; step += 1) { world.now += 50; a.run(); await settle(); }
+  assert.equal(a.scene.__iceWolfV110Online.room, null, 'no room was opened after leaving');
+  assert.equal(a.scene.__iceWolfV110Online.isHost, false);
+  assert.equal(a.get('OnlineRoomCode'), '');
 });
