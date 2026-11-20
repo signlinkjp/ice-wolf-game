@@ -522,9 +522,14 @@ test('the frozen camera is the follow group\'s third event, and the other two st
     assert.equal(frozenCondition.inverted, true, 'and skip themselves when it is on');
   }
   const overhead = follow.events[2];
-  assert.equal(overhead.actions[0].parameters[1], 'Player');
-  assert.equal(overhead.actions[0].parameters[3], '1500');
-  assert.equal(overhead.actions[0].parameters[5], '86');
+  /* Build 29: the overhead view is the pan position the stick drives, at the same
+   * 1500 / 86 geometry (tests/pro/v115-build29.test.mjs walks the pan itself). */
+  assert.equal(overhead.actions[0].type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
+    'the frozen view looks at a position');
+  assert.equal(overhead.actions[0].parameters[1], 'GlobalVariable(SpectatorPanX)');
+  assert.equal(overhead.actions[0].parameters[2], 'GlobalVariable(SpectatorPanY)');
+  assert.equal(overhead.actions[0].parameters[4], '1500');
+  assert.equal(overhead.actions[0].parameters[6], '86');
 });
 
 /* ------------------------------------------------------------ the rescue, once */

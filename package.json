@@ -9,7 +9,7 @@
     "ios:open": "cap open ios",
     "ios:build": "bash scripts/ios/build-and-upload-testflight.sh",
     "ios:upload": "bash scripts/ios/build-and-upload-testflight.sh --upload",
-    "test": "node --test tests/pro/pro-strings.test.mjs tests/pro/pro-store.test.mjs tests/pro/scope-guard.test.mjs tests/pro/v110-stage.test.mjs tests/pro/v110-match.test.mjs tests/pro/v110-online.test.mjs tests/pro/v110-online-open.test.mjs tests/pro/v110-sync.test.mjs tests/pro/v110-online-guest-move.test.mjs tests/pro/v110-price-copy.test.mjs tests/pro/v110-phase2c.test.mjs tests/pro/v110-visual.test.mjs tests/pro/v111-gimmicks.test.mjs tests/pro/v111-rules.test.mjs tests/pro/v111-endings.test.mjs tests/pro/v112-build25.test.mjs tests/pro/v113-build26.test.mjs tests/pro/v114-build27.test.mjs",
+    "test": "node --test tests/pro/pro-strings.test.mjs tests/pro/pro-store.test.mjs tests/pro/scope-guard.test.mjs tests/pro/v110-stage.test.mjs tests/pro/v110-match.test.mjs tests/pro/v110-online.test.mjs tests/pro/v110-online-open.test.mjs tests/pro/v110-sync.test.mjs tests/pro/v110-online-guest-move.test.mjs tests/pro/v110-price-copy.test.mjs tests/pro/v110-phase2c.test.mjs tests/pro/v110-visual.test.mjs tests/pro/v111-gimmicks.test.mjs tests/pro/v111-rules.test.mjs tests/pro/v111-endings.test.mjs tests/pro/v112-build25.test.mjs tests/pro/v113-build26.test.mjs tests/pro/v114-build27.test.mjs tests/pro/v115-build29.test.mjs",
     "test:ios": "python3 scripts/ios/verify-ios-project.py"
   },
   "dependencies": {

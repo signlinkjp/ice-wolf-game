@@ -168,7 +168,9 @@ test('the camera hands over to the picked actor and stands the old group down', 
   const follow = scene.events.find((group) => group.name === 'v1.1.0 観戦カメラ（追従）');
   const actions = follow.events.flatMap((event) => event.actions || []);
   assert.equal(actions.length, 3, 'a chase camera, an overview camera, and Build 25\'s frozen view');
-  for (const action of actions) {
+  /* Build 29: the frozen view is a POSITION the stick pans rather than an object,
+   * so only the two follow events go through the 3D behaviour. */
+  for (const action of actions.slice(0, 2)) {
     assert.equal(action.parameters[2], 'Object3D', 'through the 3D behaviour');
   }
   assert.equal(actions[0].parameters[1], 'Actor', 'the chase looks at an Actor');
@@ -179,9 +181,12 @@ test('the camera hands over to the picked actor and stands the old group down', 
   assert.equal(actions[1].parameters[5], '78', 'the shipped overview height');
   /* Build 25: frozen, the camera goes above the player's own ice and shows the
    * whole floor, which is what a frozen player asked for. */
-  assert.equal(actions[2].parameters[1], 'Player', 'the frozen view looks at the player');
-  assert.equal(actions[2].parameters[3], '1500', 'from far enough up to see the floor');
-  assert.equal(actions[2].parameters[5], '86', 'and steep enough to read as a plan');
+  assert.equal(actions[2].type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
+    'the frozen view is a position, so the stick can move the look point');
+  assert.equal(actions[2].parameters[1], 'GlobalVariable(SpectatorPanX)', 'over the point the stick has panned to');
+  assert.equal(actions[2].parameters[2], 'GlobalVariable(SpectatorPanY)', 'on both axes');
+  assert.equal(actions[2].parameters[4], '1500', 'from far enough up to see the floor');
+  assert.equal(actions[2].parameters[6], '86', 'and steep enough to read as a plan');
   for (const event of follow.events.slice(0, 2)) {
     const conditions = event.conditions.map((condition) => condition.parameters?.[0]);
     assert.ok(conditions.includes('SpectatorActive'), 'only while spectating');
