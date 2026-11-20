@@ -8,7 +8,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // v1.1.0: the ICE WOLF subclass registers the StoreKit (Pro) plugin with
+        // the Capacitor bridge; Capacitor then publishes it to the WebView.
+        window?.rootViewController = IceWolfBridgeViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
