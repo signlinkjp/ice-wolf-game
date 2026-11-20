@@ -10,8 +10,9 @@ of the yard, 10 players, 3:00):
 
 Both are in this build. `npm test` runs 259 checks (19 of them new, in
 `tests/pro/v115-build29.test.mjs`); `python3 scripts/ios/verify-ios-project.py`
-passes; `CURRENT_PROJECT_VERSION = 29` in both configurations and in the
-verifier; the GDevelop project stays `1.1.0`.
+passes; the content ships as **Build 30** (`CURRENT_PROJECT_VERSION = 30` in both
+configurations and in the verifier — see *The build* below for why it is not 29);
+the GDevelop project stays `1.1.0`.
 
 The recording itself is a match where the ice did its job: at 2:26 the board read
 `生存 1 / 凍結 6` — six of the seven humans were already on the ice — and the one
@@ -88,7 +89,20 @@ the 生存 1 case in the recording).
 
 ## The build
 
-Build 29 went to TestFlight from `feat/ice-wolf-v1.1.0-pro`:
-`gh workflow run ios-testflight.yml --ref feat/ice-wolf-v1.1.0-pro -f confirmation=true
--f upload_to_testflight=true -f build_number=29 -f marketing_version=1.1.0
--f source_ref=feat/ice-wolf-v1.1.0-pro`.
+Build 29 went to TestFlight first, and the bundle it produced was read back before
+anyone played it: the frozen camera's three expressions had been written as
+`GlobalVariable(SpectatorPanX)`, which the exporter compiles to
+`runtimeScene.getGame().getVariables().get("SpectatorPanX")` — the **game**
+variables, where nothing of that name exists, so `getAsNumber()` of `undefined`
+would throw on every frozen frame. The pan block writes **scene** variables, and a
+bare name (like `MoveX` in the shipped walk) compiles to
+`runtimeScene.getScene().getVariables().getFromIndex(n)`, the container the block
+writes. Apple refuses a build number twice, so the same content ships as
+**Build 30**, which supersedes Build 29 on TestFlight:
+`CURRENT_PROJECT_VERSION = 30` in both configurations and in the verifier, the
+GDevelop project still `1.1.0`. A test now pins the frozen camera to bare scene
+names and fails on `GlobalVariable(`.
+
+`npm test` is 259 pass; `python3 scripts/ios/verify-ios-project.py` passes; the
+exported `code1.js` of the shipped build reads
+`runtimeScene.getScene().getVariables().getFromIndex(...)` for all three pan values.

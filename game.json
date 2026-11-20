@@ -16219,9 +16219,9 @@
                   },
                   "parameters": [
                     "",
-                    "GlobalVariable(SpectatorPanX)",
-                    "GlobalVariable(SpectatorPanY)",
-                    "GlobalVariable(SpectatorPanZ)",
+                    "SpectatorPanX",
+                    "SpectatorPanY",
+                    "SpectatorPanZ",
                     "1500",
                     "0",
                     "86",

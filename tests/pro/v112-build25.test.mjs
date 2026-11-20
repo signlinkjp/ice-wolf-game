@@ -526,8 +526,8 @@ test('the frozen camera is the follow group\'s third event, and the other two st
    * 1500 / 86 geometry (tests/pro/v115-build29.test.mjs walks the pan itself). */
   assert.equal(overhead.actions[0].type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
     'the frozen view looks at a position');
-  assert.equal(overhead.actions[0].parameters[1], 'GlobalVariable(SpectatorPanX)');
-  assert.equal(overhead.actions[0].parameters[2], 'GlobalVariable(SpectatorPanY)');
+  assert.equal(overhead.actions[0].parameters[1], 'SpectatorPanX');
+  assert.equal(overhead.actions[0].parameters[2], 'SpectatorPanY');
   assert.equal(overhead.actions[0].parameters[4], '1500');
   assert.equal(overhead.actions[0].parameters[6], '86');
 });

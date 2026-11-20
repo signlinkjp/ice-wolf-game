@@ -451,8 +451,15 @@ test('the shipped frozen camera reads the pan, at the shipped 1500 / 86', () => 
   const frozen = follow.events[2].actions[0];
   assert.equal(frozen.type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
     'a position, so the stick can move it');
-  assert.deepEqual(frozen.parameters.slice(1, 4),
-    ['GlobalVariable(SpectatorPanX)', 'GlobalVariable(SpectatorPanY)', 'GlobalVariable(SpectatorPanZ)']);
+  assert.deepEqual(frozen.parameters.slice(1, 4), ['SpectatorPanX', 'SpectatorPanY', 'SpectatorPanZ']);
+  /* Bare scene-variable names, on purpose: the exporter compiles them to
+   * `runtimeScene.getScene().getVariables().getFromIndex(n)` - the same container
+   * the pan block writes. `GlobalVariable(x)` would compile to the GAME variables,
+   * where these do not exist, and `getAsNumber()` of undefined throws every frame
+   * (that is exactly the bug Build 29 shipped with, before Build 30 fixed it). */
+  for (const parameter of frozen.parameters) {
+    assert.equal(/GlobalVariable\(/.test(parameter), false, `a scene variable is not a game variable: ${parameter}`);
+  }
   assert.equal(frozen.parameters[4], '1500', 'the same distance up');
   assert.equal(frozen.parameters[6], '86', 'and the same angle down');
   const frozenFlags = follow.events[2].conditions.map((condition) => condition.parameters?.[0]);
@@ -483,12 +490,15 @@ test('the pan hint is in twelve languages, and Japanese is the only one with kan
 });
 
 /* ------------------------------------------------------------------ the build */
-test('Build 29 is the build on every side, and npm test runs this file', () => {
+test('the build is 1.1.0 (30) on every side, and npm test runs this file', () => {
+  /* The two features of this build first shipped as 29; the camera read a game
+   * variable instead of the scene variable, so 29 was superseded by 30 (same
+   * content, one reference fixed) - Apple refuses a build number twice. */
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['29', '29'], 'both configurations carry Build 29');
+  assert.deepEqual(builds, ['30', '30'], 'both configurations carry Build 30');
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "29"'), 'the verifier builds 29');
+  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "30"'), 'the verifier builds 30');
   assert.ok(verify.includes('DEFAULT_MARKETING_VERSION = "1.1.0"'), 'on 1.1.0');
   const staging = readGame();
   assert.equal(staging.properties.version, '1.1.0', 'the GDevelop project stays 1.1.0');

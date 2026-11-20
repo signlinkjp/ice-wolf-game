@@ -183,8 +183,8 @@ test('the camera hands over to the picked actor and stands the old group down', 
    * whole floor, which is what a frozen player asked for. */
   assert.equal(actions[2].type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
     'the frozen view is a position, so the stick can move the look point');
-  assert.equal(actions[2].parameters[1], 'GlobalVariable(SpectatorPanX)', 'over the point the stick has panned to');
-  assert.equal(actions[2].parameters[2], 'GlobalVariable(SpectatorPanY)', 'on both axes');
+  assert.equal(actions[2].parameters[1], 'SpectatorPanX', 'over the point the stick has panned to');
+  assert.equal(actions[2].parameters[2], 'SpectatorPanY', 'on both axes');
   assert.equal(actions[2].parameters[4], '1500', 'from far enough up to see the floor');
   assert.equal(actions[2].parameters[6], '86', 'and steep enough to read as a plan');
   for (const event of follow.events.slice(0, 2)) {
