@@ -490,19 +490,20 @@ test('the pan hint is in twelve languages, and Japanese is the only one with kan
 });
 
 /* ------------------------------------------------------------------ the build */
-test('the build is 1.1.0 (31) on every side, and npm test runs this file', () => {
+test('the build is one version on every side, and npm test runs this file', () => {
   /* The two features of this build first shipped as 29; the camera read a game
    * variable instead of the scene variable, so 29 was superseded (30 was
    * cancelled mid-upload, 31 carries the fix and the share/rejoin work of
    * tests/pro/v116-build31.test.mjs) - Apple refuses a build number twice. */
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
-  const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(builds, ['31', '31'], 'both configurations carry Build 31');
-  const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_BUILD_NUMBER = "31"'), 'the verifier builds 31');
-  assert.ok(verify.includes('DEFAULT_MARKETING_VERSION = "1.1.0"'), 'on 1.1.0');
-  const staging = readGame();
-  assert.equal(staging.properties.version, '1.1.0', 'the GDevelop project stays 1.1.0');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
+  assert.equal(new Set(builds).size, 1, 'both configurations carry the same build');
+  assert.ok(Number(builds[0]) >= 31, `the build never goes back past 31: ${builds[0]}`);
+  const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
+  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier builds the same number');
+  assert.ok(verify.includes(`DEFAULT_MARKETING_VERSION = "${pkg.version}"`), 'on the one version');
+  const staging = readGame();
+  assert.equal(staging.properties.version, pkg.version, 'the GDevelop project carries that version');
   assert.ok(pkg.scripts.test.includes('v115-build29.test.mjs'), 'npm test runs this file');
 });

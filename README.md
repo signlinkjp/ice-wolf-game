@@ -8,6 +8,14 @@ Spanish, French, German, Portuguese, Italian, Hindi, Indonesian), chosen on firs
 launch from the device language or by hand, and switchable at any time from
 SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
 
+**v1.2.0** (Build 32) is the visual refresh, on top of 1.1.0: the generated
+characters become the game's bodies (the boy, the girl and the red-horned wolf,
+four-frame run cycles, one sprite sheet per stage outfit), the wolf the round
+opens with stays a wolf for the whole match while a wolf made during the round
+still disguises itself, SETTINGS gains text size (標準 / 大 / 特大), vibration
+and the stick / direct-touch choice, a 1.9 second opening plays at launch, and
+the app icon is the ice-chase picture. See `docs/v120-release-notes.md`.
+
 **v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) is the Pro release, in two parts:
 
 - the Pro in-app purchase foundation: a StoreKit 2 plugin for the non-consumable
@@ -52,7 +60,8 @@ https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
 - 7 to 10 players on two floors: 1 human player + up to 9 CPUs, 1 or 2 wolves
 - Six stages: Classic Ice Arena, Deep-Sea Aquarium (free), Misty Amusement Park,
   Snowy Mountain Lodge, Abandoned School, Spaceship (Pro), each with its own
-  interior walls, palette, atmosphere, outfits and stage rule
+  interior walls, palette, atmosphere, outfit (a sprite sheet per stage) and
+  stage rule
 - Wolf / Human roles, 5-second Wolf Mode, freeze and hold-to-rescue
 - Spectator camera: when you are frozen, follow any living player with ‹ ›
 - One secret "wolf role" designation per match (the rescue that is a trap)
@@ -60,7 +69,8 @@ https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
   warp pads, stairs between 1F and 2F
 - 3 / 5 / 7 / 10 switches (three correct free, five with Pro) and three gates; the gate
   escape wins for the humans
-- Compact virtual joystick, normal and overhead camera, effects-only sound
+- Compact virtual joystick or direct touch (SETTINGS), normal and overhead
+  camera, effects-only sound, vibration and three text sizes
 - Online rooms (up to 10 phones) with eight translated quick stamps; the host
   phone runs the round and the guests see the same arena, roles and HUD
 
@@ -70,9 +80,10 @@ The canonical project file is `game.json` on `main`.
 
 Changes should be developed on branches and reviewed before merging into `main`. The current source is intentionally public so the GDevelop Web Editor can load the raw `game.json` directly on iPhone.
 
-Current release: `main` at v1.0.0 (Build 12, in App Store review). `v1.1.0`
-(Pro purchase foundation) is developed on `feat/ice-wolf-v1.1.0-pro` and is not
-merged into `main` until 1.0.0 is approved.
+Current release: `main` at **v1.2.0 (Build 32)** — 1.0.0, 1.1.0 and the 1.2.0
+visual refresh together. The twelve languages, the six stages, online rooms, the
+Pro foundation and the numbers a player feels are unchanged; `docs/v120-release-notes.md`
+lists what 1.2.0 adds.
 
 ## iOS app (TestFlight)
 
@@ -99,7 +110,12 @@ Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
 Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
 `ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
 down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
-In progress: **v1.1.0 (Build 22)** — the Pro purchase foundation (¥500), Phase 1
+Released: **v1.2.0 (Build 32)** — the visual refresh: the generated characters
+as four-frame sprite bodies with a sheet per stage outfit, the opening wolf that
+never disguises itself, text size / vibration / stick-or-touch in SETTINGS, the
+1.9 second opening and the ice-chase app icon (`docs/v120-release-notes.md`).
+
+**v1.1.0 (Build 31)** — the Pro purchase foundation (¥500), Phase 1
 (6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera), Phase 2
 (online rooms, host authority, eight translated quick stamps), Phase 2b (the 3D
 snapshot sync), Phase 2c (guest designation relay, host-loss recovery, one win

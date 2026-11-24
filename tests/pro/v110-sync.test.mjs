@@ -910,10 +910,14 @@ test('the sync group is the last block, carries its markers, and its state has i
   /* Build 25 put two read-only blocks after the sync: the wolf's own board and
    * the block that closes a wolf mode that outlived its timer. The sync is still
    * the last block that writes the frame's positions and states. */
-  const tail = scene.events.slice(scene.events.length - 3).map((group) => group.name);
+  const tail = scene.events.slice(scene.events.length - 5).map((group) => group.name);
   assert.equal(tail[0], SYNC_GROUP, 'the sync block runs last of the writers');
-  assert.deepEqual(tail.slice(1), ['v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット'],
+  assert.deepEqual(tail.slice(1, 3), ['v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット'],
     'and the two readers after it only read');
+  /* v1.2.0 put the opening and the display/control settings after those two;
+   * neither writes a role, a position or a snapshot. */
+  assert.deepEqual(tail.slice(3), ['v1.2.0 オープニング', 'v1.2.0 表示・操作設定'],
+    'the v1.2.0 blocks sit at the end');
   const code = groupCode(SYNC_GROUP);
   assert.ok(code.includes('/* ==== v1.1.0 online sync'), 'the testable block is marked');
   assert.ok(code.includes('/* ==== end v1.1.0 online sync ==== */'));

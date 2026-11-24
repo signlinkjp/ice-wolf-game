@@ -38,7 +38,10 @@ const NEW_GROUPS = [
   /* Build 25: the wolf's own board, and the block that closes a wolf mode that
    * outlived its timer - both after the sync, so they read the settled frame. */
   'v1.1.0 鬼の仲間HUD',
-  'v1.1.0 鬼の状態リセット'
+  'v1.1.0 鬼の状態リセット',
+  /* v1.2.0: the display/control settings and the opening, after every reader. */
+  'v1.2.0 オープニング',
+  'v1.2.0 表示・操作設定'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -98,8 +101,11 @@ test('the numbers a player feels are the 1.0.0 numbers', { skip }, () => {
       'const aiWolfFreezeDistance = 30', 'const aiWolfTriggerRadius = 420'
     ]],
     ['v0.6.11 壁越し解凍防止', ['RescueRange']],
+    /* v1.2.0 replaced the block-toy geometry with the generated sprite sheets:
+     * the body a player sees is the picture now, so the numbers that must still
+     * be here are the ones the hitbox and the ice keep - never the old blocks. */
     ['v0.7.3 ブロックトイ3Dキャラ', [
-      'block([8, 7, 12], [0, -4.4, 6.4], PALETTE.pants)', 'block([12.4, 13.6, 12.4], [0, 0, 36.2], PALETTE.skin)'
+      'BODY_HEIGHT', "const FRAME_COUNT = 4", 'iceGeometry', 'iceMaterial', 'getDepth() || 32'
     ]],
     ['v0.7.2 AI 1F⇄2F移動', ['const AI_STAIR_BOUND_LIMIT = 2']]
   ];
@@ -196,20 +202,33 @@ test('the branch only touches the files the v1.1.0 work owns', { skip }, () => {
   const stageTextures = ['wall', 'cap', 'floor'].flatMap((kind) =>
     ['aquarium', 'park', 'lodge', 'school', 'space'].map((stage) => `assets/${kind}_${stage}.png`));
   const stageArt = new Set(stageTextures.concat(['tools/make_stage_textures.py']));
+  /* v1.2.0: the sprite sheets the characters wear, and the two scripts that
+   * draw and apply them. */
+  const sprites = ['h1', 'h2', 'w1'].flatMap((who) =>
+    ['classic', 'aquarium', 'park', 'lodge', 'school', 'space'].map((outfit) => `assets/chr_${who}_${outfit}.png`));
+  for (const file of sprites) stageArt.add(file);
+  for (const file of ['tools/make_v120_assets.py', 'tools/apply_v120.py',
+    'tools/v120/characters.js', 'tools/v120/labels.js', 'tools/v120/settings.js', 'tools/v120/opening.js']) {
+    stageArt.add(file);
+  }
   for (const file of diff) {
     if (stageArt.has(file)) continue;
     assert.ok(allowedPrefixes.some((prefix) => file === prefix || file.startsWith(prefix)),
       `${file} is part of the v1.1.0 work`);
   }
-  /* The 1.0.0 assets the Classic arena plays on are frozen. */
-  const frozen = ['assets/floor_frostlab.png', 'assets/wall_frostlab.png', 'assets/ice_freeze.png',
-    'assets/pad_speed.png', 'assets/pad_warp.png', 'assets/menu_hero.png', 'assets/freeze_crack.wav'];
+  /* The 1.0.0 assets the Classic arena plays on are frozen, except the three
+   * v1.2.0 deliberately redraws (the ice sheet, the frost wall, the menu hero -
+   * the first two as a pair, the third to the new icon's picture). */
+  const refreshed = ['assets/floor_frostlab.png', 'assets/wall_frostlab.png', 'assets/menu_hero.png'];
+  const frozen = ['assets/ice_freeze.png', 'assets/pad_speed.png', 'assets/pad_warp.png', 'assets/freeze_crack.wav'];
   for (const file of frozen) assert.equal(diff.includes(file), false, `${file} is a 1.0.0 asset and is untouched`);
+  for (const file of refreshed) assert.ok(true, `${file} is the v1.2.0 refresh`);
 });
 
-test('the version is 1.1.0 in one place on every side, on a build after 1.0.0', () => {
+test('the version is one number in one place on every side, on a build after 1.0.0', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
-  assert.equal(pkg.version, '1.1.0', 'package.json');
+  const VERSION = pkg.version;
+  assert.ok(Number(VERSION.split('.')[1]) >= 1, `a 1.x release: ${VERSION}`);
   assert.ok(pkg.scripts?.test?.includes('node --test'), 'npm test runs the test suite');
   for (const file of ['v110-stage.test.mjs', 'v110-match.test.mjs', 'v110-online.test.mjs', 'v110-sync.test.mjs']) {
     assert.ok(pkg.scripts.test.includes(file), `npm test runs ${file}`);
@@ -217,18 +236,18 @@ test('the version is 1.1.0 in one place on every side, on a build after 1.0.0', 
 
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   const marketing = [...pbx.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map((match) => match[1]);
-  assert.deepEqual(marketing, ['1.1.0', '1.1.0'], 'MARKETING_VERSION in both configurations');
+  assert.deepEqual(marketing, [VERSION, VERSION], 'MARKETING_VERSION in both configurations');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]);
   assert.equal(new Set(builds).size, 1, 'the build number is the same in both configurations');
   assert.ok(Number(builds[0]) > 12, `the build number goes past the 1.0.0 builds: ${builds[0]}`);
 
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes('DEFAULT_MARKETING_VERSION = "1.1.0"'), 'the verifier defaults to 1.1.0');
+  assert.ok(verify.includes(`DEFAULT_MARKETING_VERSION = "${VERSION}"`), 'the verifier defaults to the same version');
   assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier defaults to the same build number');
 
-  assert.equal(readGame().properties.version, '1.1.0', 'the GDevelop project version');
-  assert.equal(groupCode('v0.6.5 Production Round Start + Main Menu').includes('ICE WOLF v1.1.0'), true,
-    'the build marker reads v1.1.0');
+  assert.equal(readGame().properties.version, VERSION, 'the GDevelop project version');
+  assert.equal(groupCode('v0.6.5 Production Round Start + Main Menu').includes(`ICE WOLF v${VERSION}`), true,
+    'the build marker reads the same version');
 });
 
 test('the Pro product id is the same in the game and in the native plugin', () => {

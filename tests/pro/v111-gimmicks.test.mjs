@@ -200,8 +200,11 @@ test('the beats are the same on both phones because they read the same clock', (
   const sync = groupCode('v1.1.0 オンライン対戦同期');
   assert.ok(sync.includes("vars.get('MatchTimeLeft').setNumber"), 'the guest is given the host time');
   const names = sceneOf(readGame()).events.map((group) => group.name);
-  assert.equal(names[names.length - 3], 'v1.1.0 オンライン対戦同期', 'the sync block still runs last of the writers');
-  assert.deepEqual(names.slice(-2), ['v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット'], 'Build 25 reads after it');
+  /* v1.2.0 put the opening and the display settings after the two readers, so
+   * the sync is the third block from the end of the writers, not the last line. */
+  const tail = names.slice(-5);
+  assert.deepEqual(tail, ['v1.1.0 オンライン対戦同期', 'v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット',
+    'v1.2.0 オープニング', 'v1.2.0 表示・操作設定'], 'the sync still runs last of the writers');
   assert.ok(names.indexOf(GIMMICK_GROUP) < names.indexOf('v1.1.0 オンライン対戦同期'),
     'so the snapshot publishes the position a zone has just produced');
 });

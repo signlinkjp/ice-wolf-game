@@ -316,7 +316,8 @@ test('Build 27 is the build on every side', () => {
   assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${builds[0]}"`), 'the verifier defaults to the same build');
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test.includes('v114-build27.test.mjs'), 'npm test runs this file');
-  assert.equal(readGame().properties.version, '1.1.0', 'the GDevelop project stays 1.1.0');
+  assert.equal(readGame().properties.version, JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version,
+    'the GDevelop project carries the one version (v1.2.0 since Build 32)');
   const core = groupCode(ONLINE_GROUP);
   assert.ok(core.includes('Build 27'), 'the core block says which build these rules are');
 });
