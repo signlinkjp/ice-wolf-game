@@ -63,8 +63,16 @@ once written); the trap switch writes `trap`; an infection writes `infect` /
   cannot rescue (the rescue button reads the role, not the picture).
 
 The rule is a pure function in the character block
-(`iceWolfLooksLikeWolf`, `iceWolfIsOpeningWolf`) and `tests/pro/v120-build32.test.mjs`
-holds it to these four cases.
+(`iceWolfLooksLikeWolf`, `iceWolfIsOpeningWolf`, `iceWolfLooksLikeWolfFor`) and
+`tests/pro/v120-build32.test.mjs` holds it to these cases.
+
+**Online, one caveat.** The host's snapshot carries each seat's role and its
+wolf-mode flag, but not `WolfOrigin` — so on a guest's phone an empty origin
+means "not known", not "the opening wolf". The guest therefore keeps the
+previous look (a person until its mode) instead of painting every wolf it is
+told about as a permanent wolf. Carrying the origin on the wire is the next
+step for a guest to see exactly what the host sees; it is deliberately not in
+this build, because guessing would reveal a recruited wolf as a permanent one.
 
 ## SETTINGS
 

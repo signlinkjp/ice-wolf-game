@@ -42,7 +42,7 @@ const blockOf = (groupName, marker) => {
 const wolfLookBlock = () => {
   const code = blockOf(CHARACTER_GROUP, '/* ==== v1.2.0 wolf look');
   const context = vm.createContext({});
-  vm.runInContext(`${code}\nglobalThis.__w = { iceWolfLooksLikeWolf, iceWolfIsOpeningWolf, ICE_WOLF_INITIAL_ORIGINS };`,
+  vm.runInContext(`${code}\nglobalThis.__w = { iceWolfLooksLikeWolf, iceWolfIsOpeningWolf, iceWolfLooksLikeWolfFor, ICE_WOLF_INITIAL_ORIGINS };`,
     context, { filename: 'game.json#wolf look' });
   return context.__w;
 };
@@ -57,7 +57,7 @@ const displayBlock = () => {
 
 /* ------------------------------------------------------- the one rule change */
 test('the opening wolf never disguises itself; a wolf made during the round does', () => {
-  const { iceWolfLooksLikeWolf, iceWolfIsOpeningWolf } = wolfLookBlock();
+  const { iceWolfLooksLikeWolf, iceWolfIsOpeningWolf, iceWolfLooksLikeWolfFor } = wolfLookBlock();
   /* the deal's wolf: an empty origin, or "initial" once written */
   assert.equal(iceWolfLooksLikeWolf('Wolf', '', 0), true, 'the opening wolf is a wolf with no mode running');
   assert.equal(iceWolfLooksLikeWolf('Wolf', 'initial', 0), true, 'and stays one after the origin is named');
@@ -73,12 +73,18 @@ test('the opening wolf never disguises itself; a wolf made during the round does
   assert.equal(iceWolfLooksLikeWolf('Human', '', 5), false);
   assert.equal(iceWolfLooksLikeWolf('Human', 'initial', 5), false);
   assert.equal(iceWolfIsOpeningWolf('Human', ''), false);
+  /* a guest phone is sent the role but not where the wolf came from: it keeps
+   * the old look instead of painting every wolf as a permanent wolf */
+  assert.equal(iceWolfLooksLikeWolfFor('Wolf', '', 0, true), false, 'a guest never guesses an opening wolf');
+  assert.equal(iceWolfLooksLikeWolfFor('Wolf', 'infect', 2, true), true, 'but its mode is its mode');
+  assert.equal(iceWolfLooksLikeWolfFor('Wolf', '', 0, false), true, 'the host applies the rule');
   /* the look is the shipping decision, not a second copy of it */
   const code = groupCode(CHARACTER_GROUP);
-  assert.ok(code.includes('const transformed = iceWolfLooksLikeWolf(role, origin, modeLeft);'),
+  assert.ok(code.includes('const transformed = iceWolfLooksLikeWolfFor(role, origin, modeLeft, guest);'),
     'the character block asks the rule');
-  assert.ok(code.includes('const alwaysWolf = iceWolfIsOpeningWolf(role, origin);'),
+  assert.ok(code.includes('const alwaysWolf = !guest && iceWolfIsOpeningWolf(role, origin);'),
     'and knows which wolf the round opened with');
+  assert.ok(code.includes("vars.get('OnlineGuestMode').getAsBoolean()"), 'a guest is recognised');
 });
 
 test('the picture never touches the rule: the character block only reads role and state', () => {

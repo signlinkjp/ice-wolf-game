@@ -256,6 +256,13 @@ const iceWolfLooksLikeWolf = (role, origin, modeLeft) => {
 };
 const iceWolfIsOpeningWolf = (role, origin) => String(role) === 'Wolf'
   && ICE_WOLF_INITIAL_ORIGINS.indexOf(String(origin === undefined || origin === null ? '' : origin)) >= 0;
+/* On a guest phone the host sends the role and the mode, but not where a wolf
+ * came from: an empty origin there means "not known", not "the opening wolf".
+ * The guest therefore keeps the pre-1.2.0 look (a person until its mode), so a
+ * recruited wolf is never painted as a permanent wolf on somebody else's phone. */
+const iceWolfLooksLikeWolfFor = (role, origin, modeLeft, guest) => (guest === true
+  ? String(role) === 'Wolf' && Number(modeLeft) > 0
+  : iceWolfLooksLikeWolf(role, origin, modeLeft));
 /* ==== end v1.2.0 wolf look ==== */
 
 const applyLook = (obj, rig, isPlayer) => {
@@ -286,8 +293,9 @@ const applyLook = (obj, rig, isPlayer) => {
   const isWolf = role === 'Wolf';
   /* v1.2.0: an opening wolf never disguises itself; a wolf made during the
    * round is a person until its mode takes it. */
-  const alwaysWolf = iceWolfIsOpeningWolf(role, origin);
-  const transformed = iceWolfLooksLikeWolf(role, origin, modeLeft);
+  const guest = vars.get('OnlineGuestMode').getAsBoolean() === true;
+  const alwaysWolf = !guest && iceWolfIsOpeningWolf(role, origin);
+  const transformed = iceWolfLooksLikeWolfFor(role, origin, modeLeft, guest);
   const lurking = isWolf && !transformed && !frozen;
   const kind = transformed ? 'w1' : whoFor(obj, isPlayer);
   const outfit = outfitId();
