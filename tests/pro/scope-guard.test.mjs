@@ -194,7 +194,7 @@ test('the branch only touches the files the v1.1.0 work owns', { skip }, () => {
    * them is part of the 1.0.0 game. */
   const allowedPrefixes = ['game.json', 'ios/App/App/StoreKitPlugin.swift', 'ios/App/App/SceneDelegate.swift',
     'ios/App/App.xcodeproj/project.pbxproj', 'scripts/ios/verify-ios-project.py', 'package.json',
-    'package-lock.json', 'tests/pro/', 'docs/v110-', 'README.md',
+    'package-lock.json', 'tests/pro/', 'docs/v110-', 'docs/v120-', 'README.md',
     'scripts/ios/inject-online-config.py', 'scripts/ios/build-and-upload-testflight.sh',
     'tools/supabase-realtime-smoke.mjs', 'tools/supabase-realtime-game-smoke.mjs'];
   /* The stage art: the fifteen textures the five v1.1.0 stages own (named one by
@@ -209,6 +209,11 @@ test('the branch only touches the files the v1.1.0 work owns', { skip }, () => {
   for (const file of sprites) stageArt.add(file);
   for (const file of ['tools/make_v120_assets.py', 'tools/apply_v120.py',
     'tools/v120/characters.js', 'tools/v120/labels.js', 'tools/v120/settings.js', 'tools/v120/opening.js']) {
+    stageArt.add(file);
+  }
+  /* the three 1.0.0 pictures v1.2.0 redraws on purpose */
+  for (const file of ['assets/floor_frostlab.png', 'assets/wall_frostlab.png', 'assets/menu_hero.png',
+    'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png']) {
     stageArt.add(file);
   }
   for (const file of diff) {
