@@ -14,7 +14,12 @@ four-frame run cycles, one sprite sheet per stage outfit), the wolf the round
 opens with stays a wolf for the whole match while a wolf made during the round
 still disguises itself, SETTINGS gains text size (標準 / 大 / 特大), vibration
 and the stick / direct-touch choice, a 1.9 second opening plays at launch, and
-the app icon is the ice-chase picture. See `docs/v120-release-notes.md`.
+the app icon is the ice-chase picture. **Build 33** is step 2 of the device
+play-test: the menu sheet takes its own taps (SETTINGS and PRO open after a
+match), the runners are taller and actually run (lean, bounce, snow), the camera
+came in, the HUD stays inside the safe area, and every stage - the Classic arena
+included - has its own air, light and set dressing, with a new action layer for
+the switches, pads, ice, rescue and wolf aura. See `docs/v120-build33-changes.md`.
 
 **v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) is the Pro release, in two parts:
 

@@ -318,7 +318,8 @@ test('the block that holds the timer runs last and publishes what it closed', ()
   const groups = scene.events.map((group) => group.name);
   assert.equal(groups[groups.indexOf(RESET_GROUP) + 1], 'v1.2.0 オープニング',
     'only the v1.2.0 opening and settings follow the restorer');
-  assert.equal(groups[groups.length - 1], 'v1.2.0 表示・操作設定');
+  assert.equal(groups[groups.length - 1], 'v1.3.0 アクション演出',
+    'and Build 33\'s action layer is the very last block');
   const variables = new Map(scene.variables.map((variable) => [variable.name, variable.value]));
   for (const name of ['WolfResetWatched', 'WolfResetCount', 'WolfResetClosed', 'WolfResetArmed', 'WolfResetReason']) {
     assert.ok(variables.has(name), `${name} is a scene variable`);

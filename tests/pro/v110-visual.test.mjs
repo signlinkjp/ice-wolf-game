@@ -387,7 +387,10 @@ test('all six stages paint for real, and Classic comes back exactly as it was', 
     assert.equal(harness.walls[0].__tileScale, 0.3125, `${stage} sets the wall tile scale`);
     assert.deepEqual(harness.floors[0].__faces.top, `floor_${stage}.png`, `${stage} textures the floor`);
     assert.equal(harness.floors[0].__tileScale, 0.5, `${stage} sets the floor tile scale`);
-    assert.equal(harness.scene.children.length, 2 + harness.values.get('StageArtSwimmers'),
+    /* Two merged prop meshes, the two backdrop meshes of v1.3.0, and the
+     * swimmers of a stage that has a population. */
+    const backdrop = () => harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV130Backdrop').length;
+    assert.equal(harness.scene.children.length, 2 + backdrop() + harness.values.get('StageArtSwimmers'),
       `${stage} dresses the arena in two draw calls plus its swimmers`);
     assert.ok(harness.scene.fog, `${stage} sets the fog`);
     assert.notDeepEqual(harness.state.background, [11, 22, 38], `${stage} sets its own sky`);
@@ -399,19 +402,22 @@ test('all six stages paint for real, and Classic comes back exactly as it was', 
 
   harness.values.set('StageApplied', CLASSIC);
   harness.run('classic');
-  assert.equal(harness.values.get('StageArtMode'), 'classic', 'Classic is the 1.0.0 look');
-  assert.equal(harness.values.get('StageArtProps'), 0, 'Classic has no props');
+  /* Build 33: the Classic Ice Arena has a set of its own now - bright ice, a
+   * skate-marked rink, snow-capped bricks - because the play-test could not tell
+   * a runner from the old grey-blue floor. The floor plan is untouched; the
+   * frost-lab surfaces remain as the fallback for a stage whose PNGs never
+   * arrive. */
+  assert.equal(harness.values.get('StageArtMode'), 'textured', 'Classic has its own ice set');
+  assert.ok(harness.values.get('StageArtProps') > 0, 'Classic dresses its rink');
   assert.equal(harness.values.get('StageArtSwimmers'), 0, 'Classic has no population');
-  assert.equal(harness.values.get('StageArtFog'), false, 'Classic has no fog');
   assert.deepEqual(wallFaces(), {
-    front: 'wall_frostlab.png', back: 'wall_frostlab.png', left: 'wall_frostlab.png',
-    right: 'wall_frostlab.png', top: 'wall_frostlab.png', bottom: 'wall_frostlab.png'
-  }, 'Classic gets its frost wall back');
-  assert.deepEqual(harness.floors[0].__faces.top, 'floor_frostlab.png', 'Classic gets its frost floor back');
-  assert.equal(harness.walls[0].__tileScale, 0.2, 'Classic keeps the 1.0.0 tile scale');
-  assert.equal(harness.scene.fog, null, 'Classic clears the air');
-  assert.deepEqual(harness.state.background, [11, 22, 38], 'Classic keeps the 1.0.0 sky');
-  assert.equal(harness.scene.children.length, 0, 'Classic drops the props');
+    front: 'wall_classic.png', back: 'wall_classic.png', left: 'wall_classic.png',
+    right: 'wall_classic.png', top: 'cap_classic.png', bottom: 'cap_classic.png'
+  }, 'Classic gets its own wall and cap');
+  assert.deepEqual(harness.floors[0].__faces.top, 'floor_classic.png', 'Classic gets its own floor');
+  assert.equal(harness.walls[0].__tileScale, 0.3125, 'Classic sets the wall tile scale');
+  assert.ok(harness.scene.fog, 'Classic has its own air');
+  assert.notDeepEqual(harness.state.background, [11, 22, 38], 'Classic sets its own sky');
 });
 
 test('no prop ever stands on the floor: every one sits on a wall top', () => {
@@ -439,7 +445,8 @@ test('the block only runs again when the stage really changes', () => {
   harness.run('space again');
   assert.equal(harness.values.get('StageArtVertices'), first, 'the second frame reuses the built stage');
   assert.equal(harness.placements.length, 0, 'no geometry is rebuilt on an unchanged frame');
-  assert.equal(harness.scene.children.length, 2 + harness.values.get('StageArtSwimmers'),
+  const backdrop = harness.scene.children.filter((mesh) => mesh.name === 'iceWolfV130Backdrop').length;
+  assert.equal(harness.scene.children.length, 2 + backdrop + harness.values.get('StageArtSwimmers'),
     'the two draw calls stay in place, with the population');
 });
 
@@ -514,8 +521,8 @@ test('a stage is not painted until its three textures are in the image manager',
   assert.equal(harness.values.get('StageArtPending'), 'aquarium', 'the block reports the wait');
   assert.equal(harness.values.get('StageArtApplied'), 'classic',
     'the stage is not claimed as applied while its PNGs are missing');
-  assert.equal(harness.walls[0].__faces.front, 'wall_frostlab.png',
-    'the arena keeps the loaded frost lab while the PNGs arrive');
+  assert.equal(harness.walls[0].__faces.front, 'wall_classic.png',
+    'the arena keeps the Classic ice it already shows while the PNGs arrive');
   assert.deepEqual([...manager.requested].sort(),
     ['cap_aquarium.png', 'floor_aquarium.png', 'wall_aquarium.png'],
     'the block asks the game loader for the three PNGs');

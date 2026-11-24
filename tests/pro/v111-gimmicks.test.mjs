@@ -202,9 +202,10 @@ test('the beats are the same on both phones because they read the same clock', (
   const names = sceneOf(readGame()).events.map((group) => group.name);
   /* v1.2.0 put the opening and the display settings after the two readers, so
    * the sync is the third block from the end of the writers, not the last line. */
-  const tail = names.slice(-5);
+  const tail = names.slice(-6);
   assert.deepEqual(tail, ['v1.1.0 オンライン対戦同期', 'v1.1.0 鬼の仲間HUD', 'v1.1.0 鬼の状態リセット',
-    'v1.2.0 オープニング', 'v1.2.0 表示・操作設定'], 'the sync still runs last of the writers');
+    'v1.2.0 オープニング', 'v1.2.0 表示・操作設定', 'v1.3.0 アクション演出'],
+    'the sync still runs last of the writers');
   assert.ok(names.indexOf(GIMMICK_GROUP) < names.indexOf('v1.1.0 オンライン対戦同期'),
     'so the snapshot publishes the position a zone has just produced');
 });
@@ -1253,7 +1254,8 @@ test('Classic is left exactly as 1.0.0 shipped it', () => {
   const stageArt = sceneOf(readGame()).events.find((group) => group.name === 'v1.1.0 ステージ・衣装');
   const artCode = stageArt.events[stageArt.events.length - 1].inlineCode;
   const artText = Array.isArray(artCode) ? artCode.join('\n') : artCode;
-  assert.ok(artText.includes('classic: null'), 'the Classic art is still the 1.0.0 frost lab');
+  assert.ok(artText.includes("wall: 'wall_classic.png'"), 'Classic has its own ice set since Build 33');
+  assert.ok(!artText.includes('classic: null'), 'and is no longer the bare frost lab');
 });
 
 test('the stage cards name the gimmick each stage now has, in twelve languages', () => {

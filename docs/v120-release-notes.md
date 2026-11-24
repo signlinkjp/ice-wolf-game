@@ -123,3 +123,19 @@ sheet.
 
 `python3 scripts/ios/verify-ios-project.py` — **ALL CHECKS PASSED** (the icon is
 1024×1024 with no alpha, the marketing version is 1.2.0, the build is 32).
+
+## Build 33 — step 2 of the play-test
+
+The four findings of the Build 32 device recording, and the stage work behind
+them, are written up in `docs/v120-build33-changes.md`. In one line each: the
+menu sheet takes its own taps at the root (SETTINGS and PRO open after a
+match), a body is 112 against the 160 wall and runs with a lean, a bounce and
+snow, the camera came in and the HUD stays inside the safe area, and every stage
+- the Classic arena included, with a set of its own - now has a light rig, a
+backdrop and one more prop kit, with a new action layer (`v1.3.0 アクション演出`)
+for the switches, pads, ice, rescue and the wolf's aura.
+
+`npm test` — **293 tests, 293 pass** (`tests/pro/v120-build33.test.mjs` adds
+eight). `python3 scripts/ios/verify-ios-project.py` — **ALL CHECKS PASSED**,
+build 33. The GDevelop export and the Playwright pass were not re-run for this
+commit (they are not part of the tests); the next build does them.

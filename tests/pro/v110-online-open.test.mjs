@@ -47,6 +47,13 @@ const attributesIn = (html) => {
 /* One stand-in element. The selectors the two shipping blocks use are answered
  * from the template the element was given, and the same selector returns the
  * same child every time (a button is one button, however often it is found). */
+/* A clock the harness can step: Build 33 ignores a second tap of the same action
+ * inside 500ms, and two taps in a test are two gestures, not one. */
+let clock = 1_800_000_000_000;
+class TestDate extends Date {
+  static now() { return clock; }
+}
+
 const makeElement = (tagName = 'div') => {
   const element = {
     tagName: String(tagName).toUpperCase(),
@@ -69,7 +76,7 @@ const makeElement = (tagName = 'div') => {
       toggle(name, on) { if (on === undefined) { this._set.has(name) ? this._set.delete(name) : this._set.add(name); } else if (on) this._set.add(name); else this._set.delete(name); },
       contains(name) { return this._set.has(name); }
     },
-    appendChild(child) { element.children.push(child); element._children.push(child); return child; },
+    appendChild(child) { element.children.push(child); element._children.push(child); child._up = element; return child; },
     removeChild(child) { return child; },
     setAttribute(name, value) { element.attributes[name] = String(value); },
     getAttribute(name) { return element.attributes[name] === undefined ? null : element.attributes[name]; },
@@ -78,12 +85,23 @@ const makeElement = (tagName = 'div') => {
       element._handlers.get(type).push(handler);
     },
     removeEventListener() {},
-    /* Fire the registered handler the way a finger does. */
+    /* Fire the gesture the way a finger does. Build 33 takes the menu's taps at
+     * the sheet's root, in the capture phase, so a tap on a button reaches the
+     * handler registered on its ancestor - exactly the path a WebView follows. */
     tap() {
-      const handlers = element._handlers.get('pointerdown') || [];
-      assert.ok(handlers.length > 0, 'the element has a pointerdown handler');
-      const event = { preventDefault() {}, stopPropagation() {}, type: 'pointerdown' };
-      for (const handler of handlers) handler(event);
+      const event = { target: element, type: 'pointerdown', cancelable: true,
+        preventDefault() {}, stopPropagation() {} };
+      clock += 600;
+      let node = element;
+      while (node) {
+        const handlers = node._handlers.get('pointerdown') || [];
+        if (handlers.length > 0) {
+          for (const handler of handlers) handler(event);
+          return;
+        }
+        node = node._up;
+      }
+      assert.ok(false, 'the element, or a root above it, has a pointerdown handler');
     },
     querySelector(selector) {
       const key = String(selector);
@@ -116,6 +134,8 @@ const makeElement = (tagName = 'div') => {
           const buttons = values.map((value) => {
             const button = makeElement('button');
             button.dataset.action = value;
+            button.attributes['data-action'] = value;
+            button._up = element;
             return button;
           });
           element._bySelector.set(key, buttons);
@@ -125,7 +145,22 @@ const makeElement = (tagName = 'div') => {
       }
       return [];
     },
-    closest() { return null; },
+    closest(selector) {
+      let node = element;
+      while (node) {
+        if (selector === '[data-action]' && node.dataset && node.dataset.action !== undefined) return node;
+        node = node._up;
+      }
+      return null;
+    },
+    contains(node) {
+      let walker = node;
+      while (walker) {
+        if (walker === element) return true;
+        walker = walker._up;
+      }
+      return false;
+    },
     get innerHTML() { return element._html; },
     set innerHTML(value) { element._html = String(value); element._bySelector.clear(); },
     get parentNode() {
@@ -137,8 +172,7 @@ const makeElement = (tagName = 'div') => {
   return element;
 };
 
-const buildHarness = ({ pro = true, language = 'ja' } = {}) => {
-  const game = readGame();
+const buildHarness = ({ pro = true, language = 'ja' } = {}) => {  const game = readGame();
   const sceneVars = game.layouts.find((layout) => layout.name === 'FROST LAB').variables;
   const values = new Map(sceneVars.map((variable) => [variable.name, variable.value]));
   const bag = (name) => ({
@@ -182,7 +216,7 @@ const buildHarness = ({ pro = true, language = 'ja' } = {}) => {
     navigator: { languages: [language], language },
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     console,
-    Date,
+    Date: TestDate,
     Math,
     JSON,
     Promise,
