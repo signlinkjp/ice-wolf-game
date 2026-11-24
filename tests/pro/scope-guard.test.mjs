@@ -57,6 +57,11 @@ const baseGame = () => {
 
 const base = baseGame();
 const skip = base ? false : 'no main ref to compare with';
+/* Where the base is still 1.0.0 (the branch this guard grew up on), the deltas
+ * below are checked. Once main itself carries 1.1.0/1.2.0, the "plus twelve
+ * walls" and "new variables" deltas no longer exist - the invariants that must
+ * still hold are checked either way. */
+const baseIsAncient = base ? String(base.properties && base.properties.version) === '1.0.0' : false;
 
 const codeOf = (group) => {
   const block = group.events?.[0]?.inlineCode;
@@ -146,7 +151,8 @@ test('the FROST LAB walls of 1.0.0 are still drawn where 1.0.0 drew them', { ski
       `the 1.0.0 ${entry[0]} at ${entry[1]},${entry[2]} (${entry[3]}x${entry[4]}) is still there`);
   }
   const addedWalls = after.filter((entry) => entry[0] === 'Wall').length - before.filter((entry) => entry[0] === 'Wall').length;
-  assert.equal(addedWalls, 12, `twelve interior walls were added for the stages: ${addedWalls}`);
+  if (baseIsAncient) assert.equal(addedWalls, 12, `twelve interior walls were added for the stages: ${addedWalls}`);
+  else assert.equal(addedWalls, 0, 'the walls the stage work added are the ones main already has');
   assert.equal(after.filter((entry) => entry[0] === 'Barrier').length,
     before.filter((entry) => entry[0] === 'Barrier').length, 'the barriers are untouched');
   assert.equal(after.filter((entry) => entry[0] === 'Floor').length,
@@ -177,7 +183,7 @@ test('no game object was added, removed or renamed, and the 1.0.0 scene variable
       `the 1.0.0 scene variable ${variable.name} keeps its value`);
   }
   const added = after.variables.map((variable) => variable.name).filter((name) => !beforeVars.has(name));
-  assert.ok(added.length > 0, 'the new state lives in scene variables');
+  if (baseIsAncient) assert.ok(added.length > 0, 'the new state lives in scene variables');
   for (const name of added) {
     assert.match(name, /^(Pro|Stage|Player|Wolf|Switch|Match|Roster|Actor|Spectator|Ten|Two|BlockToy|Online|Stamp)/,
       `${name} is part of the Phase 1 or Phase 2 state`);
