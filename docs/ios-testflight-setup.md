@@ -1,3 +1,10 @@
+# （GDevelop 版の資料）
+
+> **v1.2.0 Build 35 以降は Three.js 版です。** ビルド手順は
+> `docs/ios-testflight-threejs.yml`（貼り替え用ワークフロー）と
+> `docs/v120-build35-threejs.md` を参照してください。
+> このファイルは GDevelop 版の記録として残しています。
+
 # ICE WOLF iOS / TestFlight セットアップ手順
 
 ICE WOLF を iPhone のアプリとして配信するための土台です。GDevelop の HTML5 書き出し（`build/`）を Capacitor 8.6.2 の iOS シェルに取り込み、Apple の署名を付けて TestFlight にアップロードするところまでを、GitHub Actions の 1 回の実行で行います。

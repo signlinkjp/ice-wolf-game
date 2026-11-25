@@ -1,149 +1,86 @@
-# ICE WOLF
+# ICE WOLF — Three.js edition (v1.2.0 / Build 35)
 
-ICE WOLF is a 3D social-deduction freeze-tag game built with GDevelop.
+氷の上で遊ぶ人狼ゲーム。見た目は全員同じ。
+人狼は5秒の「人狼モード」で触れた人間を凍らせ、人間は凍った仲間を救助し、
+スイッチでゲートを開けて脱出するか、時間まで生き残れば勝ちです。
 
-**v1.0.0** is the first world release: the whole interface is localised into
-twelve languages (Japanese, English, Simplified and Traditional Chinese, Korean,
-Spanish, French, German, Portuguese, Italian, Hindi, Indonesian), chosen on first
-launch from the device language or by hand, and switchable at any time from
-SETTINGS. See `docs/v100-world-release.md` for how the text layer works.
+このリポジトリは **v1.2.0 (Build 35) で GDevelop から Three.js に作り直したもの** です。
+ゲーム本体は `src/` の素の ES モジュール + `vendor/three.module.js`（r160）。
+ビルドはファイルを `www/` に集めるだけで、バンドラも外部 CDN も使いません。
+iOS シェル（`ios/`）・Bundle ID `jp.signlink.IceWolf`・課金 `jp.signlink.IceWolf.pro`・
+アプリアイコン・Supabase の `games-realtime` は v1.1.0 からそのまま引き継いでいます。
 
-**v1.2.0** (Build 32) is the visual refresh, on top of 1.1.0: the generated
-characters become the game's bodies (the boy, the girl and the red-horned wolf,
-four-frame run cycles, one sprite sheet per stage outfit), the wolf the round
-opens with stays a wolf for the whole match while a wolf made during the round
-still disguises itself, SETTINGS gains text size (標準 / 大 / 特大), vibration
-and the stick / direct-touch choice, a 1.9 second opening plays at launch, and
-the app icon is the ice-chase picture. **Build 33** is step 2 of the device
-play-test: the menu sheet takes its own taps (SETTINGS and PRO open after a
-match), the runners are taller and actually run (lean, bounce, snow), the camera
-came in, the HUD stays inside the safe area, and every stage - the Classic arena
-included - has its own air, light and set dressing, with a new action layer for
-the switches, pads, ice, rescue and wolf aura. See `docs/v120-build33-changes.md`.
-**Build 34** answers the first device recording of 33: the direct-touch pad is
-decoration only and hands a touch on a HUD button to the game (the `[ rescue ]`
-button works again), a body is 122 tall with a stride you can see, the light rig
-is turned down so the walls and snow keep their colour, every wall wears a merged
-snow cap and every stage has weather, and the play screen's lines are redrawn as
-a pop HUD (chips, a big timer, a hint bar, a toast and a winner banner) from the
-same translated strings. See `docs/v120-build34-changes.md`.
-
-**v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) is the Pro release, in two parts:
-
-- the Pro in-app purchase foundation: a StoreKit 2 plugin for the non-consumable
-  `jp.signlink.IceWolf.pro` at **¥500** (non-consumable, one-time), a purchase /
-  restore screen reachable from the menu and SETTINGS, and the twelve-language
-  lines for it (`docs/v110-pro-iap.md`, `docs/v110-release-notes.md`);
-- **Phase 1 gameplay**: five new stages (Deep-Sea Aquarium free, Misty Amusement
-  Park / Snowy Mountain Lodge / Abandoned School / Spaceship with Pro) with their
-  own floor plans and atmosphere, stage-linked block-toy outfits, matches of up to
-  10 players with two wolves, Pro custom rules (3 / 5 / 7 / 10 switches, 1 to 5
-  minutes) and
-  a spectator camera that follows a living player while you are frozen
-  (`docs/v110-phase1-stages.md`);
-- **Phase 2 online**: a room with a six-character code, seats and READY, a host
-  who owns the round, and eight one-tap stamps that every phone reads in its own
-  of the twelve languages. Rooms run over Supabase Realtime (Broadcast + Presence,
-  no tables, no RLS, no library fetched at run time) behind a `RealtimeTransport`
-  interface with an in-memory hub for the tests. Creating a room and the ten
-  player / two wolf / custom rules are Pro; joining Classic and Deep-Sea Aquarium
-  is free, joining a Pro stage is not (`docs/v110-online-setup.md`).
-- **Phase 2c**: the guest wolf's one-per-match designation travels to the host
-  as `infect` + a seat name and is applied there (never a closer captive); the
-  snapshot now carries `winBy` (gate / time / frozen) and `infectUsed` so a guest's
-  result screen and wolf button match the host's; and a host that leaves or goes
-  silent hands the room to the next seat or ends the round cleanly on the ONLINE
-  screen instead of leaving the guests on a frozen arena.
-
-The movement, hitbox, camera distances, freeze/rescue, switch hold, stairs, warp
-and AI keep their 1.0.0 numbers; `tests/pro/scope-guard.test.mjs` compares them
-with `main` on every run.
-
-## Open the project in the GDevelop Web Editor
-
-https://editor.gdevelop.io/?project=https%3A%2F%2Fraw.githubusercontent.com%2Fsignlinkjp%2F-ice-wolf-game%2Fmain%2Fgame.json
-
-Raw project source:
-
-https://raw.githubusercontent.com/signlinkjp/-ice-wolf-game/main/game.json
-
-## What the game is
-
-- 7 to 10 players on two floors: 1 human player + up to 9 CPUs, 1 or 2 wolves
-- Six stages: Classic Ice Arena, Deep-Sea Aquarium (free), Misty Amusement Park,
-  Snowy Mountain Lodge, Abandoned School, Spaceship (Pro), each with its own
-  interior walls, palette, atmosphere, outfit (a sprite sheet per stage) and
-  stage rule
-- Wolf / Human roles, 5-second Wolf Mode, freeze and hold-to-rescue
-- Spectator camera: when you are frozen, follow any living player with ‹ ›
-- One secret "wolf role" designation per match (the rescue that is a trap)
-- 1 / 2 / 3 / 5 minute matches (1 minute with Pro; five is the longest), speed floors,
-  warp pads, stairs between 1F and 2F
-- 3 / 5 / 7 / 10 switches (three correct free, five with Pro) and three gates; the gate
-  escape wins for the humans
-- Compact virtual joystick or direct touch (SETTINGS), normal and overhead
-  camera, effects-only sound, vibration and three text sizes
-- Online rooms (up to 10 phones) with eight translated quick stamps; the host
-  phone runs the round and the guests see the same arena, roles and HUD
-
-## Development workflow
-
-The canonical project file is `game.json` on `main`.
-
-Changes should be developed on branches and reviewed before merging into `main`. The current source is intentionally public so the GDevelop Web Editor can load the raw `game.json` directly on iPhone.
-
-Current release: `main` at **v1.2.0 (Build 32)** — 1.0.0, 1.1.0 and the 1.2.0
-visual refresh together. The twelve languages, the six stages, online rooms, the
-Pro foundation and the numbers a player feels are unchanged; `docs/v120-release-notes.md`
-lists what 1.2.0 adds.
-
-## iOS app (TestFlight)
-
-The iPhone app is the GDevelop HTML5 export wrapped in a Capacitor 8.6.2 shell:
-
-```bash
-npm ci                                  # Capacitor 8.6.2, locked
-npx cap sync ios                        # build/ -> ios/App/App/public
-python3 scripts/ios/verify-ios-project.py   # landscape lock, icon, versions, StoreKit (no Mac needed)
-npm test                                # Pro store + 12 languages + stages + roster + online + no-gameplay-change guards
+```
+src/
+  main.js            画面遷移・入力・ゲームループ・通信の接続
+  config.js          すべての数値（速度・救助1.2秒・人狼5秒・最大3人狼…）
+  i18n.js            12言語の文言（ja/en/zh-Hans/zh-Hant/ko/es/fr/de/pt/it/hi/id）
+  ui.js              ポップHUD・設定・遊び方・PRO・オンライン・結果
+  audio.js           WebAudio の効果音とBGM（バックグラウンド復帰対応）
+  iap.js             StoreKit 2 プラグイン（IceWolfStoreKit）の呼び出し
+  online.js          Supabase Realtime（Broadcast/Presence）のルームと同期
+  data/stages.js     6ステージの壁・パッド・スイッチ候補・ギミック・配色
+  core/rules.js      ルール（役・凍結・救助・スイッチ・ゲート・勝敗・ギミック）
+  core/geometry.js   2階層アリーナの当たり判定・階段・ナビゲーショングリッド
+  core/ai.js         CPU（人間は救助とスイッチ、人狼は追跡と変身）
+  render/            Three.js（ステージ・キャラ・エフェクト・カメラ）
 ```
 
-`.github/workflows/ios-testflight.yml` exports the game on Ubuntu, then archives,
-signs and (optionally) uploads it to TestFlight on a macOS runner using the same
-App Store Connect API key secrets as the other signlinkjp apps.
+## コマンド
 
-- Bundle ID: `jp.signlink.IceWolf` / team `TGBNH8WJV6`
-- Landscape only, full screen, status bar hidden
-- Full setup, App Store Connect and GitHub Secrets steps: `docs/ios-testflight-setup.md`
+```bash
+npm ci
+npm run build        # src/ + assets/ + vendor/ + index.html + styles.css -> www/
+npm test             # ユニットテスト（ルール・ステージ・12言語・通信・ガード）
+npm run verify       # npm test && build && iOSシェル検証
+npm run test:e2e     # 実ブラウザ検証（Chromium）＋ downloads/icewolf-threejs-*.png
+npm run ios:sync     # build + npx cap sync ios
+npm run ios:build    # 署名して IPA（--upload で TestFlight）
+```
 
-## Status
+`npm run test:e2e` は Playwright（`PLAYWRIGHT_DIR` と `PLAYWRIGHT_BROWSERS_PATH`）を使います。
+スクリーンショットの保存先は `SHOT_DIR`（既定 `/workspace/downloads`）。
 
-Repository initialized for the GDevelop + GitHub iPhone workflow on 2026-09-13.
-Shipped: **v1.0.0 (Build 12)** — twelve languages, first-launch language picker,
-`ICE WOLF v1.0.0` build markers, and the Build 8 map: every attraction one size
-down, the warp pads out of the stair corners (`docs/v100-build8-map.md`).
-Released: **v1.2.0 (Build 32)** — the visual refresh: the generated characters
-as four-frame sprite bodies with a sheet per stage outfit, the opening wolf that
-never disguises itself, text size / vibration / stick-or-touch in SETTINGS, the
-1.9 second opening and the ice-chase app icon (`docs/v120-release-notes.md`).
+## ゲームの中身
 
-**v1.1.0 (Build 31)** — the Pro purchase foundation (¥500), Phase 1
-(6 stages, outfits, 10 players, 2 wolves, custom rules, spectator camera), Phase 2
-(online rooms, host authority, eight translated quick stamps), Phase 2b (the 3D
-snapshot sync), Phase 2c (guest designation relay, host-loss recovery, one win
-reason everywhere) and a stage rule for each of the five new stages on
-`feat/ice-wolf-v1.1.0-pro` (`docs/v110-pro-iap.md`,
-`docs/v110-phase1-stages.md`, `docs/v110-online-setup.md`,
-`docs/v110-stage-gimmicks.md`, `docs/v110-release-notes.md`). Build 22 closes the
-Abandoned School's shut doors (a body brushing a doorway edge could walk through)
-and counts the chime and the lock down a second at a time.
-The online rooms run on the Supabase project **`games-realtime`**
-(`siivncidktbuyqwsjeqd`): the TestFlight build writes the project URL and its
-publishable key into `window.ICE_WOLF_ONLINE_CONFIG` at build time
-(`scripts/ios/inject-online-config.py`, `docs/v110-online-setup.md` §3-A), so a
-shipped build has online rooms with nothing to set up. `game.json` itself stays
-configuration-free, and the lobby falls back to a one-phone practice room when
-no settings are present (opening the project in the GDevelop editor, for example).
-The wire itself is checked live against that project with
-`tools/supabase-realtime-game-smoke.mjs` (join, Broadcast, Presence, leave).
-Version history and the verification of each step live in `docs/`.
+- **6ステージ**：クラシック（無料）／深海水族館（無料）／霧の遊園地・雪山ロッジ・廃校・宇宙船（PRO）
+- **10人戦・人狼1〜2人・スイッチ3/5/7/10個（正解3/5）・1/2/3/5分**
+- **最初の鬼は試合中ずっと鬼**。人狼鬼（2人目）と罠で人狼鬼になった者だけが人間⇔鬼に変身できる。
+  人間状態の人狼鬼は救助対象になりません。
+- **鬼は最大3人**。2人狼で始まる試合は罠スイッチなし。
+- 凍結中はカメラが俯瞰に引き、「YOU」ラベルは凍結位置に固定。CPUの観戦（‹ ›）も可能。
+- **操作**：固定スティック／画面どこでもドラッグ（設定で切替）。
+  `[救助]`（スイッチも同じボタン長押し）`[人狼/変身]` `[指名]` `[1F/2F]` `[CAM]` `[設定]` `[EXIT]` `[💬]`。
+  HUD は `pointer-events: none`、ボタンだけ `auto`。移動は氷のレイヤー（#touchLayer / #stick）だけで受けるので、
+  ボタンのタップが移動に吸われることはありません（Build 33 の不具合の再発防止）。
+- **12言語**・文字サイズ標準/大/特大・効果音/BGM/バイブ・プライバシーポリシー・PRO購入と復元。
+- **オンライン**：合言葉6文字のルーム、ホスト権威（入力10Hz・スナップショット5Hz）、
+  8種のスタンプは相手の言語で表示、ホスト退出時の引き継ぎ。
+
+## 検証（Build 35 で実行済み）
+
+| 検証 | 結果 |
+| --- | --- |
+| `npm test` | **103 pass / 0 fail** |
+| `npm run build` | `www/`（16モジュール・63ファイル） |
+| `python3 scripts/ios/verify-ios-project.py --build-dir www` | **ALL CHECKS PASSED**（1.2.0 / 35） |
+| `npm run test:e2e`（実際の `www/` を Chromium で起動） | **72/72 checks** |
+| 6ステージの到達性（ユニット） | 全スイッチ・ゲート・階段・ワープへ歩いて到達可能 |
+
+実ブラウザ検証のスクリーンショットは `downloads/icewolf-threejs-*.png`
+（home / opening / settings / stages / 6ステージ / 救助・スイッチ / 結果 /
+英語・ヒンディー語・日本語の特大HUD）。
+
+## iOS ビルド
+
+このリポジトリの `.github/workflows/ios-testflight.yml` は **GDevelop 版のまま**です
+（オーナーが Safari で貼り替える権限境界のため、エージェントは触っていません）。
+Three.js 版は **`docs/ios-testflight-threejs.yml`** をそのままコピーして
+`.github/workflows/ios-testflight.yml` を上書きしてください。
+
+手順の詳細は `docs/v120-build35-threejs.md`、オンラインの設定は `docs/v110-online-setup.md`。
+
+## 旧版（GDevelop）
+
+v1.2.0 までの GDevelop プロジェクトとテストは `legacy/gdevelop/` に保存しています
+（`game.json` / `tests-pro/` / 生成スクリプト）。ビルドもテストも参照しません。

@@ -9,7 +9,8 @@ Checked here:
   * the Xcode project carries the ICE WOLF bundle id, versions and team
   * the app icon is a 1024x1024 RGB PNG with no alpha (App Store requirement)
   * every asset the asset catalog references actually exists
-  * capacitor.config.ts still points at appId / appName / webDir `build`
+  * capacitor.config.ts still points at appId / appName / webDir `www`
+  * the built www/ contains index.html, src/main.js, vendor/three.module.js
   * with --require-online-config: the web layer carries the Supabase project in
     window.ICE_WOLF_ONLINE_CONFIG before </head> (what makes a build online)
 
@@ -35,7 +36,7 @@ CAP_CONFIG = REPO_ROOT / "capacitor.config.ts"
 DEFAULT_BUNDLE_ID = "jp.signlink.IceWolf"
 DEFAULT_TEAM_ID = "TGBNH8WJV6"
 DEFAULT_MARKETING_VERSION = "1.2.0"
-DEFAULT_BUILD_NUMBER = "34"
+DEFAULT_BUILD_NUMBER = "35"
 PRODUCT_ID = "jp.signlink.IceWolf.pro"
 
 failures: list[str] = []
@@ -280,7 +281,7 @@ def check_capacitor_config() -> None:
     text = CAP_CONFIG.read_text(encoding="utf-8")
     check('appId: "jp.signlink.IceWolf"' in text, "appId is jp.signlink.IceWolf")
     check('appName: "ICE WOLF"' in text, "appName is ICE WOLF")
-    check('webDir: "build"' in text, "webDir is build (GDevelop EXPORT_HTML5_EXTERNAL output)")
+    check('webDir: "www"' in text, "webDir is www (npm run build output)")
     check(
         re.search(r"^\s*server\s*:", text, re.MULTILINE) is None,
         "no server: override (the game ships fully offline in the app bundle)",
@@ -288,15 +289,30 @@ def check_capacitor_config() -> None:
 
 
 def check_export(build_dir: Path) -> None:
-    print(f"HTML5 export ({build_dir})")
-    check((build_dir / "index.html").is_file(), "build/index.html exists")
-    check((build_dir / "code0.js").is_file(), "build/code0.js exists")
-    js = sorted(build_dir.glob("code*.js"))
-    check(len(js) >= 1, f"game code bundles exported ({len(js)} file(s))")
+    """The npm build of the Three.js game (www/)."""
+    print(f"web build ({build_dir})")
+    check((build_dir / "index.html").is_file(), "index.html exists")
+    main = build_dir / "src" / "main.js"
+    check(main.is_file(), "src/main.js exists (the module entry point)")
+    check((build_dir / "vendor" / "three.module.js").is_file(),
+          "vendor/three.module.js is vendored (no CDN at runtime)")
+    check((build_dir / "assets" / "ice_freeze.png").is_file(),
+          "the hand-drawn assets shipped with the build")
+    check((build_dir / "src" / "core" / "rules.js").is_file(), "the rules module is present")
     index = build_dir / "index.html"
     if index.is_file():
         html = index.read_text(encoding="utf-8", errors="replace")
-        check("gd.js" in html, "index.html loads the GDevelop runtime")
+        check('src/main.js' in html, "index.html loads src/main.js")
+        check("gdevelop" not in html.lower(), "index.html no longer loads the GDevelop runtime")
+    # No secrets in the build. The game contains the *names* of secret key
+    # prefixes (it refuses them); an actual secret would be a long value.
+    secret = re.compile(r"sb_secret_[A-Za-z0-9_-]{12,}|service_role[\"']?\s*[:=]\s*[\"'][A-Za-z0-9._-]{20,}")
+    leaked = []
+    for path in build_dir.rglob("*.js"):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if secret.search(text):
+            leaked.append(str(path.relative_to(build_dir)))
+    check(not leaked, "no secret key in the web build", ", ".join(leaked))
 
 
 def check_online_config(public_dir: Path) -> None:

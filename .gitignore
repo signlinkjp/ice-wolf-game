@@ -2,8 +2,12 @@
 node_modules/
 npm-debug.log*
 
-# GDevelop HTML5 export output (produced by the export step, never committed)
+# npm build output (npm run build -> www/, never committed)
 build/
+www/
+
+# Browser libraries used only by the local Playwright verification
+.browser-libs/
 
 # Xcode
 DerivedData/

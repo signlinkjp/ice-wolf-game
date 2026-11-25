@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a1626" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>ICE WOLF</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Set by scripts/build.mjs / scripts/ios/inject-online-config.py at build time. -->
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+      <div id="vignette"></div>
+      <div id="fx"></div>
+      <div id="touchLayer"></div>
+
+      <div id="rotateHint" class="hidden">横向きにすると遊びやすくなります</div>
+
+      <!-- ============ HUD ============ -->
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="hud-card role" id="roleCard">
+            <span class="k" id="roleKey">役割</span>
+            <b id="roleText">人間</b>
+          </div>
+          <div class="hud-card timer" id="timerCard">
+            <b id="timerText">3:30</b>
+            <small id="timerKey">のこり</small>
+          </div>
+          <div class="hud-counts">
+            <div class="hud-card small"><b id="aliveText">6</b><small id="aliveKey">生存</small></div>
+            <div class="hud-card small"><b id="frozenText">0</b><small id="frozenKey">凍結</small></div>
+            <div class="hud-card small"><b id="switchText">0/3</b><small id="switchKey">スイッチ</small></div>
+            <div class="hud-card small gate" id="gateCard"><b id="gateText">閉鎖中</b><small id="gateKey">ゲート</small></div>
+          </div>
+          <div class="hud-top-actions">
+            <button id="floorBtn" class="hud-btn floor" type="button">1F</button>
+            <button id="camBtn" class="hud-btn" type="button">CAM</button>
+            <button id="settingsBtn" class="hud-btn round" type="button">⚙</button>
+            <button id="exitBtn" class="hud-btn exit" type="button">EXIT</button>
+          </div>
+        </div>
+
+        <div id="toast" class="toast hidden"></div>
+        <div id="hintBar" class="hint"></div>
+
+        <div id="spectateBar" class="spectate hidden">
+          <button id="specPrev" type="button">‹</button>
+          <span id="specText"></span>
+          <button id="specNext" type="button">›</button>
+        </div>
+
+        <div id="stick" class="stick">
+          <div class="stick-base"></div>
+          <div class="stick-knob" id="stickKnob"></div>
+        </div>
+
+        <div class="action-cluster">
+          <button id="actionBtn" class="big-action" type="button">
+            <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+              <circle class="ring-fg" id="actionRing" cx="50" cy="50" r="44"></circle>
+            </svg>
+            <span id="actionLabel">救助</span>
+          </button>
+          <div class="action-side">
+            <button id="wolfBtn" class="action wolf hidden" type="button">
+              <span id="wolfLabel">人狼</span>
+              <i id="wolfCool"></i>
+            </button>
+            <button id="infectBtn" class="action infect hidden" type="button">
+              <span id="infectLabel">指名</span>
+            </button>
+            <button id="stampBtn" class="action stamp" type="button" aria-label="stamp">💬</button>
+          </div>
+        </div>
+
+        <div id="winnerBanner" class="winner hidden">
+          <b id="winnerText"></b>
+          <small id="winnerSub"></small>
+        </div>
+      </div>
+
+      <!-- ============ menu ============ -->
+      <div id="menu" class="screen">
+        <div class="menu-left">
+          <div class="logo">
+            <span class="ice">ICE</span><span class="wolf">WOLF</span>
+            <i class="logo-shine"></i>
+          </div>
+          <p id="tagline" class="tagline"></p>
+          <div class="menu-buttons">
+            <button id="startBtn" class="btn primary" type="button"></button>
+            <button id="stageBtn" class="btn stage" type="button">
+              <span class="stage-label" id="stageLabel">STAGE</span>
+              <b id="stageName"></b>
+              <span id="stageBadge" class="badge hidden">PRO</span>
+            </button>
+            <div class="btn-row">
+              <button id="howBtn" class="btn" type="button"></button>
+              <button id="recordBtn" class="btn" type="button"></button>
+            </div>
+            <div class="btn-row">
+              <button id="settingsBtnMenu" class="btn" type="button"></button>
+              <button id="onlineBtn" class="btn" type="button"></button>
+              <button id="proBtn" class="btn pro-btn" type="button">
+                <span>PRO</span>
+                <em id="proState"></em>
+              </button>
+            </div>
+          </div>
+          <div class="menu-foot">
+            <span id="versionText"></span>
+            <button id="privacyBtn" class="link" type="button"></button>
+            <button id="langBtn" class="link" type="button"></button>
+          </div>
+        </div>
+        <div class="menu-right">
+          <div id="menuHint" class="menu-hint"></div>
+        </div>
+      </div>
+
+      <!-- ============ opening ============ -->
+      <div id="opening" class="screen opening hidden">
+        <div class="opening-title">
+          <span class="ice">ICE</span><span class="wolf">WOLF</span>
+        </div>
+        <div class="opening-sub" id="openingSub"></div>
+        <button id="skipOpening" class="skip" type="button"></button>
+      </div>
+
+      <!-- ============ generic sheet ============ -->
+      <div id="sheet" class="sheet hidden">
+        <div class="sheet-card">
+          <div class="sheet-head">
+            <h2 id="sheetTitle"></h2>
+            <button id="sheetClose" class="close" type="button">✕</button>
+          </div>
+          <div id="sheetBody" class="sheet-body"></div>
+        </div>
+      </div>
+
+      <!-- ============ briefing ============ -->
+      <div id="brief" class="screen brief hidden">
+        <div class="brief-card">
+          <span class="brief-kicker" id="briefKicker"></span>
+          <b class="brief-role" id="briefRole"></b>
+          <p id="briefText"></p>
+          <button id="briefStart" class="btn primary" type="button"></button>
+        </div>
+      </div>
+
+      <!-- ============ result ============ -->
+      <div id="result" class="screen result hidden">
+        <div class="result-card">
+          <span class="result-kicker" id="resultKicker"></span>
+          <b class="result-title" id="resultTitle"></b>
+          <p class="result-sub" id="resultSub"></p>
+          <p class="result-summary" id="resultSummary"></p>
+          <div class="result-buttons">
+            <button id="againBtn" class="btn primary" type="button"></button>
+            <button id="toMenuBtn" class="btn" type="button"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ stamp picker ============ -->
+      <div id="stampBar" class="stamp-bar hidden"></div>
+
+      <!-- ============ countdown ============ -->
+      <div id="countdown" class="countdown hidden"><span id="countdownText"></span></div>
+
+      <div id="loading" class="loading"><span></span></div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

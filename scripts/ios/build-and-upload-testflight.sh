@@ -4,12 +4,10 @@
 #
 # This is the reproducible local/CI entry point for the iOS shell:
 #
-#   1. GDevelop 5.6.282 HTML5 export of game.json -> build/
-#      (skipped with --skip-export when build/ was produced elsewhere,
-#       which is what .github/workflows/ios-testflight.yml does)
-#   2. npm ci                                    (Capacitor 8.6.2, locked)
-#   3. npx cap sync ios                          (build/ -> ios/App/App/public)
-#   4. static verification of the iOS shell      (scripts/ios/verify-ios-project.py)
+#   1. npm ci && npm run build                   (src/ + assets -> www/)
+#      (skipped with --skip-export when www/ was produced elsewhere)
+#   2. npx cap sync ios                          (www/ -> ios/App/App/public)
+#   3. static verification of the iOS shell      (scripts/ios/verify-ios-project.py)
 #   5. xcodebuild archive                        (automatic signing via the API key)
 #   6. xcodebuild -exportArchive                 (re-signed for App Store distribution)
 #   7. IPA verification                          (bundle id, versions, codesign, profile)
@@ -30,8 +28,7 @@
 #     bash scripts/ios/build-and-upload-testflight.sh --build-number 1
 #
 #   ... --upload            # after the build passed, upload this exact IPA
-#   ... --skip-export       # reuse an existing build/ folder
-#   ... --gdevelop-app "/Applications/GDevelop 5.app"
+#   ... --skip-export       # reuse an existing www/ folder
 #
 # Environment switches:
 #   ICEWOLF_UPLOAD_CONFIRM=1   required together with --upload
@@ -59,8 +56,6 @@ BUILD_NUMBER="${BUILD_NUMBER:-}"
 DO_UPLOAD="no"
 SKIP_EXPORT="no"
 ARTIFACT_DIR=""
-GDEVELOP_BIN="${GDEVELOP_BIN:-}"
-GDEVELOP_APP="${GDEVELOP_APP:-}"
 
 usage() {
   sed -n '2,45p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
@@ -73,8 +68,6 @@ while [ "$#" -gt 0 ]; do
     --build-number) BUILD_NUMBER="${2:?--build-number needs a value}"; shift ;;
     --marketing-version) MARKETING_VERSION="${2:?--marketing-version needs a value}"; shift ;;
     --artifacts-dir) ARTIFACT_DIR="${2:?--artifacts-dir needs a value}"; shift ;;
-    --gdevelop-bin) GDEVELOP_BIN="${2:?--gdevelop-bin needs a value}"; shift ;;
-    --gdevelop-app) GDEVELOP_APP="${2:?--gdevelop-app needs a value}"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown argument: $1 (try --help)" >&2; exit 2 ;;
   esac
@@ -102,7 +95,8 @@ step "preflight (macOS, Xcode, Node)"
 command -v xcodebuild >/dev/null 2>&1 || die "xcodebuild not found — install Xcode"
 command -v npm >/dev/null 2>&1 || die "npm not found — install Node 20 or newer"
 command -v python3 >/dev/null 2>&1 || die "python3 not found"
-[ -f "$REPO_ROOT/game.json" ] || die "game.json not found — run this from the ICE WOLF repository"
+[ -f "$REPO_ROOT/package.json" ] || die "package.json not found — run this from the ICE WOLF repository"
+[ -f "$REPO_ROOT/src/main.js" ] || die "src/main.js not found — this is not the Three.js ICE WOLF checkout"
 [ -d "$REPO_ROOT/$XCODE_PROJECT" ] || die "$XCODE_PROJECT not found"
 
 GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
@@ -147,55 +141,38 @@ cleanup() {
 trap cleanup EXIT
 
 # --------------------------------------------------------------------------
-# 1. HTML5 export
+# 1. Web build (Three.js -> www/)
 # --------------------------------------------------------------------------
-step "HTML5 export (GDevelop -> build/)"
+step "web build (npm run build -> www/)"
 if [ "$SKIP_EXPORT" = "yes" ]; then
-  [ -f "$REPO_ROOT/build/index.html" ] || die "--skip-export was given but build/index.html does not exist"
-  info "using the existing build/ folder"
+  [ -f "$REPO_ROOT/www/index.html" ] || die "--skip-export was given but www/index.html does not exist"
+  info "using the existing www/ folder"
 else
-  if [ -z "$GDEVELOP_BIN" ]; then
-    if [ -z "$GDEVELOP_APP" ]; then
-      for candidate in "/Applications/GDevelop 5.app" "$HOME/Applications/GDevelop 5.app"; do
-        if [ -d "$candidate" ]; then GDEVELOP_APP="$candidate"; break; fi
-      done
-    fi
-    if [ -n "$GDEVELOP_APP" ]; then
-      GDEVELOP_BIN="$GDEVELOP_APP/Contents/MacOS/GDevelop 5"
-    fi
+  if [ -f "$REPO_ROOT/package-lock.json" ]; then
+    npm ci --no-audit --no-fund --prefix "$REPO_ROOT" >>"$LOG_FILE" 2>&1 \
+      || { tail -n 30 "$LOG_FILE" >&2; die "npm ci failed"; }
+  else
+    npm install --no-audit --no-fund --prefix "$REPO_ROOT" >>"$LOG_FILE" 2>&1 \
+      || { tail -n 30 "$LOG_FILE" >&2; die "npm install failed"; }
   fi
-  [ -n "$GDEVELOP_BIN" ] && [ -x "$GDEVELOP_BIN" ] \
-    || die "GDevelop 5.6.282 not found — pass --gdevelop-app/--gdevelop-bin, or export build/ elsewhere and use --skip-export"
-  info "GDevelop: $GDEVELOP_BIN"
-  rm -rf "$REPO_ROOT/build"
-  if ! "$GDEVELOP_BIN" --no-sandbox --disable-update-check \
-      --run-command EXPORT_HTML5_EXTERNAL "$REPO_ROOT/game.json" >>"$LOG_FILE" 2>&1; then
-    tail -n 40 "$LOG_FILE" >&2 || true
-    die "GDevelop export failed (full log: $LOG_FILE)"
-  fi
-  rm -rf "$REPO_ROOT/build/.git"
-  info "exported $(du -sh "$REPO_ROOT/build" | cut -f1) into build/"
+  ( cd "$REPO_ROOT" && npm run build >>"$LOG_FILE" 2>&1 ) \
+    || { tail -n 40 "$LOG_FILE" >&2; die "npm run build failed"; }
+  info "built $(du -sh "$REPO_ROOT/www" | cut -f1) into www/"
 fi
-[ -f "$REPO_ROOT/build/index.html" ] || die "build/index.html is missing after export"
+[ -f "$REPO_ROOT/www/index.html" ] || die "www/index.html is missing after the build"
+[ -f "$REPO_ROOT/www/src/main.js" ] || die "www/src/main.js is missing after the build"
 
 # --------------------------------------------------------------------------
-# 2. Capacitor dependencies
+# 2. Capacitor CLI present
 # --------------------------------------------------------------------------
-step "npm ci (Capacitor 8.6.2)"
-if [ -f "$REPO_ROOT/package-lock.json" ]; then
-  npm ci --no-audit --no-fund --prefix "$REPO_ROOT" >>"$LOG_FILE" 2>&1 \
-    || { tail -n 30 "$LOG_FILE" >&2; die "npm ci failed"; }
-else
-  info "package-lock.json not found, falling back to npm install"
-  npm install --no-audit --no-fund --prefix "$REPO_ROOT" >>"$LOG_FILE" 2>&1 \
-    || { tail -n 30 "$LOG_FILE" >&2; die "npm install failed"; }
-fi
-info "installed $(node -e "console.log('@capacitor/ios ' + require('$REPO_ROOT/node_modules/@capacitor/ios/package.json').version)")"
+step "capacitor dependencies"
+[ -x "$REPO_ROOT/node_modules/.bin/cap" ] || die "the Capacitor CLI is not installed (node_modules/.bin/cap missing)"
+info "installed $(node -e "console.log('@capacitor/ios ' + require('$REPO_ROOT/node_modules/@capacitor/ios/package.json').version)" 2>/dev/null || echo '@capacitor/ios')"
 
 # --------------------------------------------------------------------------
 # 3. Sync the export into the native project
 # --------------------------------------------------------------------------
-step "npx cap sync ios (build/ -> ios/App/App/public)"
+step "npx cap sync ios (www/ -> ios/App/App/public)"
 CAP_BIN="$REPO_ROOT/node_modules/.bin/cap"
 [ -x "$CAP_BIN" ] || die "the Capacitor CLI is not installed (node_modules/.bin/cap missing)"
 ( cd "$REPO_ROOT" && "$CAP_BIN" sync ios >>"$LOG_FILE" 2>&1 ) \
@@ -206,11 +183,10 @@ info "public/ contains $(find "$REPO_ROOT/ios/App/App/public" -type f | wc -l | 
 # --------------------------------------------------------------------------
 # 3b. Online config — the Supabase project the game reads first
 # --------------------------------------------------------------------------
-# The game reads `window.ICE_WOLF_ONLINE_CONFIG` before localStorage and the scene
-# variables (docs/v110-online-setup.md §3), so the shipped web layer carries the
-# project and the TestFlight build has online rooms with nothing to set up. The
-# values stay out of game.json: tests/pro/v110-online.test.mjs fails if a project
-# URL or a key is ever written into the game file.
+# The game reads `window.ICE_WOLF_ONLINE_CONFIG` before localStorage
+# (src/online.js readOnlineConfig), so the shipped web layer carries the project
+# and the TestFlight build has online rooms with nothing to set up. The values
+# are not in the repository: the build writes them into the copied index.html.
 step "online config (Supabase Realtime -> window.ICE_WOLF_ONLINE_CONFIG)"
 python3 "$REPO_ROOT/scripts/ios/inject-online-config.py" \
   --file "$REPO_ROOT/ios/App/App/public/index.html" \
@@ -225,7 +201,7 @@ python3 "$REPO_ROOT/scripts/ios/verify-ios-project.py" \
   --team-id "$TEAM_ID" \
   --marketing-version "$MARKETING_VERSION" \
   --build-number "$BUILD_NUMBER" \
-  --build-dir "$REPO_ROOT/build" \
+  --build-dir "$REPO_ROOT/www" \
   --require-online-config || die "iOS shell verification failed"
 
 # --------------------------------------------------------------------------
@@ -409,7 +385,7 @@ fi
 # 10. Provenance manifest
 # --------------------------------------------------------------------------
 step "write provenance manifest"
-GAME_JSON_SHA256="$(shasum -a 256 "$REPO_ROOT/game.json" | awk '{print $1}')"
+WEB_BUILD_SHA256="$(cd "$REPO_ROOT/www" && find . -type f -print0 | sort -z | xargs -0 shasum -a 256 | shasum -a 256 | awk '{print $1}')"
 python3 - "$ARTIFACT_DIR/manifest.json" <<PY
 import json, datetime, os
 manifest = {
@@ -419,7 +395,7 @@ manifest = {
     "marketing_version": "$MARKETING_VERSION",
     "build_number": "$BUILD_NUMBER",
     "git_sha": "$GIT_SHA",
-    "game_json_sha256": "$GAME_JSON_SHA256",
+    "web_build_sha256": "$WEB_BUILD_SHA256",
     "ipa_sha256": "$IPA_SHA256",
     "ipa_size_bytes": int("$IPA_SIZE"),
     "capacitor_ios": "$(node -e "console.log(require('$REPO_ROOT/node_modules/@capacitor/ios/package.json').version)")",
