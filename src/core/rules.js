@@ -2,14 +2,17 @@
  * Match rules: roles, the wolf, rescue, switches, gates and the six stage
  * gimmicks. No DOM, no Three.js — the unit tests play whole matches with it.
  *
- * The v1.2.0 rule set, as agreed for Build 35, tightened in Build 36:
- *   * the first wolf is the master wolf: a wolf for the whole match (it only
- *     ever hides as a human-looking character; it cannot turn human), and the
- *     only wolf who may name a frozen human as trap ice,
+ * The v1.2.0 rule set, as agreed for Build 35, tightened in Build 36 and again
+ * in Build 38:
+ *   * the first wolf is the master wolf: a wolf for the whole match. It keeps
+ *     the wolf body and the freezing touch from kickoff to the final whistle,
+ *     needs no button and has no human form (Build 38),
+ *   * a werewolf (the second wolf, or the third born from a trap) switches
+ *     between human and wolf form; touching a human freezes them the moment the
+ *     wolf form is out — no second tap, no cooldown to satisfy (Build 38),
+ *   * only the master wolf may name a frozen human as trap ice, once per match,
  *   * so the third wolf is born from a trap only (trap ice rescue or the trap
  *     switch), never by naming,
- *   * the werewolf-wolf (the second wolf, and anyone turned by the trap) can
- *     switch between human and wolf form,
  *   * a werewolf in human form is not a rescue target,
  *   * the trap ice looks exactly like normal ice; rescuing it turns the
  *     rescuer into a werewolf,
@@ -17,7 +20,6 @@
  */
 import {
   ACTOR,
-  ARENA,
   MATCH,
   PAD,
   RESCUE,
@@ -26,6 +28,7 @@ import {
   GIMMICK,
 } from '../config.js';
 import {
+  floorY,
   isWalkable,
   openSpotFor,
   pointInRect,
@@ -101,6 +104,16 @@ export function isWolfRole(role) {
   return role === 'firstWolf' || role === 'werewolf';
 }
 
+/**
+ * Is this wolf in its wolf body right now — and therefore freezing to the
+ * touch? The master wolf always is; a werewolf only while transformed.
+ */
+export function isWolfForm(actor) {
+  if (!actor || !isWolfRole(actor.role) || actor.state !== 'active') return false;
+  if (actor.role === 'firstWolf') return true;
+  return actor.form === 'wolf' && actor.wolfTimer > 0;
+}
+
 export function wolvesAlive(match) {
   return match.actors.filter((a) => a.role !== 'human' && a.state === 'active');
 }
@@ -147,11 +160,12 @@ export function createMatch(stage, settings, opts = {}) {
       isCPU: i !== 0,
       role,
       state: 'active',
-      form: role === 'firstWolf' ? 'wolf' : role === 'werewolf' ? 'human' : 'human',
+      // The master wolf keeps the wolf body all match; a werewolf starts hidden.
+      form: role === 'firstWolf' ? 'wolf' : 'human',
       x: raw.x,
       z: raw.z,
       floor: raw.floor,
-      y: raw.floor === 2 ? ARENA.deckY : 0,
+      y: floorY(raw.floor),
       yaw: 0,
       moving: false,
       speedBoost: 0,
@@ -224,7 +238,7 @@ function placeSwitches(stage, settings, rng, actors) {
   const candidates = shuffle(stage.switchSpots, rng);
   const f1 = candidates.filter((c) => c.floor === 1);
   const f2 = candidates.filter((c) => c.floor === 2);
-  // Keep both floors busy: at least one switch on the deck and one below.
+  // Keep both halls busy: at least one switch on each floor.
   const chosen = [];
   if (total >= 2) {
     chosen.push(f1.shift());
@@ -273,6 +287,13 @@ export function gimmickPhase(match) {
   if (!g) return null;
   const t = match.elapsed;
   const state = { kind: g.kind, active: false, warn: false };
+  if (g.kind === 'classic') {
+    // A blizzard gust: the ice drifts underfoot and the aurora flares.
+    state.active = t % g.cycle.period < g.cycle.length;
+    state.gust = state.active;
+    state.countdown = state.active ? Math.ceil(g.cycle.length - (t % g.cycle.period)) : 0;
+    return state;
+  }
   if (g.kind === 'aquarium') {
     const cycle = g.cycle;
     state.active = t % cycle.mantaPeriod < cycle.mantaLength;
@@ -323,9 +344,9 @@ export function gravityCells(match) {
   let guard = 0;
   while (out.length < g.cycle.cells && guard < 400) {
     guard += 1;
-    // The deck shapes differ per stage, so ask the geometry where a cell fits
-    // instead of assuming the old "east half" rectangle.
-    const floor = rng() < 0.62 ? 1 : 2;
+    // Ask the geometry where a cell fits: the two halls are separate rooms, so
+    // never assume a rectangle that spans them.
+    const floor = rng() < 0.5 ? 1 : 2;
     const spot = randomPointOn(match.stage, floor, rng, 2.4);
     if (!spot) continue;
     if (out.some((c) => c.floor === spot.floor && Math.hypot(c.x - spot.x, c.z - spot.z) < 4.4)) continue;
@@ -368,20 +389,19 @@ export function emit(match, type, data = {}) {
   match.events.push({ type, ...data });
 }
 
+/**
+ * The werewolf transform. The master wolf has no button: it is already a wolf.
+ */
 export function activateWolf(match, actor) {
   if (!isWolfRole(actor.role) || actor.state !== 'active') return false;
+  if (actor.role === 'firstWolf') return false;
   if (actor.wolfCooldown > 0 || actor.wolfTimer > 0) return false;
-  if (actor.role === 'werewolf' && actor.form === 'wolf') return false;
+  if (actor.form === 'wolf') return false;
   actor.wolfTimer = WOLF.modeSeconds;
   actor.wolfCooldown = WOLF.modeSeconds + WOLF.cooldownSeconds;
-  if (actor.role === 'werewolf') actor.form = 'wolf';
+  actor.form = 'wolf';
   emit(match, 'wolf-on', { seat: actor.seat });
   return true;
-}
-
-export function endWolfMode(match, actor) {
-  if (actor.wolfTimer > 0) return;
-  if (actor.role === 'werewolf' && actor.form === 'wolf') actor.form = 'human';
 }
 
 export function freezeHuman(match, wolf, victim) {
@@ -593,7 +613,7 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
       continue;
     }
 
-    // Wolf button.
+    // Wolf button (werewolf transform only).
     if (input.wolf) activateWolf(match, actor);
 
     // Rescue hold.
@@ -641,14 +661,14 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
       actor.switchHold = null;
     }
 
-    // Infect (once per match, from any wolf).
+    // Infect (once per match, from the master wolf).
     if (input.infect !== undefined && input.infect !== null && !match.infectionUsed) {
       const target = match.actors.find((a) => a.seat === Number(input.infect));
       infectFrozen(match, actor, target);
     }
 
     // Movement.
-    let dir = normalize(input.mx || 0, input.mz || 0);
+    const dir = normalize(input.mx || 0, input.mz || 0);
     const factor = speedFactorAt(match, actor, gim);
     let vx = 0;
     let vz = 0;
@@ -663,6 +683,15 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
         if (inZone(lane, actor)) {
           vx += lane.dx * lane.power;
           vz += lane.dz * lane.power;
+        }
+      }
+    }
+    // The classic blizzard gust drifts everyone in the hall it sweeps.
+    if (g && g.kind === 'classic' && gim && gim.gust) {
+      for (const gust of g.gusts) {
+        if (inZone(gust, actor)) {
+          vx += gust.dx * gust.power;
+          vz += gust.dz * gust.power;
         }
       }
     }
@@ -682,7 +711,7 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
     }
     actor.vx = vx;
     actor.vz = vz;
-    actor.y = (actor.floor === 2 ? ARENA.deckY : 0) + (actor.climb > 0 ? Math.sin((1 - actor.climb / 0.45) * Math.PI) * 1.1 : 0);
+    actor.y = floorY(actor.floor) + (actor.climb > 0 ? Math.sin((1 - actor.climb / 0.45) * Math.PI) * 1.1 : 0);
 
     stepStairs(match, actor);
     stepWarps(match, actor);
@@ -691,8 +720,9 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
 
     if (tryEscape(match, actor)) return match;
 
-    // Freezing touch while a wolf is in Wolf Mode.
-    if (isWolfRole(actor.role) && actor.wolfTimer > 0) {
+    // Freezing touch: a wolf in its wolf body freezes every human it touches,
+    // at once, with no button and no window to miss (Build 38).
+    if (isWolfForm(actor)) {
       for (const other of match.actors) {
         if (other.role !== 'human' || other.state !== 'active') continue;
         if (other.floor !== actor.floor) continue;
@@ -707,51 +737,42 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
   return match;
 }
 
+/**
+ * Stair zone: a marked staircase mouth on one floor carries the body to a
+ * landing inside the other hall. Entering is enough — no slope, no push.
+ */
 function stepStairs(match, actor) {
   if (actor.stairLock > 0) return;
   for (const s of match.stage.stairs) {
     if (s.floor !== actor.floor) continue;
-    const dir = s.dir === 'E' ? [1, 0] : s.dir === 'W' ? [-1, 0] : s.dir === 'N' ? [0, -1] : [0, 1];
-    const offX = actor.x - s.edgeX;
-    const offZ = actor.z - s.edgeZ;
-    // + is toward the deck, so a 1F body stands at a negative offset.
-    const along = offX * dir[0] + offZ * dir[1];
-    const lateral = Math.abs(offX * -dir[1] + offZ * dir[0]);
-    if (lateral > s.w / 2 + 0.3) continue;
-    // The mouth of the stairwell: the last metre on the ice, or the landing
-    // strip on the deck. Crossing a corridor past a stairwell never matches,
-    // which is why the school's two flights do not grab people walking by.
-    if (actor.floor === 1) {
-      if (along < -1.35 || along > 0.3) continue;
-    } else if (along < -0.3 || along > 1.7) continue;
-    const toward = (actor.vx || 0) * dir[0] + (actor.vz || 0) * dir[1];
-    // You have to be heading up (1F) or stepping out over the edge (2F), not
-    // merely standing near the stairs.
-    if (actor.floor === 1 ? toward < 0.2 : toward > -0.2) continue;
+    if (Math.hypot(actor.x - s.x, actor.z - s.z) > 1.6) continue;
     actor.floor = s.toFloor;
     actor.x = s.exitX;
     actor.z = s.exitZ;
     actor.climb = 0.45;
-    actor.stairLock = 0.7;
-    actor.y = actor.floor === 2 ? ARENA.deckY : 0;
+    actor.stairLock = 0.9;
+    actor.path = null;
+    actor.y = floorY(actor.floor);
     emit(match, 'stairs', { seat: actor.seat, to: actor.floor });
     return;
   }
 }
 
+/** Warp zone: two mouths on the same floor, a link between them. */
 function stepWarps(match, actor) {
   if (actor.warpCooldown > 0) return;
   const warp = match.stage.warps.find(
     (w) => w.floor === actor.floor && Math.hypot(actor.x - w.x, actor.z - w.z) <= PAD.radius * 0.7,
   );
   if (!warp) return;
-  actor.floor = warp.toFloor;
+  actor.floor = warp.floor;
   actor.x = warp.toX;
   actor.z = warp.toZ;
   actor.warpCooldown = PAD.warpCooldown;
   actor.climb = 0.3;
   actor.stairLock = 0.5;
-  emit(match, 'warp', { seat: actor.seat });
+  actor.path = null;
+  emit(match, 'warp', { seat: actor.seat, floor: actor.floor });
 }
 
 function stepPads(match, actor) {

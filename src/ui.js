@@ -107,6 +107,11 @@ export class UI {
     click('specPrev', () => this.h.onSpectate(-1));
     click('specNext', () => this.h.onSpectate(1));
     click('skipOpening', () => this.h.onSkipOpening());
+    // Build 38: a tap anywhere on the opening skips it.
+    const opening = document.getElementById('opening');
+    if (opening) {
+      opening.addEventListener('pointerdown', () => this.h.onSkipOpening());
+    }
 
     // Hold buttons: pointer capture keeps a sliding finger from cancelling the
     // hold, and pointercancel/timeout never leaves the action stuck.
@@ -780,15 +785,16 @@ export class UI {
     this.el.gateCard.classList.toggle('open', Boolean(gate));
     this.el.floorBtn.textContent = `${player.floor}F`;
 
-    // Wolf button: only wolves, with a cooldown ring.
-    const isWolf = role !== 'human';
-    this.el.wolfBtn.classList.toggle('hidden', !isWolf);
-    if (isWolf) {
+    // Wolf button: only a werewolf transforms. The master wolf is a wolf from
+    // the first frame to the last and has nothing to press (Build 38).
+    const canTransform = role === 'werewolf';
+    this.el.wolfBtn.classList.toggle('hidden', !canTransform);
+    if (canTransform) {
       const cooling = player.wolfCooldown / 10;
       this.el.wolfCool.style.setProperty('--cool', `${Math.round(cooling * 100)}%`);
-      this.el.wolfLabel.textContent = t(role === 'werewolf' && player.form === 'human' ? 'action.transform' : 'action.wolf');
+      this.el.wolfLabel.textContent = t(player.form === 'human' ? 'action.transform' : 'action.wolf');
     }
-    const canInfect = role === 'firstWolf' && !match.infectionUsed && player.wolfTimer > 0;
+    const canInfect = role === 'firstWolf' && !match.infectionUsed;
     this.el.infectBtn.classList.toggle('hidden', !canInfect);
 
     // Spectate bar while frozen: the camera is the player's own, panned with the
@@ -809,6 +815,11 @@ export class UI {
   hintFor(match) {
     const p = match.actors[0];
     if (p.state === 'frozen') return t('hud.hintFrozen');
+    // The classroom shutter is news for everyone on that floor.
+    const gim = match.lastGimmick;
+    if (gim && gim.kind === 'school' && gim.shut) {
+      return t('fx.schoolDoors', { n: Math.max(1, Math.ceil(gim.countdown || 0)) });
+    }
     if (p.role === 'human') {
       const nearFrozen = match.actors.some(
         (a) => a.state === 'frozen' && a.seat !== 0 && Math.hypot(a.x - p.x, a.z - p.z) < 2.6,
@@ -818,10 +829,12 @@ export class UI {
       if (match.settings.escape) return t('hud.hintSwitch');
       return t('hud.hintEscape');
     }
-    if (p.wolfTimer > 0) {
-      return p.role === 'firstWolf' && !match.infectionUsed ? t('hud.hintInfect') : t('hud.hintWolf');
+    if (p.role === 'firstWolf') {
+      const frozen = match.actors.some((a) => a.state === 'frozen' && a.role === 'human');
+      if (!match.infectionUsed && frozen) return t('hud.hintInfect');
+      return t('hud.hintMasterWolf');
     }
-    return p.role === 'werewolf' ? t('hud.hintTransform') : t('hud.hintWolf');
+    return p.wolfTimer > 0 ? t('hud.hintWolf') : t('hud.hintTransform');
   }
 
   updateHint() {

@@ -1,10 +1,10 @@
-# ICE WOLF — Three.js edition (v1.2.0 / Build 37)
+# ICE WOLF — Three.js edition (v1.2.0 / Build 38)
 
-氷の上で遊ぶ人狼ゲーム。見た目は全員同じ。
-人狼は5秒の「人狼モード」で触れた人間を凍らせ、人間は凍った仲間を救助し、
-スイッチでゲートを開けて脱出するか、時間まで生き残れば勝ちです。
+氷の上で遊ぶ人狼ゲーム。
+マスター鬼はずっと鬼で、触れるだけで人間を凍らせます。人狼鬼は5秒だけ変身して凍らせ、
+人間は凍った仲間を救助し、スイッチでゲートを開けて脱出するか、時間まで生き残れば勝ちです。
 
-このリポジトリは **v1.2.0 (Build 35) で GDevelop から Three.js に作り直し、Build 36 で音声・日本語起動・通知分離とステージの視認性、Build 37 で6ステージの2階形状と凍結カメラ・キャラ造形を直したもの** です。
+このリポジトリは **v1.2.0 (Build 35) で GDevelop から Three.js に作り直し、Build 36 で音声・日本語起動・通知分離とステージの視認性、Build 37 で6ステージの2階形状と凍結カメラ・キャラ造形、Build 38 で1F/2Fの別フロア化・広大化・マスター鬼の常時鬼・接触凍結・オープニング・カメラ・スイッチ表記・教室閉じ込めを直したもの** です。
 ゲーム本体は `src/` の素の ES モジュール + `vendor/three.module.js`（r160）。
 ビルドはファイルを `www/` に集めるだけで、バンドラも外部 CDN も使いません。
 iOS シェル（`ios/`）・Bundle ID `jp.signlink.IceWolf`・課金 `jp.signlink.IceWolf.pro`・
@@ -19,9 +19,9 @@ src/
   audio.js           WebAudio の効果音とBGM（バックグラウンド復帰対応）
   iap.js             StoreKit 2 プラグイン（IceWolfStoreKit）の呼び出し
   online.js          Supabase Realtime（Broadcast/Presence）のルームと同期
-  data/stages.js     6ステージの2階矩形・階段・壁・パッド・スイッチ候補・ギミック・配色
+  data/stages.js     6ステージの2つのホール（1F/2F）・階段/ワープ・壁・パッド・スイッチ候補・ギミック・配色
   core/rules.js      ルール（役・凍結・救助・スイッチ・ゲート・勝敗・ギミック）
-  core/geometry.js   デッキ形状から枠（外周壁・手すり・崖）と2階層ナビを導出
+  core/geometry.js   ホール形状から外周壁と2階層ナビ（階段・ワープをリンク）を導出
   core/ai.js         CPU（人間は救助とスイッチ、人狼は追跡と変身）
   render/            Three.js（ステージ・キャラ・エフェクト・カメラ）
 ```
@@ -44,12 +44,21 @@ npm run ios:build    # 署名して IPA（--upload で TestFlight）
 ## ゲームの中身
 
 - **6ステージ**：クラシック（無料）／深海水族館（無料）／霧の遊園地・雪山ロッジ・廃校・宇宙船（PRO）。
-  2階の形（東半分／中央の島／北バルコニー／L字／上下2分割／リング）、階段の位置、
-  ダッシュとワープの位置がステージごとに違う（Build 37）。
+  1Fと2Fは**積み重ねではなく、並んだ2つの広いホール**（各48×40m、Build 38）。カメラは
+  プレイヤーのいるホールへ移り、もう片方は氷の尾根の向こうで邪魔になりません。
+  階段ゾーン（乗ると別フロア）とワープゾーン（同じフロアの離れた2地点）は12m以上離し、
+  文字サインで区別しています。
+- **ステージごとの演出**：classic=吹雪の突風とオーロラ／aquarium=マンタ・魚群・水中の光／
+  park=回るメリーゴーラウンドとパレードの紙吹雪／lodge=吹雪とランタンの灯り／
+  school=チャイムで教室のシャッターが下りる閉じ込め／space=高重力セルとSFゲート。
+  どのギミックも始まるときに画面表示と音で知らせます。
 - **10人戦・人狼1〜2人・スイッチ3/5/7/10個（正解3/5）・1/2/3/5分**
-- **最初の鬼は試合中ずっと鬼**。人狼鬼（2人目）と罠で人狼鬼になった者だけが人間⇔鬼に変身できる。
+- **マスター鬼は試合中ずっと鬼**。鬼の姿と能力のまま、ボタン操作なしで**触れるだけで人間を凍らせます**（Build 38）。
+  人狼鬼（2人目）と罠で人狼鬼になった者だけが人間⇔鬼に変身し、変身中は触れるだけで凍らせます。
   人間状態の人狼鬼は救助対象になりません。
 - **鬼は最大3人**。2人狼で始まる試合は罠スイッチなし。
+- カメラは**DOROKEI方式**：プレイヤーとカメラの間に立つ外周壁・観覧車・教室のシャッター・氷の尾根は
+  半透明になり、高い障害物のそばでは少し持ち上がります（Build 38）。内壁は1.25mで、そもそも体を隠しません。
 - 凍結中は**自分中心の俯瞰カメラ**。スティックでキャラは動かず、カメラの注目点だけが動く（±18m）。
   `CAM` で自分中心に戻り、救助されれば自動で戻る。`‹ ›` は仲間へカメラを飛ばす（Build 37）。
 - 人間・人狼鬼・罠鬼は**人間状態なら全員同じ見た目**。役割はHUDの「役割」表示で分かる。
@@ -62,22 +71,22 @@ npm run ios:build    # 署名して IPA（--upload で TestFlight）
 - **オンライン**：合言葉6文字のルーム、ホスト権威（入力10Hz・スナップショット5Hz）、
   8種のスタンプは相手の言語で表示、ホスト退出時の引き継ぎ。
 
-## 検証（Build 37 で実行済み）
+## 検証（Build 38 で実行済み）
 
 | 検証 | 結果 |
 | --- | --- |
-| `npm test` | **151 pass / 0 fail** |
-| `npm run build` | `www/`（16モジュール・63ファイル・Build 37） |
-| `python3 scripts/ios/verify-ios-project.py --build-dir www` | **ALL CHECKS PASSED**（1.2.0 / 37・12言語の CFBundleLocalizations を含む） |
-| `npm run test:e2e`（実際の `www/` を Chromium で起動） | **84/84 checks** |
+| `npm test` | **141 pass / 0 fail** |
+| `npm run build` | `www/`（16モジュール・63ファイル・Build 38） |
+| `python3 scripts/ios/verify-ios-project.py --build-dir www` | **ALL CHECKS PASSED**（1.2.0 / 38・12言語の CFBundleLocalizations を含む） |
+| `npm run test:e2e`（実際の `www/` を Chromium で起動、日本語端末プロファイル） | **120/120 checks** |
 | 6ステージの到達性（ユニット） | 全スイッチ・ゲート・階段・ワープへ歩いて到達可能 |
-| 6ステージの2F形状（ユニット） | 6面すべて異なる・デッキ面積・20秒CPU試合で場外なし |
-| 階段とCPU（ユニット） | 全階段を歩いて昇れる／廊下を横切っても昇らない／CPUが2階スイッチを起動する |
+| 6ステージの2ホール（ユニット） | 重ならない2つの48×40m・両フロアのスイッチ・20秒CPU試合で場外なし |
+| 階段・ワープ（ユニット） | 階段でフロア移動／ワープは同じフロア内／階段とワープは12m以上離す |
 | `node tools/audit-stages.mjs` | all stages OK（開発用の一括監査） |
 
-実ブラウザ検証のスクリーンショットは `downloads/icewolf-threejs-*.png`
-（home / opening / settings / stages / 6ステージ / 救助・スイッチ / 結果 /
-英語・ヒンディー語・日本語の特大HUD）。
+実ブラウザ検証のスクリーンショットは `downloads/icewolf-b38-*.png`
+（opening / home / sheets / 6ステージ / 2F / 階段 / マスター鬼 / 教室閉じ込め /
+救助・スイッチ / 結果 / 英語・ヒンディー語・日本語の特大HUD）。
 
 ## iOS ビルド
 
@@ -87,7 +96,8 @@ Three.js 版は **`docs/ios-testflight-threejs.yml`** をそのままコピー�
 `.github/workflows/ios-testflight.yml` を上書きしてください。
 
 手順の詳細は `docs/v120-build35-threejs.md`、Build 36 の変更点は `docs/v120-build36-changes.md`、
-Build 37 の変更点は `docs/v120-build37-changes.md`、オンラインの設定は `docs/v110-online-setup.md`。
+Build 37 は `docs/v120-build37-changes.md`、Build 38 は `docs/v120-build38-changes.md`、
+オンラインの設定は `docs/v110-online-setup.md`。
 
 ## 旧版（GDevelop）
 

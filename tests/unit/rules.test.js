@@ -94,18 +94,38 @@ test('switches: 3/5/7/10 with 3 or 5 correct, on both floors', () => {
   }
 });
 
-test('a wolf freezes a human on contact, and only in Wolf Mode', () => {
+test('the master wolf freezes a human by touch alone, from the first frame', () => {
   const match = matchOf();
   const wolf = seat(match, 'firstWolf');
   const human = seat(match, 'human');
+  assert.equal(wolf.form, 'wolf', 'the master wolf is always in wolf form');
   human.x = wolf.x + 0.6;
   human.z = wolf.z;
   human.floor = wolf.floor;
+  // No button, no Wolf Mode, no cooldown: contact is enough (Build 38).
   stepMatch(match, 1 / 60, {});
-  assert.equal(human.state, 'active', 'no freeze without Wolf Mode');
-  stepMatch(match, 1 / 60, { [wolf.seat]: { wolf: true } });
   assert.equal(human.state, 'frozen');
-  assert.equal(wolf.wolfTimer, WOLF.modeSeconds, 'the mode started but the frame is not over');
+  assert.equal(wolf.wolfTimer, 0, 'the master wolf needs no mode timer');
+});
+
+test('the master wolf is a wolf for the whole match', () => {
+  const match = matchOf();
+  const wolf = seat(match, 'firstWolf');
+  for (let t = 0; t < 30; t += 0.5) stepMatch(match, 0.5, { [wolf.seat]: { wolf: true } });
+  assert.equal(wolf.form, 'wolf');
+  assert.equal(isWolfRole(wolf.role), true);
+  assert.equal(wolf.wolfTimer, 0);
+});
+
+test('touching the master wolf does not freeze a werewolf', () => {
+  const match = matchOf({ players: 8, wolves: 2 });
+  const first = seat(match, 'firstWolf');
+  const were = seat(match, 'werewolf');
+  were.x = first.x + 0.4;
+  were.z = first.z;
+  were.floor = first.floor;
+  stepMatch(match, 1 / 60, {});
+  assert.notEqual(were.state, 'frozen');
 });
 
 test('a werewolf in human form cannot freeze, and a human cannot freeze a werewolf', () => {
@@ -207,6 +227,10 @@ test('the trap never makes a fourth wolf', () => {
   wolf.z = victim.z;
   wolf.floor = victim.floor;
   infectFrozen(match, wolf, victim);
+  // Step the master wolf away: it freezes by touch now, and a rescuer standing
+  // on the ice it just left would be frozen before the rescue completes.
+  wolf.x = victim.x + 6;
+  wolf.z = victim.z;
   // Promote a third wolf through the trap switch path first.
   const third = match.actors.find((a) => a.role === 'human' && a !== victim);
   third.role = 'werewolf';
@@ -333,57 +357,52 @@ test('the aquarium current pushes a standing player downstream', () => {
   assert.ok(human.x > before, 'pushed east on floor 1');
 });
 
-function stairDir(dir) {
-  return dir === 'E' ? [1, 0] : dir === 'W' ? [-1, 0] : dir === 'N' ? [0, -1] : [0, 1];
-}
-
-test('stairs move a player between floors with a short climb', () => {
-  const match = matchOf();
-  const stair = match.stage.stairs.find((s) => s.floor === 1);
-  const human = match.actors.find((a) => a.role === 'human');
-  const [dx, dz] = stairDir(stair.dir);
-  human.x = stair.x - dx * 0.4;
-  human.z = stair.z - dz * 0.4;
-  human.floor = 1;
-  // Push into the stairwell: that is what a player does, and what the trigger
-  // now asks for (Build 37).
-  for (let i = 0; i < 30 && human.floor === 1; i += 1) {
-    stepMatch(match, 1 / 60, { [human.seat]: { mx: dx, mz: dz } });
-  }
-  assert.equal(human.floor, 2);
-  assert.ok(human.climb > 0);
-});
-
-test('standing on a stairwell is not the same as climbing it', () => {
+test('a stair zone carries a player into the other hall', () => {
   const match = matchOf();
   const stair = match.stage.stairs.find((s) => s.floor === 1);
   const human = match.actors.find((a) => a.role === 'human');
   human.x = stair.x;
   human.z = stair.z;
   human.floor = 1;
-  // No input at all: a body resting by the stairs stays on the ice.
+  stepMatch(match, 1 / 60, { [human.seat]: { mx: 0, mz: 0 } });
+  assert.equal(human.floor, 2, 'stepping on the zone is the whole gesture');
+  assert.ok(Math.hypot(human.x - stair.exitX, human.z - stair.exitZ) < 0.01);
+  assert.ok(human.climb > 0, 'the climb animation plays');
+  assert.ok(match.events.some((e) => e.type === 'stairs'));
+  // The landing is off the zone, so nobody bounces back and forth.
+  const landed = { x: human.x, z: human.z, floor: human.floor };
   for (let i = 0; i < 30; i += 1) stepMatch(match, 1 / 60, { [human.seat]: { mx: 0, mz: 0 } });
-  assert.equal(human.floor, 1);
+  assert.equal(human.floor, landed.floor);
+  assert.ok(Math.hypot(human.x - landed.x, human.z - landed.z) < 0.6);
 });
 
-test('walking past a stairwell in a corridor does not carry you upstairs', () => {
-  // The school puts both stairwells in the only east-west corridor. Crossing
-  // the corridor used to lift everybody onto the deck (Build 37 fixes it).
-  const match = matchOf({}, 'school');
-  for (const stair of match.stage.stairs.filter((s) => s.floor === 1)) {
-    const human = match.actors.find((a) => a.role === 'human' && a.state === 'active');
-    human.floor = 1;
-    human.x = stair.edgeX;
-    human.z = stair.edgeZ + 2.0 * (stair.dir === 'N' ? 1 : -1);
-    const before = { x: human.x, z: human.z };
-    for (let i = 0; i < 90; i += 1) {
-      stepMatch(match, 1 / 60, { [human.seat]: { mx: 1, mz: 0 } });
-      human.floor = 1; // the corridor is floor 1; keep the probe honest
-      human.y = 0;
-    }
-    assert.ok(Math.abs(human.x - before.x) > 0.5, 'the probe actually walked');
-    assert.equal(human.floor, 1, `walked past ${stair.id} and ended up on the deck`);
-  }
+test('the stair back returns the player to the first hall', () => {
+  const match = matchOf();
+  const up = match.stage.stairs.find((s) => s.floor === 1);
+  const human = match.actors.find((a) => a.role === 'human');
+  human.x = up.exitX;
+  human.z = up.exitZ;
+  human.floor = 2;
+  // Walk back onto the 2F mouth, which sits where the stair surfaces.
+  const down = match.stage.stairs.find((s) => s.floor === 2 && s.pair === up.pair);
+  human.x = down.x;
+  human.z = down.z;
+  stepMatch(match, 1 / 60, { [human.seat]: { mx: 0, mz: 0 } });
+  assert.equal(human.floor, 1);
+  assert.ok(Math.hypot(human.x - down.exitX, human.z - down.exitZ) < 0.01);
+});
+
+test('a warp moves the player inside their own floor', () => {
+  const match = matchOf();
+  const warp = match.stage.warps[0];
+  const human = match.actors.find((a) => a.role === 'human');
+  human.x = warp.x;
+  human.z = warp.z;
+  human.floor = warp.floor;
+  stepMatch(match, 1 / 60, { [human.seat]: { mx: 0, mz: 0 } });
+  assert.equal(human.floor, warp.floor, 'a warp never changes floor');
+  assert.ok(Math.hypot(human.x - warp.toX, human.z - warp.toZ) < 0.01);
+  assert.ok(human.warpCooldown > 0);
 });
 
 test('nobody leaves the arena over a busy minute (AI plays all six stages)', () => {
@@ -444,6 +463,7 @@ test('rescue range is 2.25 m', () => {
   assert.equal(beginRescue(match, far, victim), false);
 });
 
-test('ARENA deck sits at 5.5 m so a frozen label can stay put', () => {
-  assert.equal(ARENA.deckY, 5.5);
+test('both halls are flat, and the world holds the two of them side by side', () => {
+  assert.equal(ARENA.outerH > ARENA.wallH, true, 'outer walls are the tall ones');
+  assert.ok(ARENA.maxX - ARENA.minX > 100, 'two 48 m halls and the gap between them');
 });

@@ -36,7 +36,7 @@ CAP_CONFIG = REPO_ROOT / "capacitor.config.ts"
 DEFAULT_BUNDLE_ID = "jp.signlink.IceWolf"
 DEFAULT_TEAM_ID = "TGBNH8WJV6"
 DEFAULT_MARKETING_VERSION = "1.2.0"
-DEFAULT_BUILD_NUMBER = "37"
+DEFAULT_BUILD_NUMBER = "38"
 PRODUCT_ID = "jp.signlink.IceWolf.pro"
 
 failures: list[str] = []

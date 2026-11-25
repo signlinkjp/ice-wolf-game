@@ -1,48 +1,75 @@
 /**
- * ICE WOLF v1.2.0 (Build 37) — one place for every number that shapes a match.
+ * ICE WOLF v1.2.0 (Build 38) — one place for every number that shapes a match.
  *
  * The original GDevelop build (game.json) mixed rule numbers into an event
  * sheet. The Three.js build keeps every tuned value here so the rules, the AI,
  * the tests and the HUD all read the same constant.
  *
  * Units are metres and seconds. The old pixel arena was 1400 x 1400 with a
- * 260 px/s walk; the new arena is 48 x 36 m and the walk is 5.2 m/s, which keeps
- * the same "about three seconds to cross a room" feel on a phone.
+ * 260 px/s walk; the world is now two 48 x 40 m halls and the walk is 5.2 m/s,
+ * which keeps the same "about three seconds to cross a room" feel on a phone.
  */
 
 export const APP = {
   name: 'ICE WOLF',
   version: '1.2.0',
-  build: 37,
+  build: 38,
   productId: 'jp.signlink.IceWolf.pro',
   bundleId: 'jp.signlink.IceWolf',
 };
 
 /**
- * Arena frame shared by all six stages. The outer rink is the same; the raised
- * deck (2F) is not — each stage declares its own rectangles in `stage.deck`
- * (Build 37: east half, island, balcony, L, two bands, ring), and geometry.js
- * turns those into the cliff, the railings, the upper outer walls and the two
- * stairwells cut through them.
+ * The world frame. Build 38 stops stacking 2F on top of 1F: the two floors are
+ * two independent halls, side by side, each one 48 x 40 m, with a void (and a
+ * tall ice ridge) between them. The camera follows the player's hall, and
+ * nothing of the other floor is ever laid over the one being played.
+ *
+ * A stage declares the footprint of each hall in `stage.floors` (rectangles per
+ * floor); geometry.js derives the outer walls from that footprint.
  */
 export const ARENA = {
-  minX: -24,
-  maxX: 24,
-  minZ: -18,
-  maxZ: 18,
-  deckY: 5.5,
-  wallH: 1.4,
-  railH: 1.0,
+  minX: -56,
+  maxX: 56,
+  minZ: -22,
+  maxZ: 22,
+  /** The gap between the two halls, centred on x = 0. */
+  wingGap: 8,
+  /** Inner walls and obstacles stay below a character's eyeline (Build 38). */
+  wallH: 1.25,
+  /** The hall's outer wall: tall enough to read, faded by the camera when it
+   *  comes between the camera and the player (DOROKEI-style occlusion). */
+  outerH: 2.8,
   wallT: 0.8,
-  /** How far below the deck edge a stair flight starts. */
-  stairRun: 2.2,
+  /** The ice ridge in the gap: tall enough to hide the other hall. */
+  ridgeH: 8,
+  ridgeW: 3.2,
+  /** A player stepping on a marked zone switches floor / warps. */
+  stairRange: 1.9,
 };
 
 /** The frozen-player camera: self-centred, and how far the stick may pan it. */
 export const FROZEN_CAM = {
-  panX: 18,
-  panZ: 16,
+  panX: 20,
+  panZ: 18,
   speed: 13,
+};
+
+/** Third-person chase camera (Build 38: DOROKEI-style, steeper and aware). */
+export const CAMERA = {
+  /** Height above the floor in the normal chase view. */
+  height: 11.8,
+  /** How far behind the player the camera sits. */
+  behind: 9.2,
+  /** How far the camera leads the player in the direction of travel. */
+  lead: 1.1,
+  /** Overhead (frozen / top) view. */
+  topHeight: 21,
+  topBehind: 6.5,
+  /** A tall prop between camera and player fades to this opacity. */
+  occludedOpacity: 0.26,
+  /** Within this distance of a tall prop the camera rises a little. */
+  liftRange: 7,
+  lift: 2.6,
 };
 
 /** Player / actor. */
@@ -56,12 +83,16 @@ export const ACTOR = {
 
 /** Wolf rules. */
 export const WOLF = {
-  /** Wolf Mode (visible red ears, freezing touch) lasts this long. */
+  /** Wolf Mode (werewolf only: visible horns, freezing touch) lasts this long. */
   modeSeconds: 5,
   cooldownSeconds: 5,
-  /** Contact distance that freezes a human while a wolf is in Wolf Mode. */
-  freezeRange: 1.15,
-  /** A werewolf can turn one frozen human into a wolf-role ice cube. */
+  /**
+   * Contact distance that freezes a human. Build 38: contact alone freezes —
+   * for the master wolf always, for a werewolf while it is transformed. The
+   * range is a hair over the old one so a visible touch never fails to register.
+   */
+  freezeRange: 1.3,
+  /** The master wolf can turn one frozen human into wolf-role ice. */
   infectRange: 2.9,
   maxWolves: 3,
 };
@@ -86,6 +117,8 @@ export const PAD = {
   speedSeconds: 2.5,
   warpCooldown: 5,
   radius: 1.35,
+  /** A stair zone must be this far from every warp mouth (Build 38). */
+  stairWarpDistance: 12,
 };
 
 export const MATCH = {
@@ -133,12 +166,15 @@ export const ONLINE = {
 
 export const STORAGE = {
   language: 'iceWolfLanguage',
+  /** Set only when the player picks a language in the settings sheet. */
+  languageChosen: 'iceWolfLanguageChosen',
   settings: 'iceWolfSettingsV2',
   record: 'iceWolfRecord',
   pro: 'iceWolfProOwned',
   onlineConfig: 'iceWolfOnlineConfigV1',
   playerName: 'iceWolfPlayerName',
-  tutorial: 'iceWolfTutorialSeen',
+  /** Build 38 replays the (new) opening once per install, so this key is new. */
+  opening: 'iceWolfOpeningSeenV2',
 };
 
 export const DEFAULT_SETTINGS = {

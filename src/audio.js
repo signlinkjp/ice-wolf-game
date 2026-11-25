@@ -185,6 +185,12 @@ export class Audio {
         this.tone(880, 0.12, 'square', 0.12);
         setTimeout(() => this.tone(660, 0.12, 'square', 0.12), 140);
         break;
+      case 'door':
+        // A heavy classroom shutter: a low thud and a short metallic rattle.
+        this.tone(120, 0.32, 'sawtooth', 0.22, -40);
+        this.noise(0.26, 0.2, 700);
+        setTimeout(() => this.tone(96, 0.22, 'square', 0.16, -20), 120);
+        break;
       case 'win':
         [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => this.tone(f, 0.3, 'triangle', 0.22), i * 120));
         break;

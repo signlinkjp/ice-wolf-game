@@ -17,7 +17,6 @@
  * the stride is a stride. Running adds lean, bounce, arm swing and snow spray.
  */
 import * as THREE from '../../vendor/three.module.js';
-import { ARENA } from '../config.js';
 import { blobShadowTexture, labelTexture, standard, glow, texture } from './materials.js';
 
 const COSTUMES = {
@@ -293,7 +292,7 @@ export class ActorView {
 
     this.phase = Math.random() * Math.PI * 2;
     this.puffAt = 0;
-    this.position = new THREE.Vector3(actor.x, actor.floor === 2 ? ARENA.deckY : 0, actor.z);
+    this.position = new THREE.Vector3(actor.x, 0, actor.z);
     this.group.position.copy(this.position);
     this.onPuff = null;
   }
@@ -309,7 +308,7 @@ export class ActorView {
 
   update(dt, actor, opts = {}) {
     const frozen = actor.state === 'frozen' || actor.state === 'out';
-    const baseY = actor.frozenFloor ? (actor.frozenFloor === 2 ? ARENA.deckY : 0) : actor.floor === 2 ? ARENA.deckY : 0;
+    const baseY = 0;
     const x = actor.state === 'frozen' ? actor.frozenX ?? actor.x : actor.x;
     const z = actor.state === 'frozen' ? actor.frozenZ ?? actor.z : actor.z;
     const y = actor.state === 'frozen' ? baseY : actor.y ?? baseY;
@@ -318,7 +317,9 @@ export class ActorView {
     this.group.position.y += (y - this.group.position.y) * Math.min(1, dt * 14);
     this.group.visible = !actor.out;
 
-    const wolfOn = actor.wolfTimer > 0;
+    // Build 38: the master wolf wears the wolf body all match; a werewolf only
+    // while transformed. `form` is the one truth both the rules and the model use.
+    const wolfOn = actor.role !== 'human' && actor.form === 'wolf';
     this.wolf.visible = wolfOn;
     if (this.wolfRing) this.wolfRing.visible = wolfOn && !frozen && actor.state === 'active';
     this.body.visible = !frozen;

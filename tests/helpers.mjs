@@ -1,14 +1,14 @@
 import { STAGES, stageById } from '../src/data/stages.js';
-import { ARENA, ACTOR } from '../src/config.js';
+import { ARENA, ACTOR, PAD } from '../src/config.js';
 import {
   isWalkable,
   buildNav,
   findPath,
   blockedAt,
   wallsForFloor,
-  insideDeck,
+  insideFloor,
   floorAt,
-  deckBounds,
+  floorBounds,
   frameWalls,
   randomPointOn,
 } from '../src/core/geometry.js';
@@ -18,14 +18,15 @@ export {
   stageById,
   ARENA,
   ACTOR,
+  PAD,
   isWalkable,
   buildNav,
   findPath,
   blockedAt,
   wallsForFloor,
-  insideDeck,
+  insideFloor,
   floorAt,
-  deckBounds,
+  floorBounds,
   frameWalls,
   randomPointOn,
 };

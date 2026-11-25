@@ -1,24 +1,32 @@
 /**
  * The six arenas in 3D.
  *
- * Shared frame: a 48 x 36 m ice floor, a 5.5 m deck over its east half, and two
- * stairwells cut through the deck edge. Per stage: inner walls with snow caps,
- * a palette, wall/floor pictures from the existing asset folder, set dressing
- * and weather.
+ * Build 38: two separate halls, side by side (west = 1F, east = 2F), each one a
+ * 48 x 40 m ice floor walled off from the other. The void between them holds a
+ * tall ice ridge, so the hall you are not in is never laid over the one you are
+ * playing, and the camera never has to look through a floor.
+ *
+ * Per stage: inner walls with snow caps, a palette, wall/floor pictures from the
+ * existing asset folder, set dressing, weather and the gimmick show.
+ *
+ * Every interactive thing carries a sign written in the player's language:
+ * スイッチ on each switch, 階段 with the floor it leads to on each stair gate,
+ * ワープ on each warp mouth, and 1F / 2F on each hall. The signs are rebuilt when
+ * the language changes (refreshLabels).
  */
 import * as THREE from '../../vendor/three.module.js';
 import { ARENA } from '../config.js';
-import { wallsForFloor } from '../core/geometry.js';
-import { standard, texture, surface, glow, labelTexture } from './materials.js';
+import { wallsForFloor, floorRects } from '../core/geometry.js';
+import { t } from '../i18n.js';
+import { standard, surface, glow, labelTexture } from './materials.js';
 
 const WALL_H = ARENA.wallH;
-const RAIL_H = ARENA.railH;
 
 /**
- * Colours the player has to be able to name from across the rink, whatever
- * stage is behind them (Build 36). The ice is white-blue everywhere, so the
- * interactive furniture gets its own warm / magenta / green language instead of
- * borrowing the stage accent.
+ * Colours the player has to be able to name from across the hall, whatever
+ * stage is behind them. The ice is white-blue everywhere, so the interactive
+ * furniture gets its own warm / magenta / green language instead of borrowing
+ * the stage accent.
  */
 const MARK = {
   gold: '#ffb020',
@@ -35,6 +43,7 @@ const MARK = {
   magenta: '#ff3fd0',
   violet: '#b45cff',
   ink: '#1d2733',
+  ice: '#dff4ff',
 };
 
 /** Lift a palette colour past 1 so a dark texture still reads bright. */
@@ -50,222 +59,281 @@ function box(w, h, d, material, { cast = true, receive = true } = {}) {
   return m;
 }
 
-function makeFloor(stage) {
+/* ------------------------------------------------------------------ */
+/* Signs                                                               */
+/* ------------------------------------------------------------------ */
+
+function signSprite(text, { color = '#ffffff', background = 'rgba(12,28,52,0.84)', w = 2.7, h = 1.0 } = {}) {
+  const mat = new THREE.SpriteMaterial({
+    map: labelTexture(text, color, background),
+    transparent: true,
+    depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(w, h, 1);
+  return sprite;
+}
+
+/** A sign that knows how to rewrite itself when the language changes. */
+function makeSign(parent, key, params, y, opts = {}) {
+  const sprite = signSprite(t(key, params), opts);
+  sprite.position.set(opts.x || 0, y, opts.z || 0);
+  parent.add(sprite);
+  return { sprite, key, params, opts };
+}
+
+/* ------------------------------------------------------------------ */
+/* Floors                                                              */
+/* ------------------------------------------------------------------ */
+
+function makeFloors(stage) {
   const group = new THREE.Group();
   const floorTex = surface(stage.tex.floor, stage.palette.floor, 0.22, 12, 9);
-  // The deck gets a tint of the stage accent, so the 2F footprint reads as a
-  // different surface from any angle — the shape is the stage's signature now.
-  const deckTint = new THREE.Color(stage.palette.deck)
+  // The 2F hall gets a tint of the stage accent so the two halls never look
+  // like one room: the shape is each stage's signature.
+  const upperTint = new THREE.Color(stage.palette.deck)
     .lerp(new THREE.Color(stage.palette.accent), 0.34)
     .getStyle();
-  const deckTex = surface(stage.tex.floor, deckTint, 0.2, 5, 9);
-  const ice = standard({
-    map: floorTex,
-    color: '#ffffff',
-    roughness: 0.38,
-    metalness: 0.04,
-  });
-  const base = new THREE.Mesh(new THREE.BoxGeometry(48, 0.6, 36), ice);
-  base.position.set(0, -0.3, 0);
-  base.receiveShadow = true;
-  base.castShadow = false;
-  group.add(base);
-
-  // The deck (2F): one block per rectangle the stage declares, so the cliff
-  // face follows the island / balcony / L / band / ring outline exactly.
-  const deckSideMat = standard({
-    map: surface(stage.tex.wall, stage.palette.wallSide, 0.3, 5, 2),
-    color: '#ffffff',
-    roughness: 0.75,
-  });
-  const deckTopMat = standard({ map: deckTex, color: '#ffffff', roughness: 0.42 });
-  for (const r of stage.deck) {
-    const block = new THREE.Mesh(new THREE.BoxGeometry(r.w, 5.2, r.d), deckSideMat);
-    block.position.set(r.x, 2.7, r.z);
-    block.castShadow = true;
-    block.receiveShadow = true;
-    group.add(block);
-    const top = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.3, r.d), deckTopMat);
-    top.position.set(r.x, 5.35, r.z);
-    top.receiveShadow = true;
-    top.castShadow = false;
-    group.add(top);
-  }
-
-  // A pale rim around the ice so the arena reads as a rink, not a void.
+  const upperTex = surface(stage.tex.floor, upperTint, 0.2, 12, 9);
+  const ice = standard({ map: floorTex, color: '#ffffff', roughness: 0.38, metalness: 0.04 });
+  const upper = standard({ map: upperTex, color: '#ffffff', roughness: 0.42 });
   const rimMat = standard({ color: stage.palette.cap, roughness: 0.9 });
-  const rimN = box(49.6, 0.35, 0.6, rimMat);
-  rimN.position.set(0, 0.05, -18.3);
-  const rimS = rimN.clone();
-  rimS.position.z = 18.3;
-  const rimW = box(0.6, 0.35, 36.6, rimMat);
-  rimW.position.set(-24.3, 0.05, 0);
-  const rimE = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 36.6), rimMat);
-  rimE.position.set(23.9, 0.05, 0);
-  group.add(rimN, rimS, rimW, rimE);
 
-  // Rink markings: a centre circle and two lines per floor. They break up the
-  // big white sheet and give the eye a sense of speed. Each deck rectangle gets
-  // its own ring, so the 2F reads as the shape it is even from the ice.
-  const markMat = new THREE.MeshBasicMaterial({ color: stage.palette.accent, transparent: true, opacity: 0.35, depthWrite: false });
-  const marks = new THREE.Group();
-  const groundFloorCentre = stage.playerSpawn;
   for (const floor of [1, 2]) {
-    const y = (floor === 2 ? ARENA.deckY : 0) + 0.015;
-    const spots = floor === 2 ? stage.deck : [null];
-    for (const r of spots) {
-      const cx = floor === 2 ? r.x : groundFloorCentre.x;
-      const cz = floor === 2 ? r.z : 0;
-      const size = floor === 2 ? Math.min(r.w, r.d) * 0.28 : 3.2;
-      if (size < 1.4) continue;
-      const circle = new THREE.Mesh(new THREE.RingGeometry(size * 0.92, size, 40), markMat);
-      circle.rotation.x = -Math.PI / 2;
-      circle.position.set(cx, y, cz);
-      marks.add(circle);
-      const bandLen = floor === 2 ? Math.min(r.w, r.d) * 0.9 : 20;
-      for (const dir of [-1, 1]) {
-        const band = new THREE.Mesh(new THREE.PlaneGeometry(bandLen, 0.22), markMat);
-        band.rotation.x = -Math.PI / 2;
-        if (floor === 2) band.position.set(cx, y, cz + dir * Math.min(r.d / 2 - 0.8, 7));
-        else band.position.set(cx, y, cz + dir * 9);
-        marks.add(band);
-      }
+    for (const r of floorRects(stage, floor)) {
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.6, r.d), floor === 2 ? upper : ice);
+      slab.position.set(r.x, -0.3, r.z);
+      slab.receiveShadow = true;
+      slab.castShadow = false;
+      group.add(slab);
+
+      // A pale rim around each hall so it reads as a rink, not a void.
+      const rimN = box(r.w + 1.2, 0.35, 0.6, rimMat);
+      rimN.position.set(r.x, 0.05, r.z - r.d / 2 - 0.3);
+      const rimS = rimN.clone();
+      rimS.position.z = r.z + r.d / 2 + 0.3;
+      const rimW = box(0.6, 0.35, r.d + 1.2, rimMat);
+      rimW.position.set(r.x - r.w / 2 - 0.3, 0.05, r.z);
+      const rimE = rimW.clone();
+      rimE.position.x = r.x + r.w / 2 + 0.3;
+      group.add(rimN, rimS, rimW, rimE);
     }
   }
-  group.add(marks);
+
+  // Rink markings: a centre circle and two lines per hall, plus the floor
+  // number painted into the ice at the entrance of each hall.
+  const markMat = new THREE.MeshBasicMaterial({
+    color: stage.palette.accent,
+    transparent: true,
+    opacity: 0.32,
+    depthWrite: false,
+  });
+  for (const floor of [1, 2]) {
+    for (const r of floorRects(stage, floor)) {
+      const size = Math.min(r.w, r.d) * 0.2;
+      if (size < 1.4) continue;
+      const circle = new THREE.Mesh(new THREE.RingGeometry(size * 0.92, size, 48), markMat);
+      circle.rotation.x = -Math.PI / 2;
+      circle.position.set(r.x, 0.015, r.z);
+      group.add(circle);
+      for (const dir of [-1, 1]) {
+        const band = new THREE.Mesh(new THREE.PlaneGeometry(1.1, r.d * 0.78), markMat);
+        band.rotation.x = -Math.PI / 2;
+        band.position.set(r.x + dir * r.w * 0.22, 0.015, r.z);
+        group.add(band);
+      }
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(6.4, 3.2),
+        new THREE.MeshBasicMaterial({
+          map: labelTexture(`${floor}F`, 'rgba(255,255,255,0.92)', 'rgba(8,26,46,0.22)'),
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false,
+        }),
+      );
+      label.rotation.x = -Math.PI / 2;
+      label.position.set(r.x, 0.02, r.z + r.d * 0.34);
+      group.add(label);
+    }
+  }
   return group;
 }
 
+/* ------------------------------------------------------------------ */
+/* Walls                                                               */
+/* ------------------------------------------------------------------ */
+
 function makeWalls(stage) {
   const group = new THREE.Group();
+  const occluders = [];
   const wallTex = surface(stage.tex.wall, stage.palette.wall, 0.34, 2, 1);
   const sideTex = surface(stage.tex.wall, stage.palette.wallSide, 0.3, 2, 1);
   const capTex = surface(stage.tex.cap, stage.palette.cap, 0.25, 1, 1);
-  const wallMat = standard({ map: wallTex, color: '#ffffff', roughness: 0.8 });
+  const innerMat = standard({ map: wallTex, color: '#ffffff', roughness: 0.8 });
   const sideMat = standard({ map: sideTex, color: '#ffffff', roughness: 0.85 });
-  const capMat = standard({ map: capTex, color: '#ffffff', roughness: 0.95 });
-  const cliffMat = standard({ map: sideTex, color: '#ffffff', roughness: 0.8 });
-  const railMat = standard({ color: stage.palette.accent, roughness: 0.5, metalness: 0.2 });
+  const pillarMats = [];
 
   for (const floor of [1, 2]) {
     for (const w of wallsForFloor(stage, floor)) {
-      const h = w.kind === 'cliff' ? ARENA.deckY : w.kind === 'rail' ? RAIL_H : WALL_H;
-      const yBase = floor === 2 ? ARENA.deckY : 0;
-      const mat = w.kind === 'cliff' ? cliffMat : w.kind === 'rail' ? railMat : wallMat;
-      const mesh = box(w.w, h, w.d, mat);
-      mesh.position.set(w.x, yBase + h / 2, w.z);
+      const outer = w.kind === 'outer';
+      const h = outer ? ARENA.outerH : ARENA.wallH;
+      // Outer walls get their own materials so the camera can fade exactly the
+      // one standing between it and the player. Inner walls are low enough to
+      // never need it and share one material.
+      const wallMat = outer ? standard({ map: wallTex, color: '#ffffff', roughness: 0.8 }) : innerMat;
+      const capMat = standard({ map: capTex, color: '#ffffff', roughness: 0.95 });
+      const mesh = box(w.w, h, w.d, wallMat);
+      mesh.position.set(w.x, h / 2, w.z);
       group.add(mesh);
 
       // Snow on top of every wall (the Build 34 look, now real geometry).
-      if (w.kind !== 'rail') {
-        const cap = box(w.w + 0.16, 0.22, w.d + 0.16, capMat);
-        cap.position.set(w.x, yBase + h + 0.09, w.z);
-        group.add(cap);
-      }
-      if (w.kind === 'wall' && Math.max(w.w, w.d) > 4) {
+      const cap = box(w.w + 0.16, 0.22, w.d + 0.16, capMat);
+      cap.position.set(w.x, h + 0.09, w.z);
+      group.add(cap);
+
+      if (Math.max(w.w, w.d) > 4) {
         // Pilasters give long walls a rhythm instead of one flat slab.
         const along = Math.max(w.w, w.d);
         const count = Math.max(2, Math.floor(along / 4));
         const pillarMat = new THREE.MeshStandardMaterial({ color: stage.palette.accent, roughness: 0.6 });
+        pillarMats.push(pillarMat);
         for (let i = 1; i < count; i += 1) {
-          const t = i / count;
-          const pillar = box(w.w > w.d ? 0.34 : w.w + 0.2, WALL_H * 0.82, w.w > w.d ? w.d + 0.2 : 0.34, pillarMat, { cast: false });
+          const k = i / count;
+          const pillar = box(w.w > w.d ? 0.34 : w.w + 0.2, h * 0.82, w.w > w.d ? w.d + 0.2 : 0.34, pillarMat, { cast: false });
           pillar.position.set(
-            w.w > w.d ? w.x - w.w / 2 + w.w * t : w.x,
-            yBase + WALL_H * 0.41,
-            w.w > w.d ? w.z : w.z - w.d / 2 + w.d * t,
+            w.w > w.d ? w.x - w.w / 2 + w.w * k : w.x,
+            h * 0.41,
+            w.w > w.d ? w.z : w.z - w.d / 2 + w.d * k,
           );
           group.add(pillar);
         }
       }
-      if (w.kind === 'wall' && w.w > 2) {
+      if (w.w > 2) {
         // A darker plinth keeps big walls from looking like floating slabs.
         const plinth = box(w.w + 0.08, 0.3, w.d + 0.08, sideMat);
-        plinth.position.set(w.x, yBase + 0.15, w.z);
+        plinth.position.set(w.x, 0.15, w.z);
         group.add(plinth);
         const stripe = box(w.w + 0.1, 0.12, w.d + 0.1, new THREE.MeshBasicMaterial({ color: stage.palette.accent }));
-        stripe.position.set(w.x, yBase + h - 0.35, w.z);
+        stripe.position.set(w.x, h - 0.35, w.z);
         group.add(stripe);
+      }
+      if (outer) {
+        occluders.push({
+          solid: {
+            x: w.x,
+            z: w.z,
+            hw: w.w / 2,
+            hd: w.d / 2,
+            h,
+            mats: [wallMat, capMat],
+            fade: 1,
+          },
+        });
       }
     }
   }
-  return group;
+  return { group, occluders };
 }
 
+/**
+ * The ice ridge that fills the gap between the two halls. Tall enough that the
+ * far hall is hidden behind it from any chase camera, and it fades out if the
+ * player ever stands between it and the camera looking back.
+ */
+function makeRidge(stage) {
+  const group = new THREE.Group();
+  const height = ARENA.ridgeH;
+  const width = ARENA.ridgeW;
+  const mat = standard({ color: stage.palette.wallSide, roughness: 0.55, metalness: 0.08 });
+  const snow = standard({ color: stage.palette.cap, roughness: 0.9 });
+  const mats = [mat, snow];
+  const length = ARENA.maxZ - ARENA.minZ;
+  const body = box(width, height, length, mat, { cast: true });
+  body.position.set(0, height / 2 - 0.2, 0);
+  group.add(body);
+  // Jagged crest.
+  for (let i = 0; i < 12; i += 1) {
+    const z = ARENA.minZ + ((i + 0.5) / 12) * length;
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(1.0 + (i % 3) * 0.24, 2.4 + (i % 4) * 0.8, 5),
+      i % 2 ? snow : mat,
+    );
+    cone.position.set((i % 2 ? 0.5 : -0.6), height - 0.3, z);
+    cone.rotation.y = i;
+    group.add(cone);
+  }
+  return { group, solid: { x: 0, z: 0, hw: width / 2 + 0.4, hd: length / 2, h: height, mats, fade: 1 } };
+}
+
+/* ------------------------------------------------------------------ */
+/* Stair gates, warps, pads                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A stair zone is a marked gate, not a slope (Build 38): a wooden arch with
+ * three steps and a sign that names the floor it leads to. Standing in the ring
+ * carries you across.
+ */
 function makeStairs(stage) {
   const group = new THREE.Group();
-  // Warm wood against blue ice: the flight reads as a way up, not a wall.
+  const labels = [];
   const tread = standard({ color: MARK.wood, roughness: 0.72 });
   const edge = new THREE.MeshBasicMaterial({ color: MARK.goldBright });
   const railMat = standard({ color: '#eda94f', roughness: 0.45, metalness: 0.3 });
-  const marker = glow(MARK.amberSoft, 0.45);
-  const arrow = glow(MARK.amberSoft, 0.92);
+  const marker = glow(MARK.amberSoft, 0.5);
+  const arrow = glow(MARK.amberSoft, 0.95);
 
-  // One flight per stage-declared stairwell: built along local +x and turned so
-  // it climbs east, west, north or south out of the deck face.
-  for (const stair of stage.stairs.filter((s) => s.floor === 1)) {
-    const flight = new THREE.Group();
-    const steps = 12;
-    const run = Math.max(1.8, ARENA.stairRun);
-    const y0 = 0.15;
-    const rise = ARENA.deckY - y0 - 0.15;
-    for (let i = 0; i < steps; i += 1) {
-      const t = i / (steps - 1);
-      const x = -run + t * run;
-      const y = y0 + t * rise;
-      const step = box(0.34, 0.26, stair.w - 0.5, tread);
-      step.position.set(x, y, 0);
-      flight.add(step);
-      const lip = box(0.09, 0.1, stair.w - 0.45, edge);
-      lip.position.set(x - 0.16, y + 0.09, 0);
-      flight.add(lip);
+  for (const stair of stage.stairs) {
+    const g = new THREE.Group();
+    // The three steps that make it read as a staircase.
+    for (let i = 0; i < 3; i += 1) {
+      const step = box(1.5 - i * 0.18, 0.22 + i * 0.22, 2.2 - i * 0.2, tread);
+      step.position.set(0, 0.11 + i * 0.11, 0);
+      g.add(step);
+      const lip = box(1.5 - i * 0.18, 0.05, 0.12, edge);
+      lip.position.set(0, 0.24 + i * 0.22, 0.95);
+      g.add(lip);
     }
-    const angle = Math.atan2(rise, run);
-    const diag = Math.hypot(run, rise);
-    const midY = y0 + rise / 2;
-    for (const side of [-1, 1]) {
-      const zPost = side * (stair.w / 2 - 0.1);
-      const pole = box(0.12, 1.05, 0.12, railMat);
-      pole.position.set(-1.15, 0.62, zPost);
-      flight.add(pole);
+    // The arch: two posts and a lintel, so it reads from across the hall.
+    for (const sx of [-1, 1]) {
+      const post = box(0.2, 3.0, 0.2, railMat);
+      post.position.set(sx * 1.35, 1.5, 0);
+      g.add(post);
       const cap = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), glow(MARK.amberSoft, 0.95));
-      cap.position.set(-1.15, 1.22, zPost);
-      flight.add(cap);
-      const board = box(diag, 0.14, 0.1, railMat);
-      board.position.set(-run / 2, midY - 0.12, side * (stair.w / 2 - 0.06));
-      board.rotation.z = -angle;
-      flight.add(board);
+      cap.position.set(sx * 1.35, 3.1, 0);
+      g.add(cap);
     }
-    // The foot: a warm ring and two chevrons on the ice, pointing up.
-    const ring = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.35, 26), marker);
+    const lintel = box(3.0, 0.24, 0.3, railMat);
+    lintel.position.set(0, 3.05, 0);
+    g.add(lintel);
+    // A warm ring on the ice: this is the zone that carries you.
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.25, 1.8, 34), marker);
     ring.rotation.x = -Math.PI / 2;
-    ring.rotation.z = -Math.PI / 2;
-    ring.position.set(-2.5, 0.03, 0);
-    flight.add(ring);
-    for (const [ax, size] of [[-3.8, 0.34], [-3.1, 0.42]]) {
+    ring.position.set(0, 0.03, 0);
+    g.add(ring);
+    for (const [ax, size] of [[-1.9, 0.3], [-1.25, 0.38]]) {
       const chevron = new THREE.Mesh(new THREE.ConeGeometry(size, size * 1.7, 3), arrow);
-      chevron.rotation.z = -Math.PI / 2;
+      chevron.rotation.x = Math.PI / 2;
       chevron.position.set(ax, 0.16, 0);
-      flight.add(chevron);
+      g.add(chevron);
     }
-    // And the landing on the deck where a 2F player walks down.
-    const landing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.22, 26), marker);
-    landing.rotation.x = -Math.PI / 2;
-    landing.position.set(1.6, ARENA.deckY + 0.03, 0);
-    flight.add(landing);
-
-    flight.position.set(stair.edgeX, 0, stair.edgeZ);
-    flight.rotation.y = stair.dir === 'E' ? 0 : stair.dir === 'W' ? Math.PI : stair.dir === 'N' ? Math.PI / 2 : -Math.PI / 2;
-    group.add(flight);
+    g.position.set(stair.x, 0, stair.z);
+    group.add(g);
+    const sign = makeSign(g, 'sign.stairs', { f: stair.toFloor }, 3.9, {
+      background: 'rgba(120,72,12,0.9)',
+      color: '#fff3cf',
+      w: 3.0,
+      h: 1.05,
+    });
+    labels.push(sign);
   }
-  return group;
+  return { group, labels };
 }
 
 function makePads(stage) {
   const group = new THREE.Group();
   const discs = [];
   const spin = [];
-  const warpRings = [];
 
   const ringFor = (color, radius = 1.25) => {
     const ring = new THREE.Mesh(
@@ -277,7 +345,6 @@ function makePads(stage) {
   };
 
   for (const pad of stage.pads) {
-    const y = (pad.floor === 2 ? ARENA.deckY : 0) + 0.03;
     const g = new THREE.Group();
     const ring = ringFor(stage.palette.accent2);
     const inner = new THREE.Mesh(
@@ -285,7 +352,6 @@ function makePads(stage) {
       new THREE.MeshBasicMaterial({ color: stage.palette.accent2, transparent: true, opacity: 0.16, depthWrite: false }),
     );
     inner.rotation.x = -Math.PI / 2;
-    // Two chevrons pointing the way the booster sends you.
     for (const dx of [-0.28, 0.28]) {
       const chev = new THREE.Mesh(
         new THREE.ConeGeometry(0.26, 0.5, 3),
@@ -298,16 +364,25 @@ function makePads(stage) {
       spin.push({ mesh: chev, speed: 1.5 });
     }
     g.add(ring, inner);
-    g.position.set(pad.x, y, pad.z);
+    g.position.set(pad.x, 0.03, pad.z);
     group.add(g);
     discs.push(g);
   }
 
+  const update = (dt) => {
+    for (const s of spin) s.mesh.rotation.z += dt * s.speed;
+  };
+  return { group, update };
+}
+
+/** A warp pair: two mouths on the same floor, mag-minutes and violet, signed. */
+function makeWarps(stage) {
+  const group = new THREE.Group();
+  const labels = [];
+  const spin = [];
+  const rings = [];
   for (const warp of stage.warps) {
-    const y = (warp.floor === 2 ? ARENA.deckY : 0) + 0.04;
     const g = new THREE.Group();
-    // Magenta and violet only: nothing else on any stage uses them, so a warp
-    // can never be mistaken for ice or for a speed pad.
     const outer = new THREE.Mesh(
       new THREE.RingGeometry(1.05, 1.3, 40),
       new THREE.MeshBasicMaterial({ color: MARK.magenta, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }),
@@ -349,20 +424,22 @@ function makePads(stage) {
       sparks.push({ mesh: spark, angle, phase: i / 8 });
     }
     g.add(outer, inner, core, column, aura);
-    g.position.set(warp.x, y, warp.z);
+    g.position.set(warp.x, 0.04, warp.z);
     group.add(g);
-    discs.push(g);
+    labels.push(makeSign(g, 'sign.warp', {}, 3.6, {
+      background: 'rgba(78,16,96,0.9)',
+      color: '#ffe3ff',
+      w: 2.6,
+      h: 0.92,
+    }));
     spin.push({ mesh: outer, speed: 0.9 });
     spin.push({ mesh: inner, speed: -1.5 });
-    warpRings.push({ group: g, outer, inner, column, sparks });
+    rings.push({ group: g, outer, inner, column, sparks });
   }
-
   const update = (dt) => {
     for (const s of spin) s.mesh.rotation.z += dt * s.speed;
-    for (const d of discs) d.position.y += 0;
     const now = performance.now() / 1000;
-    for (const w of warpRings) {
-      // Rings breathe, and sparks climb the column so a warp reads as active.
+    for (const w of rings) {
       const pulse = 1 + Math.sin(now * 3 + w.group.position.x) * 0.07;
       w.outer.scale.setScalar(pulse);
       w.inner.scale.setScalar(1.14 - (pulse - 1));
@@ -374,12 +451,15 @@ function makePads(stage) {
       }
     }
   };
-  return { group, update };
+  return { group, update, labels };
 }
 
-function makeSwitch(stage, spot) {
+/* ------------------------------------------------------------------ */
+/* Switches                                                            */
+/* ------------------------------------------------------------------ */
+
+function makeSwitch(stage, spot, labels) {
   const group = new THREE.Group();
-  const baseY = spot.floor === 2 ? ARENA.deckY : 0;
   // A dark bronze plinth and a gold ring lift the switch off the white ice.
   const plinth = new THREE.Mesh(
     new THREE.CylinderGeometry(1.02, 1.12, 0.18, 22),
@@ -406,7 +486,7 @@ function makeSwitch(stage, spot) {
     standard({ color: '#8a5c12', metalness: 0.5, roughness: 0.4 }),
   );
   collar.position.y = 1.26;
-  // The big amber lamp and its halo: findable across the rink.
+  // The big amber lamp and its halo: findable across the hall.
   const core = new THREE.Mesh(
     new THREE.CylinderGeometry(0.36, 0.42, 0.36, 16),
     standard({ color: MARK.goldBright, emissive: '#ff9500', emissiveIntensity: 1.5, roughness: 0.25 }),
@@ -426,13 +506,23 @@ function makeSwitch(stage, spot) {
   );
   gem.position.y = 2.12;
   group.add(plinth, goldRing, floorRing, pillar, rim, collar, core, halo, beam, gem);
-  group.position.set(spot.x, baseY, spot.z);
+  // Build 38: the word for it, floating over the lamp, readable from far off.
+  labels.push(makeSign(group, 'sign.switch', {}, 3.45, {
+    background: 'rgba(92,58,6,0.92)',
+    color: '#fff1c2',
+    w: 2.9,
+    h: 1.0,
+  }));
+  group.position.set(spot.x, 0, spot.z);
   return { group, core, halo, beam, gem, floorRing, goldRing, spot };
 }
 
+/* ------------------------------------------------------------------ */
+/* Gates                                                               */
+/* ------------------------------------------------------------------ */
+
 function makeGate(stage, gate) {
   const group = new THREE.Group();
-  const y = gate.floor === 2 ? ARENA.deckY : 0;
   const exitClosed = labelTexture('EXIT', '#ffffff', 'rgba(206,44,22,0.96)');
   const exitOpen = labelTexture('EXIT', '#06301f', 'rgba(70,255,166,0.96)');
   const frameMat = standard({ color: MARK.ink, roughness: 0.35, metalness: 0.6 });
@@ -482,7 +572,7 @@ function makeGate(stage, gate) {
   floorRing.rotation.x = -Math.PI / 2;
   floorRing.position.y = 0.03;
   group.add(left, right, top, door, sign, signBack, floorRing, lintel);
-  group.position.set(gate.x, y, gate.z);
+  group.position.set(gate.x, 0, gate.z);
   group.rotation.y = gate.facing === 'west' ? Math.PI / 2 : gate.facing === 'north' ? 0 : -Math.PI / 2;
   return { group, door, light: lamps[0], lamps, sign, signBack, floorRing, lintel, doorMat, doorBaseY: 1.55, exitClosed, exitOpen };
 }
@@ -493,7 +583,6 @@ function makeGate(stage, gate) {
 
 function prop(stage, p) {
   const g = new THREE.Group();
-  const y = p.floor === 2 ? ARENA.deckY : 0;
   const accent = stage.palette.accent;
   const accent2 = stage.palette.accent2;
   switch (p.type) {
@@ -674,7 +763,7 @@ function prop(stage, p) {
     default:
       break;
   }
-  g.position.set(p.x, y, p.z);
+  g.position.set(p.x, 0, p.z);
   return g;
 }
 
@@ -683,14 +772,16 @@ function prop(stage, p) {
 /* ------------------------------------------------------------------ */
 
 function makeWeather(stage) {
-  const count = stage.weather === 'stars' ? 260 : 420;
+  const count = stage.weather === 'stars' ? 300 : 520;
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(count * 3);
   const seed = new Float32Array(count);
+  const spanX = ARENA.maxX - ARENA.minX;
+  const spanZ = ARENA.maxZ - ARENA.minZ;
   for (let i = 0; i < count; i += 1) {
-    pos[i * 3] = (Math.random() - 0.5) * 54;
+    pos[i * 3] = (Math.random() - 0.5) * spanX;
     pos[i * 3 + 1] = Math.random() * 16;
-    pos[i * 3 + 2] = (Math.random() - 0.5) * 42;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * spanZ;
     seed[i] = Math.random();
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -725,11 +816,11 @@ function makeWeather(stage) {
         arr[k] += dt * (0.4 + s);
         if (arr[k + 1] < 0) {
           arr[k + 1] = 14 + s * 3;
-          arr[k] = (Math.random() - 0.5) * 54;
-          arr[k + 2] = (Math.random() - 0.5) * 42;
+          arr[k] = (Math.random() - 0.5) * spanX;
+          arr[k + 2] = (Math.random() - 0.5) * spanZ;
         }
       }
-      if (arr[k] > 27) arr[k] = -27;
+      if (arr[k] > spanX / 2) arr[k] = -spanX / 2;
     }
     geo.attributes.position.needsUpdate = true;
   };
@@ -740,14 +831,6 @@ function makeWeather(stage) {
 /* Stage shows: the gimmick made visible                                */
 /* ------------------------------------------------------------------ */
 
-/**
- * Build 37: each gimmick gets one unmistakable actor in the scene.
- *   aquarium — a manta glides over the rink while the current pushes
- *   park     — parade floats run the balcony while the boost is on
- *   lodge    — a blizzard wall of sleet blows across while the ice is slick
- *   school   — a chime beacon over each shutter, amber warning then red
- *   space    — gravity rings light up on the six high-gravity cells
- */
 function makeShow(stage) {
   const group = new THREE.Group();
   const accent = stage.palette.accent;
@@ -780,20 +863,18 @@ function makeShow(stage) {
     tail.rotation.x = -Math.PI / 2;
     tail.position.set(0, 0, -3.0);
     manta.add(body, tail);
-    manta.position.set(-20, 3.4, 0);
+    manta.position.set(HALL_CENTRE_LOCAL(1) - 20, 3.4, 0);
     group.add(manta);
     show.manta = manta;
     show.update = (dt, gim, now) => {
       const on = Boolean(gim && gim.manta);
       manta.visible = on || (gim && gim.kind === 'aquarium');
-      const t = now / 1000;
-      const phase = (t * 0.12) % 1;
-      manta.position.set(-22 + phase * 44, 3.2 + Math.sin(t * 0.8) * 0.35, Math.sin(t * 0.5) * 6);
-      manta.rotation.y = Math.PI / 2 + Math.sin(t * 0.4) * 0.25;
-      manta.rotation.z = Math.sin(t * 1.4) * (on ? 0.22 : 0.08);
-      for (const fin of manta.children) fin.rotation.z = (fin.userData.sign || 0);
-      if (gim && gim.manta) {
-        // Bubbles trailing the manta while it pushes the current.
+      const time = now / 1000;
+      const phase = (time * 0.12) % 1;
+      manta.position.set(-54 + phase * 64, 3.2 + Math.sin(time * 0.8) * 0.35, Math.sin(time * 0.5) * 6);
+      manta.rotation.y = Math.PI / 2 + Math.sin(time * 0.4) * 0.25;
+      manta.rotation.z = Math.sin(time * 1.4) * (on ? 0.22 : 0.08);
+      if (on) {
         if (Math.random() < dt * 12) {
           const b = new THREE.Mesh(
             new THREE.SphereGeometry(0.09 + Math.random() * 0.06, 6, 5),
@@ -830,26 +911,26 @@ function makeShow(stage) {
       lights.rotation.x = -Math.PI / 2;
       lights.position.y = 0.12;
       cart.add(lights);
-      cart.position.set(spot.x, spot.floor === 2 ? ARENA.deckY : 0, spot.z);
+      cart.position.set(spot.x, 0, spot.z);
       group.add(cart);
       show.floats.push({ cart, spot, phase: i * 1.7 });
     });
     show.update = (dt, gim, now) => {
       const on = Boolean(gim && gim.parade);
-      const t = now / 1000;
+      const time = now / 1000;
       for (const f of show.floats) {
         f.cart.visible = true;
-        const drift = on ? Math.sin(t * 0.9 + f.phase) * 2.4 : 0;
+        const drift = on ? Math.sin(time * 0.9 + f.phase) * 2.4 : 0;
         f.cart.position.x = f.spot.x + drift;
-        f.cart.position.y = (f.spot.floor === 2 ? ARENA.deckY : 0) + (on ? Math.abs(Math.sin(t * 5 + f.phase)) * 0.14 : 0);
-        f.cart.rotation.y = on ? Math.cos(t * 0.9 + f.phase) * 0.2 : 0;
+        f.cart.position.y = on ? Math.abs(Math.sin(time * 5 + f.phase)) * 0.14 : 0;
+        f.cart.rotation.y = on ? Math.cos(time * 0.9 + f.phase) * 0.2 : 0;
       }
     };
     return show;
   }
 
   if (g.kind === 'lodge') {
-    const count = 260;
+    const count = 280;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
     const speed = new Float32Array(count);
@@ -883,15 +964,13 @@ function makeShow(stage) {
   if (g.kind === 'school') {
     for (const door of g.doors) {
       const beacon = new THREE.Group();
-      // A slim lamp housing over the doorway: dim while the corridor is open,
-      // amber while the chime warns, red while the shutter is down.
       const bar = new THREE.Mesh(new THREE.BoxGeometry(Math.min(door.w, 3.4), 0.14, 0.18), new THREE.MeshBasicMaterial({ color: '#7f8b7a' }));
       bar.position.y = 2.9;
       const lampMat = new THREE.MeshBasicMaterial({ color: '#9ba894' });
       const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), lampMat);
       lamp.position.y = 2.9;
       beacon.add(bar, lamp);
-      beacon.position.set(door.x, door.floor === 2 ? ARENA.deckY : 0, door.z);
+      beacon.position.set(door.x, 0, door.z);
       group.add(beacon);
       show.beacon.push({ beacon, bar, lamp, lampMat });
     }
@@ -909,9 +988,8 @@ function makeShow(stage) {
   }
 
   if (g.kind === 'space') {
-    show.update = (dt, gim, now, match) => {
+    show.update = (dt, gim, now) => {
       const cells = (gim && gim.cells) || [];
-      // Rebuild when the set of cells changes (one seeded set per match).
       const key = cells.map((c) => `${c.x.toFixed(1)},${c.z.toFixed(1)}`).join('|');
       if (show.ringKey !== key) {
         for (const r of show.rings) group.remove(r.mesh);
@@ -921,7 +999,7 @@ function makeShow(stage) {
             new THREE.MeshBasicMaterial({ color: '#8f7bff', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }),
           );
           mesh.rotation.x = -Math.PI / 2;
-          mesh.position.set(c.x, (c.floor === 2 ? ARENA.deckY : 0) + 0.03, c.z);
+          mesh.position.set(c.x, 0.03, c.z);
           group.add(mesh);
           return { mesh, cell: c };
         });
@@ -929,13 +1007,13 @@ function makeShow(stage) {
       }
       const warn = Boolean(gim && gim.warn);
       const active = Boolean(gim && gim.gravity);
-      const t = now / 1000;
+      const time = now / 1000;
       for (const r of show.rings) {
         r.mesh.visible = warn || active;
         const mat = r.mesh.material;
         mat.color.set(active ? '#ff4d6d' : '#8f7bff');
-        mat.opacity = active ? 0.55 + Math.sin(t * 8 + r.cell.x) * 0.2 : 0.25 + Math.sin(t * 6 + r.cell.z) * 0.15;
-        r.mesh.scale.setScalar(active ? 1 + Math.sin(t * 6) * 0.05 : 1);
+        mat.opacity = active ? 0.55 + Math.sin(time * 8 + r.cell.x) * 0.2 : 0.25 + Math.sin(time * 6 + r.cell.z) * 0.15;
+        r.mesh.scale.setScalar(active ? 1 + Math.sin(time * 6) * 0.05 : 1);
       }
     };
     return show;
@@ -944,19 +1022,370 @@ function makeShow(stage) {
   return show;
 }
 
+function HALL_CENTRE_LOCAL(floor) {
+  return floor === 2 ? 28 : -28;
+}
+
 /* ------------------------------------------------------------------ */
+
+/** Tall things that can sit between the camera and the player. */
+/* ------------------------------------------------------------------ */
+/* Ambience: what makes each stage feel like itself                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Build 38: every stage has a set that actually moves. These are pure show —
+ * nothing here changes the rules; it is what the player sees while running.
+ *   classic  aurora curtains, ice pillars, drifting ground mist
+ *   aquarium a fish school, light shafts, slow drifting bubbles
+ *   park     a turning merry-go-round and parade confetti
+ *   lodge    warm lanterns and window glow under the blizzard
+ *   space    an SF gate, floating asteroids, star streaks
+ */
+function makeAmbience(stage) {
+  const group = new THREE.Group();
+  const id = stage.id;
+  let update = () => {};
+  const hall1 = floorRects(stage, 1)[0];
+  const hall2 = floorRects(stage, 2)[0];
+  const centre1 = hall1 ? { x: hall1.x, z: hall1.z } : { x: -28, z: 0 };
+  const centre2 = hall2 ? { x: hall2.x, z: hall2.z } : { x: 28, z: 0 };
+
+  if (id === 'classic') {
+    const curtains = [];
+    const colours = ['#7dffd0', '#9ad4ff', '#c58bff'];
+    for (let i = 0; i < 3; i += 1) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: colours[i],
+        transparent: true,
+        opacity: 0.1,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const curtain = new THREE.Mesh(new THREE.PlaneGeometry(62, 16, 1, 1), mat);
+      curtain.position.set(i % 2 ? centre2.x : centre1.x, 12.5 + i * 0.8, -10 + i * 9);
+      curtain.rotation.x = -0.22;
+      curtain.rotation.z = -0.12 + i * 0.1;
+      group.add(curtain);
+      curtains.push({ mesh: curtain, mat, phase: i * 2.1 });
+    }
+    // Ice pillars: tall, clear, half sunk into the rink at both ends.
+    const iceMat = new THREE.MeshStandardMaterial({
+      color: '#cdefff',
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.08,
+      metalness: 0.1,
+      emissive: '#5ec8ff',
+      emissiveIntensity: 0.15,
+    });
+    const pillars = [];
+    for (const [cx, u, z, hh] of [[centre1.x, -20, -16, 4.2], [centre1.x, 20, -16, 3.4], [centre1.x, -20, 16, 3.6], [centre1.x, 20, 16, 4.6], [centre2.x, -20, 16, 4.0], [centre2.x, 20, -16, 3.8]]) {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.62, hh, 6), iceMat);
+      p.position.set(cx + u, hh / 2 - 0.2, z);
+      p.rotation.y = u * 0.1;
+      group.add(p);
+      pillars.push(p);
+    }
+    const mistMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.05, depthWrite: false });
+    const mist = new THREE.Mesh(new THREE.PlaneGeometry(90, 40), mistMat);
+    mist.rotation.x = -Math.PI / 2;
+    mist.position.set(0, 0.4, 0);
+    group.add(mist);
+    update = (dt, gim, now) => {
+      const gust = Boolean(gim && gim.gust);
+      const time = now / 1000;
+      for (const c of curtains) {
+        c.mat.opacity = (gust ? 0.2 : 0.08) + Math.sin(time * 0.9 + c.phase) * 0.04;
+        c.mesh.position.x += Math.sin(time * 0.3 + c.phase) * dt * 1.6;
+        c.mesh.rotation.z = -0.12 + c.phase * 0.05 + Math.sin(time * 0.4 + c.phase) * 0.05;
+      }
+      for (let i = 0; i < pillars.length; i += 1) {
+        pillars[i].material.emissiveIntensity = 0.12 + Math.sin(time * 1.4 + i) * (gust ? 0.16 : 0.05);
+      }
+      mistMat.opacity = gust ? 0.12 + Math.sin(time * 6) * 0.03 : 0.04;
+    };
+    return { group, update };
+  }
+
+  if (id === 'aquarium') {
+    // A school of fish circling each hall, plus light falling through water.
+    const schools = [];
+    for (const [centre, n] of [[centre1, 16], [centre2, 14]]) {
+      const school = new THREE.Group();
+      const fishMat = new THREE.MeshBasicMaterial({ color: '#c9f7ff' });
+      const fishMat2 = new THREE.MeshBasicMaterial({ color: '#ffd166' });
+      for (let i = 0; i < n; i += 1) {
+        const fish = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 5), i % 4 === 0 ? fishMat2 : fishMat);
+        fish.rotation.z = -Math.PI / 2;
+        fish.userData.angle = (i / n) * Math.PI * 2;
+        fish.userData.rad = 5 + (i % 4) * 1.6;
+        fish.userData.h = 2.6 + (i % 5) * 0.55;
+        fish.userData.phase = i * 0.7;
+        school.add(fish);
+      }
+      school.position.set(centre.x, 0, centre.z);
+      group.add(school);
+      schools.push(school);
+    }
+    const shafts = [];
+    for (const [x, z] of [[centre1.x - 12, -8], [centre1.x + 8, 10], [centre2.x - 10, 8], [centre2.x + 12, -10]]) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: '#bff4ff',
+        transparent: true,
+        opacity: 0.07,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const shaft = new THREE.Mesh(new THREE.ConeGeometry(3.4, 14, 12, 1, true), mat);
+      shaft.position.set(x, 7, z);
+      group.add(shaft);
+      shafts.push({ mesh: shaft, mat, phase: x * 0.1 });
+    }
+    update = (dt, gim, now) => {
+      const time = now / 1000;
+      for (let s = 0; s < schools.length; s += 1) {
+        const school = schools[s];
+        for (const fish of school.children) {
+          const a = fish.userData.angle + time * (0.42 + s * 0.05);
+          fish.position.set(Math.cos(a) * fish.userData.rad, fish.userData.h + Math.sin(time * 1.6 + fish.userData.phase) * 0.4, Math.sin(a) * fish.userData.rad * 0.7);
+          fish.rotation.y = -a + Math.PI / 2;
+        }
+      }
+      for (const sh of shafts) {
+        sh.mat.opacity = 0.055 + Math.sin(time * 0.7 + sh.phase) * 0.025;
+      }
+    };
+    return { group, update };
+  }
+
+  if (id === 'park') {
+    const rides = [];
+    for (const centre of [centre1, centre2]) {
+      const ride = new THREE.Group();
+      const deck = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.8, 0.4, 24), standard({ color: '#ffe9a8', roughness: 0.6 }));
+      deck.position.y = 0.2;
+      const canopy = new THREE.Mesh(new THREE.ConeGeometry(4.0, 1.8, 12), standard({ color: stage.palette.accent, roughness: 0.5 }));
+      canopy.position.y = 3.6;
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 3.0, 8), standard({ color: '#fff2c8' }));
+      pole.position.y = 1.9;
+      ride.add(deck, canopy, pole);
+      for (let i = 0; i < 6; i += 1) {
+        const a = (i / 6) * Math.PI * 2;
+        const horse = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.3), standard({ color: i % 2 ? stage.palette.accent2 : '#ffffff', roughness: 0.5 }));
+        horse.position.set(Math.cos(a) * 2.6, 1.1, Math.sin(a) * 2.6);
+        ride.add(horse);
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6, 6), standard({ color: '#ffd166' }));
+        rod.position.set(Math.cos(a) * 2.6, 2.1, Math.sin(a) * 2.6);
+        ride.add(rod);
+      }
+      ride.position.set(centre.x, 0, centre.z - 6);
+      group.add(ride);
+      rides.push(ride);
+    }
+    // Confetti: a fixed cloud of points that only falls during the parade.
+    const count = 160;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const colours = new Float32Array(count * 3);
+    const palette = ['#ff5fa2', '#ffe066', '#7b5cff', '#5be7ff'];
+    for (let i = 0; i < count; i += 1) {
+      pos[i * 3] = (Math.random() - 0.5) * 90;
+      pos[i * 3 + 1] = Math.random() * 12;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 36;
+      const c = new THREE.Color(palette[i % palette.length]);
+      colours[i * 3] = c.r;
+      colours[i * 3 + 1] = c.g;
+      colours[i * 3 + 2] = c.b;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colours, 3));
+    const confetti = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.24, vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false }));
+    confetti.visible = false;
+    group.add(confetti);
+    update = (dt, gim, now) => {
+      const on = Boolean(gim && gim.parade);
+      const time = now / 1000;
+      for (let i = 0; i < rides.length; i += 1) {
+        rides[i].rotation.y += dt * (on ? 1.1 : 0.45) * (i ? -1 : 1);
+        rides[i].position.y = on ? Math.abs(Math.sin(time * 2 + i)) * 0.1 : 0;
+      }
+      confetti.visible = on;
+      if (on) {
+        const arr = geo.attributes.position.array;
+        for (let i = 0; i < count; i += 1) {
+          arr[i * 3 + 1] -= dt * (1.4 + (i % 5) * 0.3);
+          arr[i * 3] += dt * 0.5;
+          if (arr[i * 3 + 1] < 0) {
+            arr[i * 3 + 1] = 12;
+            arr[i * 3] = (Math.random() - 0.5) * 90;
+          }
+        }
+        geo.attributes.position.needsUpdate = true;
+      }
+    };
+    return { group, update };
+  }
+
+  if (id === 'lodge') {
+    const lanterns = [];
+    const lampMat = new THREE.MeshBasicMaterial({ color: '#ffcf7a' });
+    for (const [centre, u, z] of [[centre1, -20, -14], [centre1, 20, 14], [centre1, -20, 14], [centre1, 20, -14], [centre2, -20, -14], [centre2, 20, 14], [centre2, -20, 14], [centre2, 20, -14]]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.4, 6), standard({ color: '#5b3418' }));
+      post.position.set(centre.x + u, 1.2, z);
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), lampMat);
+      lamp.position.set(centre.x + u, 2.6, z);
+      group.add(post, lamp);
+      lanterns.push(lamp);
+    }
+    // Two warm lights make the hearth glow reach the ice.
+    const lightA = new THREE.PointLight('#ffb066', 18, 26, 2);
+    lightA.position.set(centre1.x - 16, 2.2, 0);
+    const lightB = new THREE.PointLight('#ffb066', 14, 24, 2);
+    lightB.position.set(centre2.x + 10, 2.2, -6);
+    group.add(lightA, lightB);
+    update = (dt, gim, now) => {
+      const time = now / 1000;
+      lanterns.forEach((l, i) => {
+        l.material.color.set(gim && gim.blizzard ? '#ffb347' : '#ffcf7a');
+        l.scale.setScalar(0.92 + Math.sin(time * 2.4 + i) * 0.08);
+      });
+      lightA.intensity = 16 + Math.sin(time * 3) * 3;
+    };
+    return { group, update };
+  }
+
+  if (id === 'school') {
+    // A brass chime bell per hall, and the classroom lamps that turn red when
+    // the shutters come down. The bell swings while the chime sounds.
+    const bells = [];
+    const lamps = [];
+    for (const centre of [centre1, centre2]) {
+      const tower = new THREE.Group();
+      const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 4.4, 8), standard({ color: '#6d7683' }));
+      postL.position.set(-0.6, 2.2, 0);
+      const postR = postL.clone();
+      postR.position.x = 0.6;
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.16, 0.2), standard({ color: '#6d7683' }));
+      beam.position.y = 4.4;
+      const bell = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.9, 12), standard({ color: '#d8a83c', metalness: 0.6, roughness: 0.35 }));
+      bell.position.y = 3.9;
+      bell.rotation.x = Math.PI;
+      const clapper = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), standard({ color: '#4a4f58' }));
+      clapper.position.y = 3.4;
+      tower.add(postL, postR, beam, bell, clapper);
+      tower.position.set(centre.x, 0, centre.z - 12);
+      group.add(tower);
+      bells.push(bell);
+      for (let i = 0; i < 4; i += 1) {
+        const lampMat = new THREE.MeshBasicMaterial({ color: '#fff1c2' });
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), lampMat);
+        lamp.position.set(centre.x - 12 + i * 8, 3.2, centre.z + (i % 2 ? 6 : -6));
+        const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 4), standard({ color: '#4a4f58' }));
+        cord.position.set(lamp.position.x, 4.4, lamp.position.z);
+        group.add(lamp, cord);
+        lamps.push(lampMat);
+      }
+    }
+    update = (dt, gim, now) => {
+      const time = now / 1000;
+      const chime = Boolean(gim && gim.chime);
+      const shut = Boolean(gim && gim.shut);
+      for (let i = 0; i < bells.length; i += 1) {
+        bells[i].rotation.z = chime ? Math.sin(time * 14 + i) * 0.35 : Math.sin(time * 2 + i) * 0.05;
+      }
+      for (const mat of lamps) {
+        mat.color.set(shut ? '#ff3b30' : chime ? '#ffd166' : '#fff1c2');
+      }
+    };
+    return { group, update };
+  }
+
+  if (id === 'space') {
+    const gates = [];
+    for (const centre of [centre1, centre2]) {
+      const gate = new THREE.Group();
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(4.2, 0.22, 10, 40),
+        new THREE.MeshBasicMaterial({ color: stage.palette.accent, transparent: true, opacity: 0.7 }),
+      );
+      ring.position.y = 4.4;
+      const inner = new THREE.Mesh(
+        new THREE.TorusGeometry(3.4, 0.1, 8, 36),
+        new THREE.MeshBasicMaterial({ color: '#b9c9f2', transparent: true, opacity: 0.45 }),
+      );
+      inner.position.y = 4.4;
+      const glowDisc = new THREE.Mesh(
+        new THREE.CircleGeometry(3.3, 36),
+        new THREE.MeshBasicMaterial({ color: stage.palette.accent, transparent: true, opacity: 0.1, side: THREE.DoubleSide, depthWrite: false }),
+      );
+      glowDisc.position.y = 4.4;
+      gate.add(ring, inner, glowDisc);
+      gate.position.set(centre.x, 0, centre.z - 4);
+      group.add(gate);
+      gates.push({ ring, inner, glowDisc });
+    }
+    // Asteroids drifting behind the play area.
+    const rocks = [];
+    const rockMat = standard({ color: '#6b7590', roughness: 0.9 });
+    for (let i = 0; i < 10; i += 1) {
+      const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7 + (i % 3) * 0.35, 0), rockMat);
+      rock.position.set((i % 2 ? 1 : -1) * (22 + (i % 4) * 3), 6 + (i % 5) * 1.4, -26 + (i % 7) * 8);
+      group.add(rock);
+      rocks.push({ mesh: rock, phase: i * 1.1, baseY: rock.position.y });
+    }
+    update = (dt, gim, now) => {
+      const time = now / 1000;
+      const gravity = Boolean(gim && (gim.gravity || gim.warn));
+      for (const g of gates) {
+        g.ring.rotation.z += dt * 0.5;
+        g.inner.rotation.z -= dt * 0.9;
+        g.glowDisc.material.color.set(gravity ? '#ff4d6d' : stage.palette.accent);
+        g.glowDisc.material.opacity = gravity ? 0.2 + Math.sin(time * 6) * 0.08 : 0.1;
+      }
+      for (const r of rocks) {
+        r.mesh.rotation.y += dt * 0.3;
+        r.mesh.position.y = r.baseY + Math.sin(time * 0.6 + r.phase) * 0.4;
+      }
+    };
+    return { group, update };
+  }
+
+  return { group, update };
+}
+
+function occluderOf(object3d, x, z, hw, hd, h) {
+  const mats = [];
+  object3d.traverse((o) => {
+    if (!o.isMesh) return;
+    const list = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of list) if (m && m.color) mats.push(m);
+  });
+  return { solid: { x, z, hw, hd, h, mats, fade: 1 } };
+}
 
 export function buildStage(stage) {
   const group = new THREE.Group();
-  group.add(makeFloor(stage));
-  group.add(makeWalls(stage));
-  group.add(makeStairs(stage));
+  group.add(makeFloors(stage));
+  const walls = makeWalls(stage);
+  group.add(walls.group);
+  const ridge = makeRidge(stage);
+  group.add(ridge.group);
+  const ambience = makeAmbience(stage);
+  group.add(ambience.group);
+  const stairs = makeStairs(stage);
+  group.add(stairs.group);
   const pads = makePads(stage);
   group.add(pads.group);
+  const warps = makeWarps(stage);
+  group.add(warps.group);
 
+  const labels = [...stairs.labels, ...warps.labels];
   const switchMeshes = [];
   for (const spot of stage.switchSpots) {
-    const s = makeSwitch(stage, spot);
+    const s = makeSwitch(stage, spot, labels);
     group.add(s.group);
     switchMeshes.push(s);
   }
@@ -967,39 +1396,85 @@ export function buildStage(stage) {
     gateMeshes.push(g);
   }
   const props = [];
+  const occluders = [ridge, ...walls.occluders];
   for (const p of stage.props) {
     const mesh = prop(stage, p);
     group.add(mesh);
     props.push(mesh);
+    if (p.type === 'ferris') occluders.push(occluderOf(mesh, p.x, p.z, 3.2, 3.2, 9));
+    if (p.type === 'tent') occluders.push(occluderOf(mesh, p.x, p.z, 1.8, 1.8, 2.6));
+    if (p.type === 'hearth') occluders.push(occluderOf(mesh, p.x, p.z, 1.4, 0.8, 1.7));
+    if (p.type === 'hull') occluders.push(occluderOf(mesh, p.x, p.z, 1.2, 0.3, 2.6));
   }
   const show = makeShow(stage);
   group.add(show.group);
 
-  // School shutters.
+  // School shutters: a real door that falls across the corridor. It sits high
+  // in its frame while the corridor is open and slams down when the chime ends
+  // (Build 38), with red warning rails while the chime counts down.
   const shutters = [];
   if (stage.gimmick && stage.gimmick.kind === 'school') {
     for (const door of stage.gimmick.doors) {
-      const mesh = box(door.w, 2.6, door.d, standard({ color: '#4c7a52', roughness: 0.55, transparent: true, opacity: 0.92 }));
-      mesh.position.set(door.x, (door.floor === 2 ? ARENA.deckY : 0) + 1.3, door.z);
+      const frame = new THREE.Group();
+      const railMat = standard({ color: '#5b6b57', roughness: 0.6, metalness: 0.2 });
+      for (const sx of [-1, 1]) {
+        const rail = box(0.28, 3.2, door.d + 0.3, railMat);
+        rail.position.set(sx * (door.w / 2 + 0.1), 1.6, 0);
+        frame.add(rail);
+      }
+      const lintel = box(door.w + 0.9, 0.5, door.d + 0.3, railMat);
+      lintel.position.y = 3.35;
+      frame.add(lintel);
+      const warningMat = new THREE.MeshBasicMaterial({ color: '#8d9a86', transparent: true, opacity: 0.9 });
+      const warningBar = box(door.w + 0.6, 0.12, door.d + 0.36, warningMat);
+      warningBar.position.y = 3.05;
+      frame.add(warningBar);
+      const mesh = box(door.w, 3.2, door.d, standard({ color: '#4c7a52', roughness: 0.55, transparent: true, opacity: 0.94 }));
+      mesh.position.y = 4.6;
       mesh.visible = false;
-      group.add(mesh);
-      shutters.push({ mesh, door });
+      frame.add(mesh);
+      const stripe = new THREE.Mesh(
+        new THREE.PlaneGeometry(door.w, door.d + 0.6),
+        new THREE.MeshBasicMaterial({ color: '#ff4030', transparent: true, opacity: 0, depthWrite: false }),
+      );
+      stripe.rotation.x = -Math.PI / 2;
+      stripe.position.y = 0.04;
+      frame.add(stripe);
+      frame.position.set(door.x, 0, door.z);
+      group.add(frame);
+      // The shutter is a wall while it is down, so the camera fades it when it
+      // stands between the player and the camera (the player is often on the
+      // far side of a closed classroom door).
+      const solid = { x: door.x, z: door.z, hw: door.w / 2, hd: door.d / 2, h: 0, mats: [mesh.material], fade: 1 };
+      shutters.push({ mesh, door, frame, warningMat, warningBar, stripe, progress: 0, solid });
     }
   }
 
-  // Gravity cells + aquarium lanes + park spots, as faint floor decals.
+  // Hall signs: 1F hangs in the west hall, 2F in the east one, near the north
+  // wall so they never sit in the middle of a chase.
+  for (const floor of [1, 2]) {
+    const r = floorRects(stage, floor)[0];
+    if (!r) continue;
+    labels.push(makeSign(group, 'sign.hall', { f: floor }, 3.6, {
+      x: r.x,
+      z: r.z - r.d / 2 + 1.4,
+      background: 'rgba(12,52,80,0.86)',
+      color: '#f2fdff',
+      w: 3.8,
+      h: 1.45,
+    }));
+  }
+
+  for (const s of shutters) occluders.push({ solid: s.solid });
+
   const decals = new THREE.Group();
   group.add(decals);
-  const decalMats = {
-    current: glow(stage.palette.accent, 0.16),
-    gravity: glow('#8f7bff', 0.28),
-    parade: glow(stage.palette.accent2, 0.18),
-  };
   const gravityRings = [];
   const weather = makeWeather(stage);
 
   const update = (dt, match, gim) => {
     pads.update(dt);
+    warps.update(dt);
     weather.update(dt);
     show.update(dt, gim, performance.now(), match);
     for (const p of props) {
@@ -1010,7 +1485,7 @@ export function buildStage(stage) {
     if (match) {
       // Only the switches this match actually placed are drawn: the other
       // candidate spots stay empty, so nobody walks to a switch that is not in
-      // play (Build 35 showed all thirteen, which hid the real ones).
+      // play.
       const bySpot = new Map();
       for (const sw of match.switches) bySpot.set(`${sw.x.toFixed(2)}|${sw.z.toFixed(2)}`, sw);
       const now = performance.now();
@@ -1052,8 +1527,6 @@ export function buildStage(stage) {
         m.doorMat.opacity = open ? 0.22 : 0.95;
         m.floorRing.material.color.set(open ? MARK.emerald : MARK.red);
         m.floorRing.material.opacity = open ? 0.5 + Math.sin(now / 260) * 0.2 : 0.3;
-        m.sign.material.color.set('#ffffff');
-        m.signBack.material.color.set('#ffffff');
         const map = open ? m.exitOpen : m.exitClosed;
         if (m.sign.material.map !== map) {
           m.sign.material.map = map;
@@ -1063,24 +1536,39 @@ export function buildStage(stage) {
         }
         m.lintel.material.color.set(open ? MARK.emerald : MARK.red);
         m.lintel.material.opacity = open ? 0.95 : 0.75 + Math.sin(now / 280) * 0.2;
-        // The barrier sinks into the sill when the gate opens.
         const target = open ? 0 : m.doorBaseY;
         m.door.position.y += (target - m.door.position.y) * Math.min(1, dt * 4);
       }
     }
     if (gim) {
       const shut = gim.shut === true;
+      const chime = gim.chime === true;
       for (const s of shutters) {
-        s.mesh.visible = shut;
-        s.mesh.material.opacity = shut ? 0.94 : 0;
+        // The shutter falls (and rises) over about a third of a second.
+        const target = shut ? 1 : 0;
+        s.progress += (target - s.progress) * Math.min(1, dt * 6);
+        if (Math.abs(s.progress - target) < 0.01) s.progress = target;
+        s.mesh.visible = s.progress > 0.02;
+        s.mesh.position.y = 4.6 - s.progress * 3.0;
+        s.mesh.material.opacity = 0.2 + s.progress * 0.74;
+        const warn = chime ? 0.5 + Math.sin(performance.now() / 110) * 0.5 : 0;
+        s.warningMat.color.set(shut ? '#ff2f10' : chime ? '#ffd166' : '#8d9a86');
+        s.warningMat.opacity = shut ? 1 : chime ? 0.45 + warn * 0.55 : 0.75;
+        s.solid.h = s.progress > 0.45 ? 3.2 : 0;
+        s.stripe.material.opacity = shut ? 0.5 : chime ? 0.18 + warn * 0.2 : 0;
       }
-      // Gravity rings, drawn only while the cells are live.
-      for (const r of gravityRings) {
-        r.visible = Boolean(gim.gravity);
-      }
-      for (const d of decals.children) {
-        d.visible = d.userData.when ? d.userData.when(gim) : true;
-      }
+      for (const r of gravityRings) r.visible = Boolean(gim.gravity);
+      for (const d of decals.children) d.visible = d.userData.when ? d.userData.when(gim) : true;
+    }
+    ambience.update(dt, gim, performance.now());
+  };
+
+  const refreshLabels = () => {
+    for (const label of labels) {
+      const text = t(label.key, label.params);
+      label.sprite.material.map?.dispose();
+      label.sprite.material.map = labelTexture(text, label.opts.color || '#ffffff', label.opts.background || 'rgba(12,28,52,0.84)');
+      label.sprite.material.needsUpdate = true;
     }
   };
 
@@ -1092,9 +1580,13 @@ export function buildStage(stage) {
     gateMeshes,
     shutters,
     decals,
-    decalMats,
     gravityRings,
     show,
+    ambience,
+    occluders,
+    labels,
+    refreshLabels,
+    ridge,
     stage,
   };
 }
@@ -1108,7 +1600,7 @@ export function decorateZones(view, stage) {
     const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
     const m = new THREE.Mesh(geo, mat);
     m.rotation.x = -Math.PI / 2;
-    m.position.set(zone.x, (zone.floor === 2 ? ARENA.deckY : 0) + 0.02, zone.z);
+    m.position.set(zone.x, 0.02, zone.z);
     view.group.add(m);
     return m;
   };
@@ -1124,7 +1616,7 @@ export function decorateZones(view, stage) {
         new THREE.CylinderGeometry(2.4, 2.6, 0.04, 24, 1, true),
         new THREE.MeshBasicMaterial({ color: '#ffe9a8', transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide }),
       );
-      m.position.set(spot.x, (spot.floor === 2 ? ARENA.deckY : 0) + 0.03, spot.z);
+      m.position.set(spot.x, 0.03, spot.z);
       view.group.add(m);
       m.userData.when = (gim) => Boolean(gim && gim.parade);
     }
@@ -1142,3 +1634,5 @@ export function decorateZones(view, stage) {
     }
   }
 }
+
+export { MARK };

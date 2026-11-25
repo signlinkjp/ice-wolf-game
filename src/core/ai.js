@@ -204,10 +204,11 @@ export function brain(match, actor, dt, gim = null) {
   const humans = livingHumans(match);
   const frozen = match.actors.filter((a) => a.state === 'frozen' && a.role === 'human');
   // Only the master wolf (firstWolf) may name the bait ice; the second wolf
-  // and the trap-born third wolf keep hunting.
+  // and the trap-born third wolf keep hunting. The master wolf is a wolf the
+  // whole match (Build 38), so it can do this at any time.
   if (actor.role === 'firstWolf' && !match.infectionUsed && frozen.length) {
     const near = nearestBy(actor, frozen, WOLF.infectRange);
-    if (near && actor.wolfTimer > 0) return { mx: 0, mz: 0, infect: near.seat };
+    if (near) return { mx: 0, mz: 0, infect: near.seat };
   }
   const prey = nearestBy(actor, humans);
   if (!prey) return wanderPoint(match, actor);
@@ -236,18 +237,15 @@ export function brain(match, actor, dt, gim = null) {
     return wanderPoint(match, actor);
   }
 
-  // First wolf: wolf for the whole match, but it only shows red in Wolf Mode.
+  // First wolf: a wolf for the whole match, in wolf body and freezing touch
+  // from the first frame. It hunts whenever it shares a floor with a human.
   const d = distance(actor, prey);
-  if (actor.wolfCooldown <= 0.2 && d < 5.0 && prey.floor === actor.floor) {
-    return { mx: 0, mz: 0, wolf: true };
-  }
-  if (actor.wolfTimer > 0) {
+  if (prey.floor === actor.floor) {
     setGoal(match, actor, prey, `hunt-${prey.seat}`);
     return steer(match, actor);
   }
-  // Off the clock, drift towards the nearest prey but keep a polite distance so
-  // it does not look like a straight-line chase.
-  if (d > 7) {
+  // The prey is in the other hall: cross, then hunt.
+  if (d > 4) {
     setGoal(match, actor, prey, `stalk-${prey.seat}`);
     return steer(match, actor);
   }

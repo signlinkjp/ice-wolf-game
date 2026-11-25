@@ -33,14 +33,19 @@ import {
 /* ------------------------------------------------------------------ */
 
 function loadSettings() {
-  let saved = {}; 
+  let saved = {};
   try {
     saved = JSON.parse(localStorage.getItem(STORAGE.settings) || '{}') || {};
   } catch {
     saved = {};
   }
   const settings = { ...DEFAULT_SETTINGS, ...saved };
-  settings.language = settings.language || i18n.init();
+  // Build 38: the language is decided once, here, and i18n always initialises.
+  // A saved "en" from an earlier build (WKWebView used to report en-US on a
+  // Japanese phone) can no longer pin the whole app to English: only a choice
+  // the player actually made in the settings sheet is kept.
+  settings.language = i18n.init(settings.language);
+  document.documentElement.lang = settings.language;
   if (!STAGE_BY_ID[settings.stage]) settings.stage = 'classic';
   return settings;
 }
@@ -108,6 +113,7 @@ class App {
     this.spectateIndex = 0;
     this.toastAt = 0;
     this.openingSeen = false;
+    this.lastAnnounce = null;
 
     const canvas = document.getElementById('scene');
     this.view = new View(canvas);
@@ -184,19 +190,9 @@ class App {
     const check = checkConfig(cfg);
     this.onlineConfig = check.ok ? cfg : null;
     setTimeout(() => this.ui.showLoading(true), 260);
-    // First launch: the opening animation, once per install.
-    let seen = false;
-    try {
-      seen = localStorage.getItem(STORAGE.tutorial) === '1';
-    } catch {
-      seen = false;
-    }
-    if (seen) return;
-    try {
-      localStorage.setItem(STORAGE.tutorial, '1');
-    } catch {
-      /* ignore */
-    }
+    // Build 38: the title sequence runs on every launch (3.2 s, tap anywhere to
+    // skip). It used to be a once-per-install flag, which is why the recording
+    // went from a spinner straight to the home screen.
     this.playOpening();
   }
 
@@ -211,9 +207,11 @@ class App {
   skipOpening() {
     if (this.phase !== 'opening') return;
     this.phase = 'menu';
+    // The stage is already built under the title: rebuilding it here cost a
+    // second on a slow GPU, so the menu seemed to ignore a tap.
     this.view.endOpening();
-    this.view.setStage(this.stage);
     this.ui.showMenu();
+    audio.play('ui');
   }
 
   /* ---------------------------------------------------------------- */
@@ -249,6 +247,8 @@ class App {
     this.saveAll();
     this.ui.setSettings(this.settings);
     document.documentElement.lang = lang;
+    // Every in-world sign (switch / stairs / warp / floor) is text too.
+    this.view.refreshLabels();
   }
 
   resetSettings() {
@@ -309,6 +309,7 @@ class App {
     this.countdown = 0;
     this.resultTimer = 0;
     this.lastCount = null;
+    this.lastAnnounce = null;
     this.ui.hideAll();
     this.ui.clearCpuLog();
     this.ui.showHud();
@@ -466,7 +467,8 @@ class App {
   tapWolf() {
     if (this.phase !== 'play' || !this.match) return;
     const p = this.match.actors[0];
-    if (p.role === 'human') return;
+    // The master wolf is a wolf all match: no button, no window to open.
+    if (p.role === 'human' || p.role === 'firstWolf') return;
     if (p.wolfCooldown > 0 || p.wolfTimer > 0) {
       this.ui.toast(t('hud.blocked'), 'warn');
       return;
@@ -584,7 +586,7 @@ class App {
 
     if (this.phase === 'opening') {
       const done = this.view.updateOpening(dt);
-      if (done || now - this.openingStart > 4200) this.skipOpening();
+      if (done || now - this.openingStart > 5200) this.skipOpening();
       this.view.render(dt);
       requestAnimationFrame((n) => this.frame(n));
       return;
@@ -647,6 +649,7 @@ class App {
     this.applyFrozenPan(effectiveDt);
     stepMatch(m, effectiveDt, inputs, brain);
     this.handleEvents();
+    this.announceGimmick();
 
     if (m.phase === 'result') {
       if (!this.resultTimer) this.resultTimer = now;
@@ -721,6 +724,80 @@ class App {
     // (or CAM to come home) sets a spectator seat.
     if (p.state !== 'frozen') m.spectateSeat = null;
     this.ui.updateHud(m);
+  }
+
+  /**
+   * Build 38: every stage event announces itself — a banner, a sound, a buzz.
+   * The show is only half of a gimmick; the player has to be told what just
+   * happened (the classroom door in particular).
+   */
+  announceGimmick() {
+    const m = this.match;
+    const gim = m.lastGimmick;
+    if (!gim) return;
+    // School doors speak for themselves while they move: one announcement when
+    // the chime starts, one when the shutter comes down, one when it lifts.
+    if (gim.kind === 'school') {
+      const key = gim.shut ? 'school-shut' : gim.chime ? 'school-chime' : 'school-open';
+      if (key === this.lastAnnounce) return;
+      this.lastAnnounce = key;
+      if (key === 'school-chime') {
+        this.ui.toast(t('fx.schoolChime', { n: Math.ceil(gim.countdown || 0) }), 'warn');
+        audio.play('warning');
+      } else if (key === 'school-shut') {
+        this.ui.toast(t('fx.schoolDoors', { n: Math.max(1, Math.ceil(gim.countdown || 0)) }), 'bad');
+        audio.play('door');
+        this.vibrate(90);
+        this.view.shakeCamera(0.25);
+      }
+      return;
+    }
+    let key = '';
+    let text = null;
+    let sound = null;
+    let kind = 'warn';
+    if (gim.kind === 'classic') {
+      key = gim.gust ? 'gust' : 'calm';
+      if (gim.gust) {
+        text = t('fx.gust');
+        sound = 'warning';
+      }
+    } else if (gim.kind === 'aquarium') {
+      key = gim.manta ? 'manta' : 'calm';
+      if (gim.manta) {
+        text = t('fx.manta');
+        sound = 'warp';
+        kind = 'good';
+      }
+    } else if (gim.kind === 'park') {
+      key = gim.parade ? 'parade' : 'calm';
+      if (gim.parade) {
+        text = t('fx.parade');
+        sound = 'gate';
+        kind = 'good';
+      }
+    } else if (gim.kind === 'lodge') {
+      key = gim.blizzard ? 'blizzard' : 'calm';
+      if (gim.blizzard) {
+        text = t('fx.blizzard');
+        sound = 'warning';
+      }
+    } else if (gim.kind === 'space') {
+      key = gim.warn ? 'warn' : gim.gravity ? 'gravity' : 'calm';
+      if (gim.warn) {
+        text = t('fx.gravity');
+        sound = 'warning';
+      } else if (gim.gravity) {
+        text = t('fx.gravity');
+        sound = 'trap';
+        kind = 'bad';
+      }
+    }
+    const announceKey = `${gim.kind}:${key}`;
+    if (announceKey === this.lastAnnounce) return;
+    this.lastAnnounce = announceKey;
+    if (text) this.ui.toast(text, kind);
+    if (sound) audio.play(sound);
   }
 
   handleEvents() {

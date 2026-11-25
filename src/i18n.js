@@ -76,18 +76,18 @@ const T = {
     'Game werewolf di atas es. Semua tampak sama. Hanya ada satu serigala pertama — serigala master — dan ia tetap serigala sepanjang pertandingan.',
   ],
   'how.p2': [
-    '人狼：5秒の人狼モード中に触れた人間を凍らせる。見た目は赤い角とマント。',
-    'Wolf: during a 5-second Wolf Mode, every human you touch freezes. Red horns and a red cape show the form.',
-    '人狼：在5秒的人狼模式中碰到的人类会被冻结。外观是红角和红斗篷。',
-    '人狼：在5秒的人狼模式中碰到的人類會被凍結。外觀是紅角和紅斗篷。',
-    '늑대: 5초 늑대 모드에서 닿은 인간을 얼립니다. 빨간 뿔과 망토가 표시입니다.',
-    'Lobo: durante 5 segundos de Modo Lobo, cada humano que toques se congela. Cuernos y capa rojos lo delatan.',
-    'Loup : pendant 5 secondes de Mode Loup, chaque humain touché gèle. Cornes et cape rouges le signalent.',
-    'Wolf: In 5 Sekunden Wolf-Modus friert jeder berührte Mensch ein. Rote Hörner und Umhang zeigen die Form.',
-    'Lobo: durante 5 segundos do Modo Lobo, cada humano tocado congela. Chifres e capa vermelhos revelam a forma.',
-    'Lupo: per 5 secondi di Modalità Lupo ogni umano toccato si congela. Corna e mantello rossi lo mostrano.',
-    'भेड़िया: 5 सेकंड के वुल्फ मोड में छूआ हर इंसान जम जाता है। लाल सींग और लाल केप दिखते हैं।',
-    'Serigala: selama 5 detik Mode Serigala, setiap manusia yang tersentuh membeku. Tanduk dan jubah merah menandainya.',
+    'マスター鬼：試合中ずっと鬼の姿と能力のまま。人間に触れるだけで凍らせる（ボタン操作は不要）。',
+    'Master wolf: a wolf for the whole match, in wolf body and ability. Touching a human freezes them — no button needed.',
+    '首领鬼：整场都是鬼的形态和能力。只要碰到人类就会冻结（无需按键）。',
+    '首領鬼：整場都是鬼的形態和能力。只要碰到人類就會凍結（無需按鍵）。',
+    '마스터 늑대: 경기 내내 늑대 모습과 능력 그대로. 인간을 스치기만 해도 얼립니다(버튼 불필요).',
+    'Lobo maestro: lobo toda la partida, con cuerpo y poder de lobo. Tocar a un humano lo congela, sin botón.',
+    'Loup maître : loup toute la partie, corps et pouvoir compris. Toucher un humain le gèle, sans bouton.',
+    'Meisterwolf: die ganze Partie Wolf, mit Körper und Kraft. Eine Berührung friert Menschen ein – ohne Taste.',
+    'Lobo mestre: lobo a partida inteira, com corpo e poder de lobo. Tocar um humano o congela, sem botão.',
+    'Lupo maestro: lupo per tutta la partita, corpo e potere compresi. Toccare un umano lo congela, senza pulsante.',
+    'मास्टर भेड़िया: पूरे मैच भेड़िये के रूप और शक्ति में। इंसान को छूते ही जम जाता है, कोई बटन नहीं।',
+    'Serigala master: serigala sepanjang pertandingan, lengkap dengan wujud dan kemampuannya. Menyentuh manusia langsung membekukannya, tanpa tombol.',
   ],
   'how.p3': [
     '人狼鬼（2人目の鬼）：人間⇔鬼に変身できる。人間の姿なら凍らせないし、救助対象にもならない。指名はできない。',
@@ -204,6 +204,11 @@ const T = {
 
   /* ---------------- settings ---------------- */
   'hud.switchLabel': ['スイッチ', 'SWITCH', '开关', '開關', '스위치', 'INTERRUPTOR', 'INTERRUPTEUR', 'SCHALTER', 'INTERRUPTOR', 'INTERRUTTORE', 'स्विच', 'SAKELAR'],
+  /* ---------------- in-world signs (Build 38) ---------------- */
+  'sign.switch': ['スイッチ', 'SWITCH', '开关', '開關', '스위치', 'INTERRUPTOR', 'INTERRUPTEUR', 'SCHALTER', 'INTERRUPTOR', 'INTERRUTTORE', 'स्विच', 'SAKELAR'],
+  'sign.stairs': ['階段 {f}Fへ', 'STAIRS TO {f}F', '楼梯 往{f}F', '樓梯 往{f}F', '계단 {f}F로', 'ESCALERA A {f}F', 'ESCALIER VERS {f}F', 'TREPPE NACH {f}F', 'ESCADA PARA {f}F', 'SCALE VERSO {f}F', '{f}F की सीढ़ी', 'TANGGA KE {f}F'],
+  'sign.warp': ['ワープ', 'WARP', '传送', '傳送', '워프', 'TELEPORTE', 'TÉLÉPORT', 'WARP', 'TELEPORTE', 'TELEPORT', 'वार्प', 'WARP'],
+  'sign.hall': ['{f}Fフロア', '{f}F FLOOR', '{f}F 楼层', '{f}F 樓層', '{f}F 층', 'PLANTA {f}F', 'ÉTAGE {f}F', '{f}F EBENE', 'PISO {f}F', 'PIANO {f}F', '{f}F मंज़िल', 'LANTAI {f}F'],
   'action.rescue': ['救助', 'RESCUE', '救助', '救助', '구출', 'RESCATE', 'SECOURS', 'RETTEN', 'RESGATE', 'SALVA', 'बचाओ', 'SELAMATKAN'],
   'action.wolf': ['人狼', 'WOLF', '人狼', '人狼', '늑대', 'LOBO', 'LOUP', 'WOLF', 'LOBO', 'LUPO', 'भेड़िया', 'SERIGALA'],
   'action.transform': ['変身', 'SHIFT', '变身', '變身', '변신', 'CAMBIAR', 'CHANGER', 'WANDELN', 'MUDAR', 'CAMBIA', 'बदलो', 'UBAH'],
@@ -378,6 +383,20 @@ const T = {
   'hud.hintSwitch': ['スイッチの前で「救助」を長押し（1.6秒）', 'Hold RESCUE at a switch (1.6 s)', '在开关前长按“救助”（1.6秒）', '在開關前長按「救助」（1.6秒）', '스위치 앞에서 구출을 길게(1.6초)', 'Mantén RESCATE en un interruptor (1,6 s)', 'Maintenez SECOURS sur un interrupteur (1,6 s)', 'RETTEN am Schalter halten (1,6 s)', 'Segure RESGATE no interruptor (1,6 s)', 'Tieni SALVA sull’interruttore (1,6 s)', 'स्विच पर बचाओ दबाएँ (1.6 सेकंड)', 'Tahan SELAMATKAN di sakelar (1,6 dtk)'],
   'hud.hintGate': ['開いたゲートへ急げ！触れれば人間の勝利', 'Run for the open gate! Touch it to win', '冲向开启的大门！碰到即胜利', '衝向開啟的大門！碰到即勝利', '열린 게이트로! 닿으면 승리', '¡Corre a la puerta abierta!', 'Courez à la porte ouverte !', 'Zum offenen Tor!', 'Corra para o portão aberto!', 'Corri al cancello aperto!', 'खुले गेट की ओर!', 'Lari ke gerbang terbuka!'],
   'hud.hintWolf': ['人狼モードで人間に触れて凍らせろ', 'Wolf Mode: touch humans to freeze them', '人狼模式：触碰人类冻结他', '人狼模式：觸碰人類凍結他', '늑대 모드: 인간을 얼리세요', 'Modo Lobo: congela a los humanos', 'Mode Loup : gelez les humains', 'Wolf-Modus: Menschen einfrieren', 'Modo Lobo: congele os humanos', 'Modalità Lupo: congela gli umani', 'वुल्फ मोड: इंसानों को जमाओ', 'Mode Serigala: bekukan manusia'],
+  'hud.hintMasterWolf': [
+    'マスター鬼はずっと鬼。触れるだけで人間を凍らせる',
+    'Master wolf: a wolf all match. Touch a human to freeze them',
+    '首领鬼整场都是鬼。碰到人类就冻结',
+    '首領鬼整場都是鬼。碰到人類就凍結',
+    '마스터 늑대는 경기 내내 늑대. 스치기만 해도 얼립니다',
+    'El lobo maestro es lobo toda la partida. Tocar congela',
+    'Le loup maître reste loup. Une touche gèle',
+    'Der Meisterwolf bleibt Wolf. Berührung friert ein',
+    'O lobo mestre é lobo a partida inteira. Tocar congela',
+    'Il lupo maestro resta lupo. Un tocco congela',
+    'मास्टर भेड़िया पूरे मैच भेड़िया। छूते ही जमाता है',
+    'Serigala master tetap serigala. Sentuhan membekukan',
+  ],
   'hud.hintTransform': ['「変身」で人狼鬼になれる。人間に戻ればバレない', 'TRANSFORM to become the wolf; turn human to hide', '“变身”成为人狼鬼，变回人就看不出来', '「變身」成為人狼鬼，變回人就看不出來', '변신으로 늑대가 되고, 인간으로 숨으세요', 'TRANSFORMA y vuelve a humano para esconderte', 'TRANSFORMEZ-vous, puis redevenez humain pour vous cacher', 'VERWANDELN, dann als Mensch verstecken', 'TRANSFORME e volte a humano para se esconder', 'TRASFORMA e torna umano per nasconderti', 'बदलो, फिर इंसान बनकर छिपो', 'UBERLAH, lalu kembali manusia untuk bersembunyi'],
   'hud.hintInfect': ['凍った人間を「人狼鬼」に指名できる（1試合1回・マスター鬼のみ）', 'Name one frozen human as a werewolf (once per match, master wolf only)', '可把1名被冻结的人类指定为人狼鬼（每场1次・仅首领鬼）', '可把1名被凍結的人類指定為人狼鬼（每場1次・僅首領鬼）', '얼어붙은 인간 한 명을 늑대인간으로 지목 (경기당 1회·마스터 늑대만)', 'Marca un congelado como hombre lobo (1 vez por partida, solo el lobo maestro)', 'Marquez un gelé comme loup-garou (1 fois par partie, loup maître seulement)', 'Einen Eingefrorenen als Werwolf markieren (1× pro Partie, nur Meisterwolf)', 'Marque um congelado como lobisomem (1× por partida, só o lobo mestre)', 'Segna un congelato come lupo mannaro (1 volta a partita, solo lupo maestro)', 'एक जमे इंसान को वेयरवुल्फ चुनो (प्रति मैच 1 बार, सिर्फ़ मास्टर भेड़िया)', 'Tandai satu yang beku sebagai manusia serigala (1× per pertandingan, hanya serigala master)'],
   'hud.hintEscape': ['時間切れまで生き残れば人間の勝利', 'Survive until the clock ends and humans win', '坚持到时间结束人类获胜', '堅持到時間結束人類獲勝', '시간이 끝날 때까지 살아남으면 인간 승리', 'Si sobrevives al reloj, ganan los humanos', 'Survivez jusqu’à la fin : les humains gagnent', 'Überlebt bis zum Ende: Menschen gewinnen', 'Sobreviva até o fim: humanos vencem', 'Sopravvivi fino alla fine: vincono gli umani', 'समय तक ज़िंदा रहो: इंसान जीतेंगे', 'Bertahan sampai waktu habis: manusia menang'],  'hud.noTarget': ['近くに救助できる相手がいません', 'Nobody to rescue here', '附近没有可救助的人', '附近沒有可救助的人', '가까이에 구할 사람이 없습니다', 'No hay nadie que rescatar', 'Personne à secourir', 'Niemand zum Retten hier', 'Ninguém para resgatar', 'Nessuno da salvare', 'यहाँ बचाने वाला कोई नहीं', 'Tidak ada yang bisa diselamatkan'],
@@ -567,6 +586,20 @@ const T = {
 
   /* ---------------- effects banners ---------------- */
   'fx.manta': ['🐟 巨大マンタ通過中', '🐟 A giant manta glides past', '🐟 巨大蝠鲼通过中', '🐟 巨大蝠鱝通過中', '🐟 거대 만타가 지나갑니다', '🐟 Una manta gigante pasa', '🐟 Une manta géante passe', '🐟 Ein riesiger Manta zieht vorbei', '🐟 Uma manta gigante passa', '🐟 Una manta gigante passa', '🐟 विशाल मांता गुज़र रहा है', '🐟 Manta raksasa melintas'],
+  'fx.gust': [
+    '🌬️ 吹雪の突風！氷が流される',
+    '🌬️ Blizzard gust! The ice drifts',
+    '🌬️ 暴风雪阵风！冰面会滑动',
+    '🌬️ 暴風雪陣風！冰面會滑動',
+    '🌬️ 눈보라 돌풍! 얼음이 밀립니다',
+    '🌬️ ¡Ráfaga! El hielo se desplaza',
+    '🌬️ Rafale ! La glace dérive',
+    '🌬️ Böen! Das Eis treibt',
+    '🌬️ Rajada! O gelo desliza',
+    '🌬️ Raffica! Il ghiaccio scorre',
+    '🌬️ बर्फीली हवा! बर्फ खिसकती है',
+    '🌬️ Hembusan badai! Es bergeser',
+  ],
   'fx.parade': ['🎡 パレード開始！全員スピードUP', '🎡 Parade! Everyone is faster', '🎡 巡游开始！全员加速', '🎡 遊行開始！全員加速', '🎡 퍼레이드 시작! 모두 빨라짐', '🎡 ¡Desfile! Todos más rápidos', '🎡 Parade ! Tout le monde accélère', '🎡 Parade! Alle sind schneller', '🎡 Desfile! Todos mais rápidos', '🎡 Parata! Tutti più veloci', '🎡 परेड! सब तेज़', '🎡 Parade! Semua lebih cepat'],
   'fx.blizzard': ['🌨️ 吹雪！視界が悪い', '🌨️ Blizzard! Visibility drops', '🌨️ 暴风雪！视野变差', '🌨️ 暴風雪！視野變差', '🌨️ 눈보라! 시야가 나빠집니다', '🌨️ ¡Ventisca! Menos visibilidad', '🌨️ Tempête ! Visibilité réduite', '🌨️ Schneesturm! Sicht sinkt', '🌨️ Nevasca! Visibilidade cai', '🌨️ Bufera! Visibilità ridotta', '🌨️ बर्फीला तूफ़ान! दिखना कम', '🌨️ Badai salju! Pandangan turun'],
   'fx.schoolChime': ['🔔 あと{n}秒で教室が閉まる', '🔔 Classroom closes in {n}', '🔔 {n}秒后教室关闭', '🔔 {n}秒後教室關閉', '🔔 {n}초 뒤 교실이 닫힙니다', '🔔 El aula cierra en {n}', '🔔 La classe ferme dans {n}', '🔔 Klasse schließt in {n}', '🔔 A sala fecha em {n}', '🔔 L’aula chiude tra {n}', '🔔 {n} में कक्ष बंद', '🔔 Kelas tutup dalam {n}'],
@@ -617,6 +650,15 @@ function languageFor(tag) {
   return null;
 }
 
+/** True when the player actually picked a language in the settings sheet. */
+function choiceWasMade() {
+  try {
+    return localStorage.getItem(STORAGE.languageChosen) === '1';
+  } catch {
+    return false;
+  }
+}
+
 /** True when the device clock is set to Japan. */
 function inJapan() {
   try {
@@ -626,33 +668,70 @@ function inJapan() {
   }
 }
 
-function detect() {
+/** Every locale tag the web view is willing to report. */
+function deviceTags() {
+  const tags = [];
   try {
-    const saved = localStorage.getItem(STORAGE.language);
-    if (saved && LANG_ORDER.includes(saved)) return saved;
-    const tags = navigator.languages && navigator.languages.length
-      ? [...navigator.languages]
-      : [navigator.language].filter(Boolean);
-    for (const tag of tags) {
-      const lang = languageFor(tag);
-      if (lang && lang !== 'en') return lang;
-    }
-    // A WKWebView without CFBundleLocalizations reports "en-US" on every
-    // phone — a Japanese one included. A device whose clock is in Japan but
-    // which claims only English is that case, so start in Japanese. A choice
-    // saved from the settings sheet always wins (checked above), and the new
-    // CFBundleLocalizations in Info.plist stops the false "en" at the source.
-    if (inJapan()) return 'ja';
-    return 'en';
+    if (Array.isArray(navigator.languages)) tags.push(...navigator.languages);
+    if (navigator.language) tags.push(navigator.language);
+    if (navigator.userLanguage) tags.push(navigator.userLanguage);
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+    if (locale) tags.push(locale);
   } catch {
-    return 'en';
+    /* very old web view */
   }
+  return tags.filter(Boolean);
+}
+
+/**
+ * Does the device itself claim Japanese? A WKWebView with no matching
+ * localisation reports "en-US" for every phone, so the clock and the Intl
+ * locale are checked too: a phone in Japan that only claims English is that
+ * case, not an English phone in Japan.
+ */
+function deviceIsJapanese() {
+  const tags = deviceTags();
+  return tags.some((tag) => languageFor(tag) === 'ja') || inJapan();
+}
+
+/**
+ * Build 38 launch fix.
+ *
+ * The Build 36 fix was right about navigator.languages but left one hole: the
+ * app also *saved* the language it picked, and loadSettings only called
+ * i18n.init() when nothing was saved. An "en" saved by an earlier build (when
+ * the web view still lied) therefore pinned the app to English forever, and
+ * i18n.lang stayed null so every string fell back to English as well. Now the
+ * saved value only wins when the player chose it in the settings sheet;
+ * otherwise the device is asked again on every launch.
+ */
+function detect(preferred) {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(STORAGE.language);
+  } catch {
+    saved = null;
+  }
+  if (choiceWasMade() && saved && LANG_ORDER.includes(saved)) return saved;
+  for (const tag of deviceTags()) {
+    const lang = languageFor(tag);
+    if (lang && lang !== 'en') return lang;
+  }
+  if (deviceIsJapanese()) return 'ja';
+  if (saved && LANG_ORDER.includes(saved) && saved !== 'en') return saved;
+  if (preferred && LANG_ORDER.includes(preferred) && preferred !== 'en') return preferred;
+  return 'en';
 }
 
 export const i18n = {
   lang: null,
-  init(lang) {
-    this.lang = lang || detect();
+  init(preferred) {
+    this.lang = detect(preferred);
+    try {
+      localStorage.setItem(STORAGE.language, this.lang);
+    } catch {
+      /* private mode */
+    }
     return this.lang;
   },
   set(lang) {
@@ -660,6 +739,9 @@ export const i18n = {
     this.lang = lang;
     try {
       localStorage.setItem(STORAGE.language, lang);
+      // From here on this is the player's own choice, and the one detect()
+      // keeps on the next launch.
+      localStorage.setItem(STORAGE.languageChosen, '1');
     } catch {
       /* private mode */
     }

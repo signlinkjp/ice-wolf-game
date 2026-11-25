@@ -1,81 +1,114 @@
 /**
  * The six stages.
  *
- * Build 37: the raised deck is per stage. Each stage declares its own deck
- * rectangles, and geometry.js derives the cliff, railings, upper outer walls
- * and stairwells from them. That is what makes the six arenas play differently:
+ * Build 38: the floors are separate halls. Each stage declares two halls of its
+ * own (48 x 40 m each, west = 1F, east = 2F) with a void between them, and
+ * every objective is placed in one of them:
  *
- *   classic   east half       — the original wide rink with a two-end corridor
- *   aquarium  central island  — climb up from either side of a moat
- *   park      north balcony   — one long parade deck along the north wall
- *   lodge     L shape         — a big room and an annex down the east side
- *   school    two bands       — decks north and south of a central corridor
- *   space     ring            — north band, south band and an east spine
+ *   classic   an open rink on both floors, a few pillars and a centre block
+ *   aquarium  a flooded ring around a central tank island
+ *   park      a fairground of booths and the ferris wheel's long shadow
+ *   lodge     a hearth hall with back rooms and a blizzard corridor
+ *   school    two classroom bands per floor with a corridor between
+ *   space     reactor and hull blocks around an open court
  *
- * Only the inner walls, the palette, the props and the gimmick change on top of
- * that. All coordinates are metres, x east, z south, floors 1 (ice) and 2 (deck).
+ * A stair zone (階段) switches floors; a warp zone (ワープ) crosses its own floor.
+ * The two are kept far apart on purpose (audit-stages.mjs enforces 12 m), and
+ * their signs say which is which.
+ *
+ * All coordinates are metres, x east, z south.
  */
-import { ARENA, GIMMICK } from '../config.js';
-import { rectOf, snapFloor, openSpotFor } from '../core/geometry.js';
+import { GIMMICK } from '../config.js';
+import { rectOf, snapFloor, openSpotFor, floorCenter } from '../core/geometry.js';
 
 const W = (x, z, w, d, kind = 'wall') => rectOf(x, z, w, d, { kind });
 const D = (x, z, w, d) => rectOf(x, z, w, d);
 
+/** The two halls are 48 x 40, centred on x = -28 (1F) and x = 28 (2F). */
+export const HALL_CENTRE = { 1: -28, 2: 28 };
+const hx = (floor, u) => HALL_CENTRE[floor] + u;
+
+/** An inner wall authored in hall-local u (-24..24) and world z (-20..20). */
+const HW = (floor, u, z, w, d) => W(hx(floor, u), z, w, d);
+
+/** A point authored in hall-local u. */
+const HP = (floor, u, z) => ({ x: hx(floor, u), z });
+
+/** The hall footprint: one wide 48 x 40 rectangle per floor. */
+const HALL_RECT = (floor) => [{ x: HALL_CENTRE[floor], z: 0, w: 48, d: 40 }];
+
 /**
- * One staircase, declared by the point where it meets the deck edge and the
- * direction it climbs. Everything else (foot trigger, landing trigger, the
- * flight the renderer draws, the gap it cuts in the railing) is derived.
+ * A stair pair: one mouth per floor. Stepping on a mouth carries the player to
+ * a landing 2.6 m inside the other hall, so the mouth is never re-entered on
+ * arrival. Two pairs per stage gives every stage two ways across.
  */
-function stairLinks(dir, edgeX, edgeZ, w = 4.0) {
-  const sign = dir === 'E' ? [1, 0] : dir === 'W' ? [-1, 0] : dir === 'N' ? [0, -1] : [0, 1];
-  const footX = edgeX - sign[0] * 1.2;
-  const footZ = edgeZ - sign[1] * 1.2;
-  const toX = edgeX + sign[0] * 1.6;
-  const toZ = edgeZ + sign[1] * 1.6;
-  const exitX = footX - sign[0] * 1.8;
-  const exitZ = footZ - sign[1] * 1.8;
-  const shared = { dir, w, edgeX, edgeZ, footX, footZ, toX, toZ, downX: exitX, downZ: exitZ };
-  return [
-    { id: `up-${edgeX}-${edgeZ}`, floor: 1, x: footX, z: footZ, r: 1.5, toFloor: 2, exitX: toX, exitZ: toZ, ...shared },
-    { id: `dn-${edgeX}-${edgeZ}`, floor: 2, x: toX, z: toZ, r: 1.5, toFloor: 1, exitX, exitZ: exitZ, ...shared },
-  ];
+function stairLinks(pairs) {
+  const out = [];
+  let index = 0;
+  for (const [a, b] of pairs) {
+    const ax = hx(a.floor, a.u);
+    const bx = hx(b.floor, b.u);
+    const ca = floorCenter({ floors: HALLS_FOR_CENTRE }, a.floor);
+    const cb = floorCenter({ floors: HALLS_FOR_CENTRE }, b.floor);
+    const landingInto = (floor, x, z) => {
+      const c = floor === a.floor ? ca : cb;
+      const dx = c.x - x;
+      const dz = c.z - z;
+      const len = Math.hypot(dx, dz) || 1;
+      return { x: x + (dx / len) * 2.6, z: z + (dz / len) * 2.6 };
+    };
+    const la = landingInto(a.floor, ax, a.z);
+    const lb = landingInto(b.floor, bx, b.z);
+    out.push(
+      { id: `stair-${index}-down`, pair: index, floor: a.floor, x: ax, z: a.z, toFloor: b.floor, exitX: lb.x, exitZ: lb.z },
+      { id: `stair-${index}-up`, pair: index, floor: b.floor, x: bx, z: b.z, toFloor: a.floor, exitX: la.x, exitZ: la.z },
+    );
+    index += 1;
+  }
+  return out;
 }
 
-/** Warp pair: two mouths on opposite floors, one link between them. */
-function warps(a, b) {
+/** Only used so floorCenter can run before a stage object exists. */
+const HALLS_FOR_CENTRE = { 1: HALL_RECT(1), 2: HALL_RECT(2) };
+
+/** A warp pair inside one floor: two mouths, one link, no floor change. */
+function warpPair(floor, a, b) {
+  const pa = HP(floor, a.u, a.z);
+  const pb = HP(floor, b.u, b.z);
+  const pair = floor;
   return [
-    { id: 'warp-a', pair: 0, floor: 1, x: a.x, z: a.z, toX: b.x, toZ: b.z, toFloor: 2 },
-    { id: 'warp-b', pair: 0, floor: 2, x: b.x, z: b.z, toX: a.x, toZ: a.z, toFloor: 1 },
+    { id: `warp-${floor}-a`, pair, floor, x: pa.x, z: pa.z, toX: pb.x, toZ: pb.z },
+    { id: `warp-${floor}-b`, pair, floor, x: pb.x, z: pb.z, toX: pa.x, toZ: pa.z },
   ];
 }
 
 /**
- * Spawn pool, shared: the stage's deck decides which floor each point ends up
- * on, and openSpotFor pushes one that lands in a wall to the nearest ice.
+ * Spawn pool: open metres spread over both halls. The player's own spawn is
+ * authored per stage; the CPUs take these in order.
  */
 const SPAWN_POOL = [
-  { x: -20, z: -12 },
-  { x: -20, z: 11 },
-  { x: -14, z: 6 },
-  { x: -14, z: -8 },
-  { x: -7.5, z: 10.5 },
-  { x: -8, z: -11 },
-  { x: -2, z: 6 },
-  { x: -3, z: -4 },
-  { x: 11, z: 10 },
-  { x: 11, z: -10 },
-  { x: 16, z: 4 },
-  { x: 16, z: -4 },
-  { x: 20, z: 12 },
-  { x: 20, z: -12 },
+  HP(1, -16, -14),
+  HP(1, -16, 14),
+  HP(1, -7, 6),
+  HP(1, -7, -8),
+  HP(1, 5, 10),
+  HP(1, 6, -4),
+  HP(1, 16, -16),
+  HP(1, 17, 12),
+  HP(2, -8, -6),
+  HP(2, -7, 8),
+  HP(2, -8, 2),
+  HP(2, -6, -14),
+  HP(2, 6, 12),
+  HP(2, 15, -6),
 ];
 
 const PALETTES = {
   classic: {
     sky: '#bfe6ff',
     fog: '#e6f6ff',
-    fogNear: 30,
-    fogFar: 95,
+    fogNear: 34,
+    fogFar: 120,
     floor: '#e9f7ff',
     deck: '#e4f5ff',
     wall: '#dff2ff',
@@ -92,8 +125,8 @@ const PALETTES = {
   aquarium: {
     sky: '#0d6f96',
     fog: '#1786ab',
-    fogNear: 30,
-    fogFar: 90,
+    fogNear: 34,
+    fogFar: 115,
     floor: '#6fd8e6',
     deck: '#63cbd9',
     wall: '#3aa8c4',
@@ -110,8 +143,8 @@ const PALETTES = {
   park: {
     sky: '#5a3a8e',
     fog: '#7a55b4',
-    fogNear: 30,
-    fogFar: 92,
+    fogNear: 34,
+    fogFar: 118,
     floor: '#b98cf0',
     deck: '#ae80e8',
     wall: '#9a6ee0',
@@ -128,8 +161,8 @@ const PALETTES = {
   lodge: {
     sky: '#7d9ab5',
     fog: '#dbe9f5',
-    fogNear: 30,
-    fogFar: 95,
+    fogNear: 34,
+    fogFar: 120,
     floor: '#f6e7cd',
     deck: '#efdfc2',
     wall: '#c98a5c',
@@ -146,8 +179,8 @@ const PALETTES = {
   school: {
     sky: '#a8bfa0',
     fog: '#d7e4cf',
-    fogNear: 30,
-    fogFar: 92,
+    fogNear: 34,
+    fogFar: 118,
     floor: '#e9ddc2',
     deck: '#e2d5b8',
     wall: '#b9c79c',
@@ -164,8 +197,8 @@ const PALETTES = {
   space: {
     sky: '#060b1c',
     fog: '#0d1636',
-    fogNear: 34,
-    fogFar: 100,
+    fogNear: 38,
+    fogFar: 130,
     floor: '#93a8d8',
     deck: '#8ba0d0',
     wall: '#5f74ab',
@@ -184,8 +217,6 @@ const PALETTES = {
 function stageDef(def) {
   const palette = PALETTES[def.id];
   const gimmick = def.gimmick ? def.gimmick() : null;
-  const deck = def.deck.map((r) => ({ ...r }));
-  const stairs = def.stairs.flatMap(([dir, x, z, w]) => stairLinks(dir, x, z, w));
   const pending = {
     id: def.id,
     pro: def.pro,
@@ -194,502 +225,465 @@ function stageDef(def) {
     gimmickKey: def.gimmickKey || null,
     weather: def.weather,
     palette,
-    deck,
-    stairs,
+    floors: { 1: def.floors[1].map((r) => ({ ...r })), 2: def.floors[2].map((r) => ({ ...r })) },
+    stairs: stairLinks(def.stairs),
     walls: { f1: def.f1, f2: def.f2 },
     props: def.props || [],
-    warps: warps(def.warp[0], def.warp[1]),
+    warps: def.warps.flatMap(([floor, a, b]) => warpPair(floor, a, b)),
     switchSpots: [],
-    gates: def.gates.map((g, i) => ({ id: i, ...g })),
-    pads: def.pads.map((p, i) => ({ id: `pad-${i + 1}`, ...p })),
+    gates: [],
+    pads: [],
     spawns: [],
-    playerSpawn: snapFloor({ deck }, { ...def.playerSpawn }),
+    playerSpawn: null,
     gimmick,
-    // Build 37: the amusement park turns the sun's cast shadows off. Its ice is
-    // lit by the strings of lights, and a long black-purple shadow across the
-    // purple rink read as a bug rather than as night.
     shadows: def.shadows !== false,
-    // Textures the GDevelop build drew by hand, reused as the Three.js surfaces.
     tex: {
       floor: `assets/floor_${def.tex || def.id}.png`,
       wall: `assets/wall_${def.tex || def.id}.png`,
-      cap: `assets/cap_${def.cap || def.id}.png`,
+      cap: `assets/cap_${def.tex || def.id}.png`,
     },
     ...def.extra,
   };
-
-  // Floors come from the deck, not from a label: a spawn or switch written for
-  // the old "east half" layout still lands on the surface it actually stands on.
+  // The floor of every authored point comes from the halls it stands in.
   pending.switchSpots = def.switchSpots.map((s) => openSpotFor(pending, snapFloor(pending, s), 1.2, 3));
   pending.spawns = SPAWN_POOL.map((s) => openSpotFor(pending, snapFloor(pending, s), 0.55, 4));
-  pending.playerSpawn = openSpotFor(pending, pending.playerSpawn, 0.55, 4);
+  pending.playerSpawn = openSpotFor(pending, snapFloor(pending, def.playerSpawn), 0.55, 4);
+  pending.gates = def.gates.map((g, i) => ({ ...snapFloor(pending, g), id: i }));
+  pending.pads = def.pads.map((p, i) => ({ ...snapFloor(pending, p), id: `pad-${i + 1}` }));
+  pending.props = (def.props || []).map((p) => snapFloor(pending, p));
   return pending;
 }
 
 export const STAGE_IDS = ['classic', 'aquarium', 'park', 'lodge', 'school', 'space'];
 
 export const STAGES = [
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'classic',
     pro: false,
     tex: 'classic',
     cap: 'classic',
     weather: 'snow',
-    // The 1.0.0 arena, whole: the east half raised as a corridor, two
-    // stairwells at its ends, and the warp from the south ice to the north deck.
-    deck: [D(15, 0, 18, 36)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     stairs: [
-      ['E', 6, -11.5, 4.2],
-      ['E', 6, 10, 4.2],
+      [{ floor: 1, u: 19, z: -15 }, { floor: 2, u: -19, z: -15 }],
+      [{ floor: 1, u: 19, z: 15 }, { floor: 2, u: -19, z: 15 }],
     ],
-    warp: [
-      { x: 3.5, z: 12 },
-      { x: 21, z: 14 },
+    warps: [
+      [1, { u: -13, z: -16 }, { u: 4, z: 10 }],
+      [2, { u: -14, z: 4 }, { u: 16, z: -15 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: -2 },
-      { floor: 1, x: -5, z: 8 },
-      { floor: 2, x: 11, z: 3 },
-      { floor: 2, x: 22, z: -4 },
+      HP(1, -12, -12),
+      HP(1, 12, 12),
+      HP(2, -12, -12),
+      HP(2, 12, 12),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: 0, facing: 'west' },
-      { floor: 1, x: 0, z: -16.6, facing: 'north' },
-      { floor: 2, x: 22.2, z: 0, facing: 'east' },
+      { ...HP(1, -23.2, 4), facing: 'west' },
+      { ...HP(1, 6, 19.2), facing: 'south' },
+      { ...HP(2, 23.2, -4), facing: 'east' },
     ],
     switchSpots: [
-      { x: -22.5, z: -16, floor: 1 },
-      { x: -22.5, z: -4, floor: 1 },
-      { x: -22.5, z: 8, floor: 1 },
-      { x: -15, z: 2, floor: 1 },
-      { x: -9, z: 8, floor: 1 },
-      { x: -6, z: -11.5, floor: 1 },
-      { x: 3, z: -14.5, floor: 1 },
-      { x: 3, z: 9.5, floor: 1 },
-      { x: 9, z: -16, floor: 2 },
-      { x: 10.5, z: -4, floor: 2 },
-      { x: 12, z: 12.5, floor: 2 },
-      { x: 18, z: 6.5, floor: 2 },
-      { x: 19.5, z: -7, floor: 2 },
+      HP(1, -22, -8), HP(1, -22, 12), HP(1, -15, 16), HP(1, -8, -2),
+      HP(1, 0, 10), HP(1, 8, -8), HP(1, 14, 4),
+      HP(2, -16, 10), HP(2, -12, -6), HP(2, -6, 12), HP(2, 2, -2),
+      HP(2, 10, 8), HP(2, 17, -12),
     ],
-    playerSpawn: { x: -20, z: -12 },
+    playerSpawn: HP(1, -18, -14),
     f1: [
-      W(-16, -6, 1.4, 1.4),
-      W(-16, 6, 1.4, 1.4),
-      W(-9, -12, 1.4, 1.4),
-      W(-9, 12, 1.4, 1.4),
-      W(-4, 0, 5.0, 2.4),
-      W(-17, 0, 1.2, 5.0),
+      HW(1, -14, -9, 2, 2),
+      HW(1, -14, 9, 2, 2),
+      HW(1, 14, -9, 2, 2),
+      HW(1, 14, 9, 2, 2),
+      HW(1, 0, 0, 8, 3),
+      HW(1, -19, -10, 1.2, 8),
+      HW(1, -19, 10, 1.2, 8),
     ],
     f2: [
-      W(12, -6, 1.4, 1.4),
-      W(12, 6, 1.4, 1.4),
-      W(17.5, 0, 2.2, 7.0),
-      W(20, -12, 1.4, 1.4),
+      HW(2, 14, -9, 2, 2),
+      HW(2, 14, 9, 2, 2),
+      HW(2, -14, -9, 2, 2),
+      HW(2, -14, 9, 2, 2),
+      HW(2, 0, 0, 8, 3),
+      HW(2, 19, -10, 1.2, 8),
+      HW(2, 19, 10, 1.2, 8),
     ],
     props: [
-      { type: 'icicle', floor: 1, x: -23, z: -17, n: 5 },
-      { type: 'icicle', floor: 2, x: 23, z: 17, n: 5 },
-      { type: 'flag', floor: 1, x: -23, z: 6 },
-      { type: 'flag', floor: 2, x: 23, z: -8 },
-      { type: 'crystal', floor: 1, x: -12, z: 0 },
+      { type: 'icicle', floor: 1, ...HP(1, -23, -19), n: 5 },
+      { type: 'icicle', floor: 2, ...HP(2, 23, 19), n: 5 },
+      { type: 'flag', floor: 1, ...HP(1, -23, 6) },
+      { type: 'flag', floor: 2, ...HP(2, 23, -8) },
+      { type: 'crystal', floor: 1, ...HP(1, -12, 0) },
+      { type: 'crystal', floor: 2, ...HP(2, 12, 0) },
     ],
-    gimmickKey: null,
-    gimmick: null,
+    gimmickKey: 'fx.gust',
+    // Build 38: the classic rink is never quiet. Every 18 s a blizzard gust
+    // sweeps the halls for four seconds: the ice drifts underfoot, the aurora
+    // brightens, and the snow comes in sideways.
+    gimmick: () => ({
+      kind: 'classic',
+      gusts: [
+        { floor: 1, ...HP(1, -16, 0), w: 30, d: 38, dx: 0, dz: 1, power: 1.0 },
+        { floor: 2, ...HP(2, 8, 0), w: 30, d: 38, dx: 0, dz: -1, power: 1.0 },
+      ],
+      cycle: { period: 18, length: 4.5, kind: 'gust' },
+    }),
   }),
 
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'aquarium',
     pro: false,
     weather: 'bubble',
-    // A central island: a moat of ice runs all the way round it, and the two
-    // stairwells climb onto opposite sides, so you circle the tank to regroup.
-    deck: [D(10, 0, 16, 20)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     stairs: [
-      ['E', 2, -5, 4.0],
-      ['W', 18, 5, 4.0],
+      [{ floor: 1, u: 18, z: -12 }, { floor: 2, u: -18, z: 12 }],
+      [{ floor: 1, u: 18, z: 12 }, { floor: 2, u: -18, z: -12 }],
     ],
-    warp: [
-      { x: -12, z: 16.5 },
-      { x: 8, z: -3 },
+    warps: [
+      [1, { u: -18, z: 10 }, { u: -2, z: -14 }],
+      [2, { u: 12, z: -14 }, { u: 18, z: 6 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: -2 },
-      { floor: 1, x: 21, z: 0 },
-      { floor: 2, x: 6, z: -3 },
-      { floor: 2, x: 15, z: 8 },
+      HP(1, -12, -2),
+      HP(1, 8, 0),
+      HP(2, -14, 0),
+      HP(2, 10, 8),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: -2, facing: 'west' },
-      { floor: 1, x: 0, z: -16.6, facing: 'north' },
-      { floor: 2, x: 16.6, z: 0, facing: 'east' },
+      { ...HP(1, -23.2, -2), facing: 'west' },
+      { ...HP(1, -2, -19.2), facing: 'north' },
+      { ...HP(2, 23.2, 4), facing: 'east' },
     ],
     switchSpots: [
-      { x: -22.5, z: -14, floor: 1 },
-      { x: -22.5, z: -8, floor: 1 },
-      { x: -22.5, z: 6, floor: 1 },
-      { x: -14, z: 4, floor: 1 },
-      { x: -6, z: -6, floor: 1 },
-      { x: -6, z: 10, floor: 1 },
-      { x: 0, z: -14, floor: 1 },
-      { x: 21, z: -4, floor: 1 },
-      { x: 21, z: 7, floor: 1 },
-      { x: 5, z: -8, floor: 2 },
-      { x: 5, z: 8, floor: 2 },
-      { x: 10, z: 0, floor: 2 },
-      { x: 16, z: -8, floor: 2 },
-      { x: 16, z: 8, floor: 2 },
+      HP(1, -22, -14), HP(1, -22, -6), HP(1, -22, 8), HP(1, -15, -12),
+      HP(1, -14, 12), HP(1, -6, -6), HP(1, 6, 14),
+      HP(2, -18, 2), HP(2, -12, -10), HP(2, -8, 8), HP(2, 2, -4),
+      HP(2, 10, 12), HP(2, 18, -6),
     ],
-    playerSpawn: { x: -20, z: -12 },
+    playerSpawn: HP(1, -20, -14),
     f1: [
-      W(-18, -8, 1.2, 7.0),
-      W(-18, 8, 1.2, 7.0),
-      W(-11, -13, 6.0, 1.2),
-      W(-11, 13, 6.0, 1.2),
-      W(-7, 0, 3.0, 1.2),
-      W(-1, -8, 1.2, 4.0),
-      W(21, -9, 1.4, 1.4),
-      W(21, 9, 1.4, 1.4),
+      // A tank island in the middle of a flooded ring.
+      HW(1, 0, -6, 10, 1.2),
+      HW(1, 0, 6, 10, 1.2),
+      HW(1, -5, 0, 1.2, 6),
+      HW(1, 5, 0, 1.2, 6),
+      HW(1, -16, -8, 1.2, 7),
+      HW(1, -16, 8, 1.2, 7),
+      HW(1, -9, -14, 6, 1.2),
+      HW(1, -9, 14, 6, 1.2),
+      HW(1, 14, -16, 1.4, 1.4),
+      HW(1, 14, 16, 1.4, 1.4),
     ],
     f2: [
-      W(9, -6, 6.0, 1.2),
-      W(9, 6, 6.0, 1.2),
-      W(13, 0, 2.0, 5.0),
-      W(5, 0, 1.2, 4.0),
+      HW(2, 0, -6, 12, 1.2),
+      HW(2, 0, 6, 12, 1.2),
+      HW(2, -7, 0, 2, 6),
+      HW(2, 7, 0, 2, 6),
+      HW(2, 16, -10, 1.4, 1.4),
+      HW(2, 16, 10, 1.4, 1.4),
+      HW(2, -14, -16, 5, 1.2),
+      HW(2, -14, 16, 5, 1.2),
     ],
     props: [
-      { type: 'tank', floor: 1, x: -23.6, z: -6 },
-      { type: 'tank', floor: 1, x: -23.6, z: 8 },
-      { type: 'coral', floor: 2, x: 16, z: -8 },
-      { type: 'coral', floor: 1, x: -6, z: -16 },
-      { type: 'fish', floor: 2, x: 8, z: 8 },
-      { type: 'coral', floor: 2, x: 16, z: 8 },
+      { type: 'tank', floor: 1, ...HP(1, -23, -6) },
+      { type: 'tank', floor: 1, ...HP(1, -23, 8) },
+      { type: 'coral', floor: 2, ...HP(2, 16, -8) },
+      { type: 'coral', floor: 1, ...HP(1, -6, -16) },
+      { type: 'fish', floor: 2, ...HP(2, 8, 8) },
+      { type: 'coral', floor: 2, ...HP(2, 16, 8) },
     ],
     gimmick: () => ({
       kind: 'aquarium',
       current: [
-        { floor: 1, x: -12, z: 0, w: 22, d: 5.5, dx: 1, dz: 0, power: GIMMICK.aquarium.currentPower },
-        { floor: 2, x: 10, z: 0, w: 14, d: 5.5, dx: -1, dz: 0, power: GIMMICK.aquarium.currentPower },
+        { floor: 1, ...HP(1, -12, 0), w: 22, d: 5.5, dx: 1, dz: 0, power: GIMMICK.aquarium.currentPower },
+        { floor: 2, ...HP(2, 12, 0), w: 22, d: 5.5, dx: -1, dz: 0, power: GIMMICK.aquarium.currentPower },
       ],
       cycle: { ...GIMMICK.aquarium, kind: 'manta' },
     }),
   }),
 
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'park',
     pro: true,
     weather: 'petal',
-    // A parade balcony over the north wall: the whole upper floor is one long
-    // deck you can see the fairground from, and two stairwells open onto it.
-    deck: [D(4, -12, 40, 12)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     shadows: false,
     stairs: [
-      ['N', -6, -6, 4.2],
-      ['N', 13, -6, 4.2],
+      [{ floor: 1, u: 19, z: -14 }, { floor: 2, u: -19, z: -14 }],
+      [{ floor: 1, u: 19, z: 14 }, { floor: 2, u: -19, z: 14 }],
     ],
-    warp: [
-      { x: 16, z: 14 },
-      { x: 20, z: -14 },
+    warps: [
+      [1, { u: -16, z: -10 }, { u: 6, z: 8 }],
+      [2, { u: -10, z: 4 }, { u: 17, z: -10 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: 6 },
-      { floor: 1, x: 8, z: 10 },
-      { floor: 2, x: -8, z: -14 },
-      { floor: 2, x: 17, z: -15 },
+      HP(1, -14, 0),
+      HP(1, 10, 14),
+      HP(2, -16, -4),
+      HP(2, 12, 14),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: 4, facing: 'west' },
-      { floor: 1, x: 0, z: 16.6, facing: 'south' },
-      { floor: 2, x: 22.2, z: -12, facing: 'east' },
+      { ...HP(1, -23.2, 10), facing: 'west' },
+      { ...HP(1, 12, 19.2), facing: 'south' },
+      { ...HP(2, 4, -19.2), facing: 'north' },
     ],
     switchSpots: [
-      { x: -22.5, z: -4, floor: 1 },
-      { x: -22.5, z: 8, floor: 1 },
-      { x: -22.5, z: 15, floor: 1 },
-      { x: -18, z: 2, floor: 1 },
-      { x: -9, z: 4, floor: 1 },
-      { x: -2, z: 12, floor: 1 },
-      { x: 6, z: 2, floor: 1 },
-      { x: 14, z: 9, floor: 1 },
-      { x: 21, z: 12, floor: 1 },
-      { x: -12, z: -12, floor: 2 },
-      { x: -4, z: -9, floor: 2 },
-      { x: 5, z: -14, floor: 2 },
-      { x: 11, z: -12, floor: 2 },
-      { x: 19, z: -8, floor: 2 },
-      { x: 22, z: -15, floor: 2 },
+      HP(1, -22, -4), HP(1, -22, 14), HP(1, -14, -14), HP(1, -8, 6),
+      HP(1, -2, -2), HP(1, 8, -16), HP(1, 14, 0),
+      HP(2, -20, 2), HP(2, -14, -8), HP(2, -4, 10), HP(2, 4, -8),
+      HP(2, 12, 4), HP(2, 18, 16),
     ],
-    playerSpawn: { x: -20, z: 12 },
+    playerSpawn: HP(1, -18, 12),
     f1: [
-      W(-20, 2, 1.2, 6.0),
-      W(-13, -2, 6.0, 1.2),
-      W(-2, 4, 1.2, 7.0),
-      W(6, 12, 1.2, 5.0),
-      W(13, -1, 1.2, 2.0),
-      W(19, 8, 1.4, 1.4),
+      HW(1, -16, -2, 6, 1.2),
+      HW(1, -20, 4, 1.2, 6),
+      HW(1, -4, 4, 1.2, 7),
+      HW(1, 4, 12, 1.2, 5),
+      HW(1, 11, -1, 1.2, 2),
+      HW(1, 17, 8, 1.4, 1.4),
+      HW(1, -10, -14, 6, 1.2),
     ],
     f2: [
-      W(-10, -10, 6.0, 1.2),
-      W(2, -14, 1.2, 5.0),
-      W(9, -9, 1.2, 4.0),
-      W(18, -11, 4.0, 1.2),
+      HW(2, -18, -10, 6, 1.2),
+      HW(2, -6, -14, 1.2, 5),
+      HW(2, 1, -9, 1.2, 4),
+      HW(2, 8, -17, 4, 1.2),
+      HW(2, 14, 8, 1.2, 6),
+      HW(2, -21, 18, 4, 1.2),
     ],
     props: [
-      { type: 'ferris', floor: 2, x: -12, z: -14 },
-      { type: 'tent', floor: 1, x: -22, z: 2 },
-      { type: 'tent', floor: 1, x: -22, z: 11 },
-      { type: 'balloon', floor: 2, x: 6, z: -16 },
-      { type: 'lights', floor: 1, x: -8, z: 16 },
-      { type: 'lights', floor: 2, x: 14, z: -16 },
+      { type: 'ferris', floor: 2, ...HP(2, -14, -15) },
+      { type: 'tent', floor: 1, ...HP(1, -22, 2) },
+      { type: 'tent', floor: 1, ...HP(1, -22, 12) },
+      { type: 'balloon', floor: 2, ...HP(2, 6, -16) },
+      { type: 'lights', floor: 1, ...HP(1, -8, 16) },
+      { type: 'lights', floor: 2, ...HP(2, 14, -16) },
+      { type: 'ferris', floor: 1, ...HP(1, -16, 16) },
     ],
     gimmick: () => ({
       kind: 'park',
       cycle: { ...GIMMICK.park, kind: 'parade' },
       spots: [
-        { floor: 1, x: -12, z: -2 },
-        { floor: 1, x: -4, z: 10 },
-        { floor: 2, x: 10, z: -12 },
-        { floor: 2, x: 18, z: -10 },
+        { floor: 1, ...HP(1, -12, -2) },
+        { floor: 1, ...HP(1, 2, 8) },
+        { floor: 2, ...HP(2, -8, -12) },
+        { floor: 2, ...HP(2, 10, -6) },
       ],
     }),
   }),
 
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'lodge',
     pro: true,
     weather: 'ember',
-    // An L: the big room over the north-east, and an annex down the east side.
-    // The annex stair is far from the main stair, so the two floors cross twice.
-    deck: [D(12, -8, 24, 20), D(18, 8, 12, 12)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     stairs: [
-      ['E', 0, -12, 4.0],
-      ['E', 12, 8, 4.0],
+      [{ floor: 1, u: 19, z: -12 }, { floor: 2, u: -19, z: 12 }],
+      [{ floor: 1, u: 19, z: 12 }, { floor: 2, u: -19, z: -12 }],
     ],
-    warp: [
-      { x: -18, z: 16 },
-      { x: 15, z: -14 },
+    warps: [
+      [1, { u: -18, z: 12 }, { u: 2, z: -10 }],
+      [2, { u: -8, z: 0 }, { u: 18, z: 10 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: 0 },
-      { floor: 1, x: 6, z: 10 },
-      { floor: 2, x: 6, z: -6 },
-      { floor: 2, x: 20, z: 9 },
+      HP(1, -14, 0),
+      HP(1, 8, 10),
+      HP(2, -12, -6),
+      HP(2, 10, 6),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: -6, facing: 'west' },
-      { floor: 1, x: 6, z: 16.6, facing: 'south' },
-      { floor: 2, x: 22.2, z: -6, facing: 'east' },
+      { ...HP(1, -23.2, -8), facing: 'west' },
+      { ...HP(1, 6, 19.2), facing: 'south' },
+      { ...HP(2, 23.2, 8), facing: 'east' },
     ],
     switchSpots: [
-      { x: -22.5, z: -14, floor: 1 },
-      { x: -22.5, z: 0, floor: 1 },
-      { x: -22.5, z: 12, floor: 1 },
-      { x: -16, z: 8, floor: 1 },
-      { x: -8, z: -6, floor: 1 },
-      { x: -8, z: 12, floor: 1 },
-      { x: 2, z: 12, floor: 1 },
-      { x: 10, z: 16, floor: 1 },
-      { x: 21, z: 16, floor: 1 },
-      { x: 3, z: -6, floor: 2 },
-      { x: 8, z: -14, floor: 2 },
-      { x: 15, z: -8, floor: 2 },
-      { x: 21, z: -10, floor: 2 },
-      { x: 16, z: 6, floor: 2 },
-      { x: 22, z: 11, floor: 2 },
+      HP(1, -22, -16), HP(1, -22, 2), HP(1, -22, 14), HP(1, -14, -6),
+      HP(1, -12, 8), HP(1, -2, -14), HP(1, 10, 16),
+      HP(2, -20, 0), HP(2, -14, 8), HP(2, -8, -10), HP(2, 0, 4),
+      HP(2, 8, -4), HP(2, 16, 12),
     ],
-    playerSpawn: { x: -18, z: -14 },
+    playerSpawn: HP(1, -18, -14),
     f1: [
-      W(-19, 0, 4.0, 4.0),
-      W(-12, -9, 1.2, 9.0),
-      W(-12, 9, 1.2, 9.0),
-      W(-6, -15, 8.0, 1.2),
-      W(-6, 15, 8.0, 1.2),
-      W(3, 6, 2.0, 2.0),
-      W(8, 12, 2.0, 2.0),
-      W(20, 3, 1.2, 2.0),
+      HW(1, -19, 0, 4, 4),
+      HW(1, -12, -9, 1.2, 9),
+      HW(1, -12, 9, 1.2, 9),
+      HW(1, -6, -15, 8, 1.2),
+      HW(1, -6, 15, 8, 1.2),
+      HW(1, 9, 6, 2, 2),
+      HW(1, 14, 12, 2, 2),
+      HW(1, 16, 3, 1.2, 2),
     ],
     f2: [
-      W(4, -12, 1.2, 5.0),
-      W(12, -4, 6.0, 1.2),
-      W(20, -14, 1.2, 4.0),
-      W(19, 4, 4.0, 1.2),
+      HW(2, -12, -12, 1.2, 5),
+      HW(2, -4, -4, 6, 1.2),
+      HW(2, 4, -14, 1.2, 4),
+      HW(2, 2, 4, 4, 1.2),
+      HW(2, 12, 12, 1.2, 5),
+      HW(2, -18, 16, 6, 1.2),
     ],
     props: [
-      { type: 'hearth', floor: 1, x: -21, z: 0 },
-      { type: 'pine', floor: 1, x: -16, z: 13 },
-      { type: 'pine', floor: 1, x: -6, z: -13 },
-      { type: 'pine', floor: 1, x: 20, z: 16 },
-      { type: 'beam', floor: 2, x: 6, z: -12 },
-      { type: 'pine', floor: 2, x: 22, z: -8 },
+      { type: 'hearth', floor: 1, ...HP(1, -22, 0) },
+      { type: 'pine', floor: 1, ...HP(1, -16, 13) },
+      { type: 'pine', floor: 1, ...HP(1, -6, -13) },
+      { type: 'pine', floor: 1, ...HP(1, 16, 16) },
+      { type: 'beam', floor: 2, ...HP(2, 6, -12) },
+      { type: 'pine', floor: 2, ...HP(2, 18, -8) },
     ],
     gimmick: () => ({
       kind: 'lodge',
       slideZones: [
-        { floor: 1, x: -13, z: 10, w: 20, d: 5.0 },
-        { floor: 1, x: 6, z: 16.5, w: 10, d: 2.6 },
+        { floor: 1, ...HP(1, -14, 10), w: 20, d: 5.0 },
+        { floor: 2, ...HP(2, 8, 16), w: 14, d: 3.0 },
       ],
       cycle: { ...GIMMICK.lodge, kind: 'blizzard' },
     }),
   }),
 
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'school',
     pro: true,
     weather: 'dust',
-    // Two bands of classrooms with a central corridor between them: the corridor
-    // is the only way east on the ground floor, and both stairwells rise from it.
-    deck: [D(15, -9.5, 18, 15), D(15, 9.5, 18, 15)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     stairs: [
-      ['N', 10, -2, 3.6],
-      ['S', 16, 2, 3.6],
+      [{ floor: 1, u: 19, z: 0 }, { floor: 2, u: -19, z: 0 }],
+      [{ floor: 1, u: 19, z: 14 }, { floor: 2, u: -19, z: -14 }],
     ],
-    warp: [
-      { x: -16, z: 0 },
-      { x: 21, z: 13 },
+    warps: [
+      [1, { u: -20, z: -14 }, { u: 2, z: 12 }],
+      [2, { u: -8, z: 10 }, { u: 18, z: -12 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: 0 },
-      { floor: 1, x: 22, z: 0 },
-      { floor: 2, x: 10, z: -12 },
-      { floor: 2, x: 10, z: 12 },
+      HP(1, -14, 0),
+      HP(1, 10, 0),
+      HP(2, -14, 0),
+      HP(2, 10, 0),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: 0, facing: 'west' },
-      { floor: 1, x: -10, z: 16.6, facing: 'south' },
-      { floor: 2, x: 22.2, z: -14, facing: 'east' },
+      { ...HP(1, -23.2, 0), facing: 'west' },
+      { ...HP(1, -10, 19.2), facing: 'south' },
+      { ...HP(2, 4, -19.2), facing: 'north' },
     ],
     switchSpots: [
-      { x: -22.5, z: -6, floor: 1 },
-      { x: -22.5, z: -14, floor: 1 },
-      { x: -22.5, z: 8, floor: 1 },
-      { x: -14, z: -8, floor: 1 },
-      { x: -8, z: -6, floor: 1 },
-      { x: -14, z: 10, floor: 1 },
-      { x: -6, z: 0, floor: 1 },
-      { x: 12, z: 0, floor: 1 },
-      { x: 21, z: 0, floor: 1 },
-      { x: 9, z: -14, floor: 2 },
-      { x: 14, z: -14, floor: 2 },
-      { x: 20, z: -8, floor: 2 },
-      { x: 9, z: 14, floor: 2 },
-      { x: 15, z: 9, floor: 2 },
-      { x: 20, z: 12, floor: 2 },
+      HP(1, -22, -8), HP(1, -22, -16), HP(1, -22, 8), HP(1, -14, -8),
+      HP(1, -6, -6), HP(1, -6, 10), HP(1, 6, 12),
+      HP(2, -20, -6), HP(2, -16, 12), HP(2, -8, 4), HP(2, 0, -10),
+      HP(2, 8, 8), HP(2, 18, 0),
     ],
-    playerSpawn: { x: -20, z: -14 },
+    playerSpawn: HP(1, -20, -14),
     f1: [
-      // Classrooms north and south of the corridor, each with a way through.
-      W(-17, -9, 1.0, 7.0),
-      W(-17, 9, 1.0, 7.0),
-      W(-10, -13, 7.0, 1.0),
-      W(-10, 13, 7.0, 1.0),
-      W(-13, -5.5, 4.0, 1.0),
-      W(-13, 5.5, 4.0, 1.0),
-      W(-3, -9, 1.0, 8.0),
-      W(-3, 9, 1.0, 8.0),
-      W(0, -16, 1.2, 4.0),
-      W(0, 16, 1.2, 4.0),
-      W(6, 5, 1.2, 3.0),
-      W(6, -5, 1.2, 3.0),
+      HW(1, -17, -9, 1, 7),
+      HW(1, -17, 9, 1, 7),
+      HW(1, -10, -13, 7, 1),
+      HW(1, -10, 13, 7, 1),
+      HW(1, -13, -5.5, 4, 1),
+      HW(1, -13, 5.5, 4, 1),
+      HW(1, -3, -9, 1, 8),
+      HW(1, -3, 9, 1, 8),
+      HW(1, 0, -16, 1.2, 4),
+      HW(1, 0, 16, 1.2, 4),
+      HW(1, 6, 5, 1.2, 3),
+      HW(1, 6, -5, 1.2, 3),
     ],
     f2: [
-      W(12, -13, 1.2, 6.0),
-      W(19, -6, 4.0, 1.2),
-      W(9, -6, 3.0, 1.2),
-      W(12, 13, 1.2, 6.0),
-      W(19, 6, 4.0, 1.2),
-      W(9, 6, 3.0, 1.2),
-      W(19.5, 0, 3.0, 1.2),
+      HW(2, -12, -13, 1.2, 6),
+      HW(2, -5, -6, 4, 1.2),
+      HW(2, -15, -6, 3, 1.2),
+      HW(2, -12, 13, 1.2, 6),
+      HW(2, -5, 6, 4, 1.2),
+      HW(2, -15, 6, 3, 1.2),
+      HW(2, -4.5, 0, 3, 1.2),
+      HW(2, 8, -10, 6, 1.2),
+      HW(2, 14, 10, 6, 1.2),
     ],
     props: [
-      { type: 'desk', floor: 1, x: -16, z: -8 },
-      { type: 'desk', floor: 1, x: -11, z: -8 },
-      { type: 'board', floor: 1, x: -13, z: -10 },
-      { type: 'clock', floor: 2, x: 22.5, z: -8 },
-      { type: 'desk', floor: 2, x: 10, z: -6 },
-      { type: 'board', floor: 2, x: 10, z: 6 },
+      { type: 'desk', floor: 1, ...HP(1, -16, -8) },
+      { type: 'desk', floor: 1, ...HP(1, -11, -8) },
+      { type: 'board', floor: 1, ...HP(1, -13, -10) },
+      { type: 'clock', floor: 2, ...HP(2, 22, -8) },
+      { type: 'desk', floor: 2, ...HP(2, -10, -6) },
+      { type: 'board', floor: 2, ...HP(2, -10, 6) },
+      { type: 'desk', floor: 2, ...HP(2, 9, 12) },
     ],
     gimmick: () => ({
       kind: 'school',
       doors: [
-        { floor: 1, x: 2, z: 0, w: 10.0, d: 1.0 },
-        { floor: 2, x: 20, z: -9.5, w: 7.0, d: 1.0 },
+        { floor: 1, ...HP(1, 2, 0), w: 10.0, d: 1.0 },
+        { floor: 2, ...HP(2, 18, -9.5), w: 7.0, d: 1.0 },
       ],
       cycle: { ...GIMMICK.school, kind: 'school' },
     }),
   }),
 
+  /* ------------------------------------------------------------------ */
   stageDef({
     id: 'space',
     pro: true,
     weather: 'stars',
-    // A ring: a north band, a south band and an east spine joining them. Two
-    // ramps climb outward from the central court, and the warp crosses the ring.
-    deck: [D(15, -14, 18, 8), D(15, 14, 18, 8), D(21, 0, 6, 28)],
+    floors: { 1: HALL_RECT(1), 2: HALL_RECT(2) },
     stairs: [
-      ['N', 12, -10, 3.6],
-      ['S', 12, 10, 3.6],
+      [{ floor: 1, u: 19, z: -14 }, { floor: 2, u: -14, z: -14 }],
+      [{ floor: 1, u: 19, z: 12 }, { floor: 2, u: -14, z: 12 }],
     ],
-    warp: [
-      { x: -10, z: 0 },
-      { x: 21, z: 0 },
+    warps: [
+      [1, { u: -16, z: 8 }, { u: 4, z: -10 }],
+      [2, { u: -10, z: -2 }, { u: 16, z: -6 }],
     ],
     pads: [
-      { floor: 1, x: -14, z: 0 },
-      { floor: 1, x: 10, z: 4 },
-      { floor: 2, x: 21, z: 6 },
-      { floor: 2, x: 16, z: -16 },
+      HP(1, -14, 0),
+      HP(1, 8, 4),
+      HP(2, -14, 4),
+      HP(2, 14, 10),
     ],
     gates: [
-      { floor: 1, x: -22.9, z: -2, facing: 'west' },
-      { floor: 1, x: -6, z: -16.6, facing: 'north' },
-      { floor: 2, x: 22.2, z: 0, facing: 'east' },
+      { ...HP(1, -23.2, -4), facing: 'west' },
+      { ...HP(1, -6, -19.2), facing: 'north' },
+      { ...HP(2, 23.2, 4), facing: 'east' },
     ],
     switchSpots: [
-      { x: -22.5, z: -14, floor: 1 },
-      { x: -22.5, z: 4, floor: 1 },
-      { x: -22.5, z: 14, floor: 1 },
-      { x: -14, z: 4, floor: 1 },
-      { x: -8, z: -4, floor: 1 },
-      { x: -6, z: 12, floor: 1 },
-      { x: 4, z: -4, floor: 1 },
-      { x: 12, z: 4, floor: 1 },
-      { x: 4, z: 12, floor: 1 },
-      { x: 10, z: -12, floor: 2 },
-      { x: 15, z: -12, floor: 2 },
-      { x: 21, z: 4, floor: 2 },
-      { x: 21, z: -4, floor: 2 },
-      { x: 15, z: 12, floor: 2 },
-      { x: 10, z: 16, floor: 2 },
+      HP(1, -22, -14), HP(1, -22, 4), HP(1, -22, 14), HP(1, -14, -10),
+      HP(1, -12, 12), HP(1, -4, 6), HP(1, 8, 12),
+      HP(2, -20, 0), HP(2, -12, -12), HP(2, -6, 8), HP(2, 2, 2),
+      HP(2, 10, -12), HP(2, 18, 14),
     ],
-    playerSpawn: { x: -20, z: -12 },
+    playerSpawn: HP(1, -20, -12),
     f1: [
-      W(-19, -6, 6.0, 1.2),
-      W(-19, 6, 6.0, 1.2),
-      W(-12, -8, 1.2, 5.0),
-      W(-11, 12, 1.2, 4.0),
-      W(-6, 0, 4.0, 4.0),
-      W(0, -10, 1.2, 5.0),
-      W(0, 10, 1.2, 5.0),
-      W(8, 8, 3.0, 1.2),
-      W(8, -8, 3.0, 1.2),
+      HW(1, -19, -6, 6, 1.2),
+      HW(1, -19, 6, 6, 1.2),
+      HW(1, -12, -8, 1.2, 5),
+      HW(1, -11, 12, 1.2, 4),
+      HW(1, -6, 0, 4, 4),
+      HW(1, 0, -10, 1.2, 5),
+      HW(1, 0, 10, 1.2, 5),
+      HW(1, 8, 8, 3, 1.2),
+      HW(1, 8, -8, 3, 1.2),
     ],
     f2: [
-      W(10, -14, 1.2, 6.0),
-      W(10, 14, 1.2, 6.0),
-      W(21, 9, 4.0, 1.2),
-      W(21, -9, 4.0, 1.2),
+      HW(2, -18, -14, 1.2, 6),
+      HW(2, -18, 14, 1.2, 6),
+      HW(2, -7, 9, 4, 1.2),
+      HW(2, -7, -9, 4, 1.2),
+      HW(2, 10, 0, 4, 4),
+      HW(2, 2, 14, 6, 1.2),
     ],
     props: [
-      { type: 'reactor', floor: 1, x: -21, z: 0 },
-      { type: 'holo', floor: 2, x: 21, z: 12 },
-      { type: 'hull', floor: 1, x: -2, z: -16 },
-      { type: 'hull', floor: 2, x: 16.5, z: -17 },
-      { type: 'reactor', floor: 2, x: 21, z: -6 },
-      { type: 'holo', floor: 1, x: -9, z: 15 },
+      { type: 'reactor', floor: 1, ...HP(1, -22, 0) },
+      { type: 'holo', floor: 2, ...HP(2, 18, 12) },
+      { type: 'hull', floor: 1, ...HP(1, -2, -17) },
+      { type: 'hull', floor: 2, ...HP(2, 14, -18) },
+      { type: 'reactor', floor: 2, ...HP(2, 20, -6) },
+      { type: 'holo', floor: 1, ...HP(1, -9, 16) },
     ],
     gimmick: () => ({
       kind: 'space',
-      lowGravity: [{ floor: 1, x: -12, z: 14, w: 20, d: 4.0 }],
+      lowGravity: [
+        { floor: 1, ...HP(1, -12, 16), w: 20, d: 4.0 },
+        { floor: 2, ...HP(2, 10, -16), w: 24, d: 4.0 },
+      ],
       cycle: { ...GIMMICK.space, kind: 'gravity' },
     }),
   }),
@@ -706,11 +700,17 @@ export function isProStage(id) {
 }
 
 /**
- * Which switch candidates and gate mouths this stage keeps clear. The stage
- * author keeps every candidate at least 1.2 m off a wall; the test enforces it
- * for all six stages so a switch can never be inside geometry.
+ * Which switch candidates this stage keeps clear. The stage author keeps every
+ * candidate at least 1.2 m off a wall; the test enforces it for all six stages
+ * so a switch can never be inside geometry.
  */
 export function switchSpotsFor(stage) {
   return stage.switchSpots;
 }
 
+/** The two hall rectangles of a stage (used by render and by the audit). */
+export function hallsOf(stage) {
+  return stage.floors;
+}
+
+export { D, W };

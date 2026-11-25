@@ -29,16 +29,16 @@ async function sourceFiles(dir = 'src') {
 
 test('version, bundle id and product id are the shipping ones', () => {
   assert.equal(APP.version, '1.2.0');
-  assert.equal(APP.build, 37);
+  assert.equal(APP.build, 38);
   assert.equal(APP.bundleId, 'jp.signlink.IceWolf');
   assert.equal(APP.productId, 'jp.signlink.IceWolf.pro');
 });
 
-test('the iOS project carries 1.2.0 / 37 and the bundle id', async () => {
+test('the iOS project carries 1.2.0 / 38 and the bundle id', async () => {
   const pbx = await read('ios/App/App.xcodeproj/project.pbxproj');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)].map((m) => m[1]);
   const versions = [...pbx.matchAll(/MARKETING_VERSION = ([\d.]+);/g)].map((m) => m[1]);
-  assert.deepEqual(builds, ['37', '37']);
+  assert.deepEqual(builds, ['38', '38']);
   assert.deepEqual(versions, ['1.2.0', '1.2.0']);
   assert.equal((pbx.match(/PRODUCT_BUNDLE_IDENTIFIER = jp\.signlink\.IceWolf;/g) || []).length, 2);
   const cap = await read('capacitor.config.ts');
@@ -127,7 +127,8 @@ test('the arena and rule numbers the brief fixed are still the values', () => {
   assert.equal(WOLF.maxWolves, 3);
   assert.equal(WOLF.modeSeconds, 5);
   assert.equal(WOLF.cooldownSeconds, 5);
-  assert.equal(ARENA.deckY, 5.5);
+  assert.equal(ARENA.outerH > ARENA.wallH, true);
+  assert.ok(ARENA.maxX - ARENA.minX >= 100);
   assert.equal(MATCH.maxPlayers, 10);
   assert.deepEqual(MATCH.durations, [60, 120, 180, 300]);
   assert.deepEqual(MATCH.switchCounts, [3, 5, 7, 10]);
@@ -141,11 +142,10 @@ test('all six stages declare both floors, doors and a gimmick where promised', (
     assert.equal(stage.gates.length, 3);
     assert.equal(stage.pads.length, 4);
     assert.equal(stage.stairs.length, 4);
-    assert.equal(stage.warps.length, 2);
+    assert.equal(stage.warps.length, 4);
   }
-  assert.equal(STAGES.find((s) => s.id === 'classic').gimmick, null);
-  for (const id of ['aquarium', 'park', 'lodge', 'school', 'space']) {
-    assert.ok(STAGES.find((s) => s.id === id).gimmick, id);
+  for (const id of ['classic', 'aquarium', 'park', 'lodge', 'school', 'space']) {
+    assert.ok(STAGES.find((s) => s.id === id).gimmick, `${id} needs its show`);
   }
 });
 
@@ -162,7 +162,7 @@ test('the built web layer is complete and self-contained', async () => {
   const main = await read('www/src/main.js');
   assert.ok(!/https?:\/\/[^'"\s]+\.(js|css)/.test(main), 'no remote script/style');
   const info = JSON.parse(await read('www/build-info.json'));
-  assert.equal(info.build, 37);
+  assert.equal(info.build, 38);
 });
 
 test('the workflow the owner pastes builds Three.js, not GDevelop', async () => {
