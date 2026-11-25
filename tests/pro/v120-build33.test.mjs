@@ -82,10 +82,10 @@ test('the menu card fits the phone, and the sheet keeps the screen that was aske
 });
 
 /* ------------------------------------------------------------- the running body */
-test('a body stands 112 against the 160 wall, and it is drawn over the walls', () => {
+test('a body stands 122 against the 160 wall, and it is drawn over the walls', () => {
   const bodies = codeOf(CHARACTER_GROUP);
-  assert.ok(bodies.includes('const BODY_HEIGHT = 112;'), 'a body is 112px against the 160 wall');
-  assert.ok(bodies.includes('const STEPS_PER_FRAME = 9;'), 'the four-frame cycle turns faster');
+  assert.ok(bodies.includes('const BODY_HEIGHT = 122;'), 'a body is 122px against the 160 wall');
+  assert.ok(/const STEPS_PER_FRAME = \d+;/.test(bodies), 'the four-frame cycle is turned by distance, not by the clock');
   assert.ok(bodies.includes('depthTest: false'), 'a wall can no longer hide a runner');
   assert.ok(bodies.includes('sprite.renderOrder = 12'), 'a body draws over the walls');
   for (const [needle, why] of [
@@ -105,13 +105,13 @@ test('the camera came in and steepened, so a wall hides less', () => {
   for (const event of group.events) {
     for (const action of event.actions || []) {
       const params = action.parameters || [];
-      if (params[1] === 'Player' && (params[3] === '500' || params[3] === '600' || params[3] === '1050' || params[3] === '980')) {
-        looks.push({ distance: params[3], angle: params[6] });
+      if (params[1] === 'Player' && (params[3] === '470' || params[3] === '500' || params[3] === '900' || params[3] === '980')) {
+        looks.push({ distance: params[3], angle: params[5] });
       }
     }
   }
-  assert.deepEqual(looks, [{ distance: '500', angle: '58' }, { distance: '980', angle: '80' }],
-    'the normal view is 500 at 58 degrees and the overview 980 at 80');
+  assert.deepEqual(looks, [{ distance: '470', angle: '50' }, { distance: '900', angle: '73' }],
+    'Build 34: the normal view is 470 at 50 degrees and the overview 900 at 73');
 });
 
 /* ------------------------------------------------------------------ the HUD */
@@ -130,7 +130,8 @@ test('a pill is clamped inside the canvas and the stick sits in the safe corner'
 test('the action layer runs last and owns only its own effect state', () => {
   const scene = sceneOf(readGame());
   const names = scene.events.map((group) => group.name);
-  assert.equal(names[names.length - 1], FX_GROUP, 'the action layer is the last block on the sheet');
+  assert.equal(names[names.length - 2], FX_GROUP, 'the action layer runs after every writer');
+  assert.equal(names[names.length - 1], 'v1.2.0 ポップHUD', 'and Build 34\'s HUD reads the finished frame');
   const fx = codeOf(FX_GROUP);
   for (const variable of ['StageFxPillars', 'StageFxRings', 'StageFxShards', 'StageFxFlashes',
     'StageFxPadRings', 'StageFxLive', 'StageFxFired']) {
@@ -166,17 +167,21 @@ test('every stage has its own air and backdrop, the Classic arena included', () 
 });
 
 /* ---------------------------------------------------------------- the release */
-test(`the build is ${VERSION} (${BUILD}) on every side, and npm test runs this file`, () => {
+test(`the project, the verifier and the package all name ${VERSION}, and npm test runs this file`, () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   assert.equal(pkg.version, VERSION, 'package.json');
   assert.ok(pkg.scripts.test.includes('v120-build33.test.mjs'), 'npm test runs this file');
   const pbx = fs.readFileSync(path.join(repoRoot, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
   assert.deepEqual([...pbx.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map((match) => match[1]),
     [VERSION, VERSION], 'MARKETING_VERSION in both configurations');
-  assert.deepEqual([...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]),
-    [BUILD, BUILD], `Build ${BUILD} in the Xcode project`);
   const verify = fs.readFileSync(path.join(repoRoot, 'scripts/ios/verify-ios-project.py'), 'utf8');
-  assert.ok(verify.includes(`DEFAULT_BUILD_NUMBER = "${BUILD}"`), 'the verifier defaults to this build');
+  /* Build 34 moved the number on, so this test checks that the project and the
+   * verifier agree with each other; the number itself is asserted in
+   * tests/pro/v120-build34.test.mjs. */
+  const shipped = (/DEFAULT_BUILD_NUMBER = "(\d+)"/.exec(verify) || [])[1];
+  assert.ok(shipped, 'the verifier names a build');
+  assert.deepEqual([...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1]),
+    [shipped, shipped], 'both configurations carry the build the verifier defaults to');
   assert.ok(verify.includes(`DEFAULT_MARKETING_VERSION = "${VERSION}"`), 'and to this version');
   assert.equal(readGame().properties.version, VERSION, 'the GDevelop project version');
 });

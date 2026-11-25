@@ -444,7 +444,7 @@ test('the thumb is let go, and a thaw hands the camera back', () => {
   assert.equal(scene.values.get('SpectatorPanX'), 0, 'and the camera event is not fed the frozen point');
 });
 
-test('the shipped frozen camera reads the pan, at the shipped 1500 / 86', () => {
+test('the shipped frozen camera reads the pan, at the shipped 1350 / 82', () => {
   const scene = sceneOf(readGame());
   const follow = scene.events.find((group) => group.name === FOLLOW_GROUP);
   assert.equal(follow.events.length, 3, 'chase, overview and the frozen view');
@@ -460,8 +460,8 @@ test('the shipped frozen camera reads the pan, at the shipped 1500 / 86', () => 
   for (const parameter of frozen.parameters) {
     assert.equal(/GlobalVariable\(/.test(parameter), false, `a scene variable is not a game variable: ${parameter}`);
   }
-  assert.equal(frozen.parameters[4], '1500', 'the same distance up');
-  assert.equal(frozen.parameters[6], '86', 'and the same angle down');
+  assert.equal(frozen.parameters[4], '1350', 'the same distance up (Build 34 came in)');
+  assert.equal(frozen.parameters[6], '82', 'and the angle down');
   const frozenFlags = follow.events[2].conditions.map((condition) => condition.parameters?.[0]);
   assert.ok(frozenFlags.includes('SpectatorFrozen'), 'and only while the ice is on');
   const names = scene.variables.map((variable) => variable.name);

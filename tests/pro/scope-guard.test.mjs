@@ -44,7 +44,10 @@ const NEW_GROUPS = [
   'v1.2.0 表示・操作設定',
   /* Build 33: the action and stage-effect layer comes last of all; it reads the
    * frame the others have finished with and writes only its own effect state. */
-  'v1.3.0 アクション演出'
+  'v1.3.0 アクション演出',
+  /* Build 34: the pop HUD reads the lines every other block has written and
+   * draws them itself, so it comes after the action layer. */
+  'v1.2.0 ポップHUD'
 ];
 
 const git = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });

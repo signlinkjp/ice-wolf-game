@@ -139,3 +139,21 @@ for the switches, pads, ice, rescue and the wolf's aura.
 eight). `python3 scripts/ios/verify-ios-project.py` — **ALL CHECKS PASSED**,
 build 33. The GDevelop export and the Playwright pass were not re-run for this
 commit (they are not part of the tests); the next build does them.
+
+## Build 34 — the device recording, answered
+
+The three findings of the Build 33 recording and the play-test's fourth ask are
+written up in `docs/v120-build34-changes.md`. In one line each: the direct-touch
+overlay no longer covers the canvas and a touch on a HUD control is handed to
+the game, so `[ rescue ]` presses again; a body is 122 tall, a stride is
+eighteen pixels (the four poses hold long enough to be seen) and the stride
+squashes and stretches it; the light rig is down to a bounce, a key and a rim so
+the walls, the snow and the ice keep their colour, every wall carries a merged
+snow cap and every stage has weather in one Points mesh; and the play screen's
+lines are redrawn as a pop HUD from the same translated strings.
+
+`npm test` — **303 tests, 303 pass** (`tests/pro/v120-build34.test.mjs` adds
+ten). `python3 scripts/ios/verify-ios-project.py` — **ALL CHECKS PASSED**,
+build 34. The real build was exported with GDevelop 5.6.282
+(`EXPORT_HTML5_EXTERNAL`, the same path `ios-testflight.yml` uses) and walked in
+Chromium: 22 checks, all passing, with the evidence in `downloads/icewolf-b34-*.png`.

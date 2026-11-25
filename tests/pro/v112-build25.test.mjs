@@ -318,8 +318,10 @@ test('the block that holds the timer runs last and publishes what it closed', ()
   const groups = scene.events.map((group) => group.name);
   assert.equal(groups[groups.indexOf(RESET_GROUP) + 1], 'v1.2.0 オープニング',
     'only the v1.2.0 opening and settings follow the restorer');
-  assert.equal(groups[groups.length - 1], 'v1.3.0 アクション演出',
-    'and Build 33\'s action layer is the very last block');
+  assert.equal(groups[groups.length - 2], 'v1.3.0 アクション演出',
+    'and Build 33\'s action layer is the last block that touches the effects');
+  assert.equal(groups[groups.length - 1], 'v1.2.0 ポップHUD',
+    'with Build 34\'s HUD reading the finished frame after it');
   const variables = new Map(scene.variables.map((variable) => [variable.name, variable.value]));
   for (const name of ['WolfResetWatched', 'WolfResetCount', 'WolfResetClosed', 'WolfResetArmed', 'WolfResetReason']) {
     assert.ok(variables.has(name), `${name} is a scene variable`);
@@ -531,8 +533,8 @@ test('the frozen camera is the follow group\'s third event, and the other two st
     'the frozen view looks at a position');
   assert.equal(overhead.actions[0].parameters[1], 'SpectatorPanX');
   assert.equal(overhead.actions[0].parameters[2], 'SpectatorPanY');
-  assert.equal(overhead.actions[0].parameters[4], '1500');
-  assert.equal(overhead.actions[0].parameters[6], '86');
+  assert.equal(overhead.actions[0].parameters[4], '1350', 'Build 34 brought the frozen view in');
+  assert.equal(overhead.actions[0].parameters[6], '82', 'and looked down a little less');
 });
 
 /* ------------------------------------------------------------ the rescue, once */

@@ -20,6 +20,13 @@ match), the runners are taller and actually run (lean, bounce, snow), the camera
 came in, the HUD stays inside the safe area, and every stage - the Classic arena
 included - has its own air, light and set dressing, with a new action layer for
 the switches, pads, ice, rescue and wolf aura. See `docs/v120-build33-changes.md`.
+**Build 34** answers the first device recording of 33: the direct-touch pad is
+decoration only and hands a touch on a HUD button to the game (the `[ rescue ]`
+button works again), a body is 122 tall with a stride you can see, the light rig
+is turned down so the walls and snow keep their colour, every wall wears a merged
+snow cap and every stage has weather, and the play screen's lines are redrawn as
+a pop HUD (chips, a big timer, a hint bar, a toast and a winner banner) from the
+same translated strings. See `docs/v120-build34-changes.md`.
 
 **v1.1.0** (branch `feat/ice-wolf-v1.1.0-pro`) is the Pro release, in two parts:
 

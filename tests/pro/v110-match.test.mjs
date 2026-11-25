@@ -174,19 +174,19 @@ test('the camera hands over to the picked actor and stands the old group down', 
     assert.equal(action.parameters[2], 'Object3D', 'through the 3D behaviour');
   }
   assert.equal(actions[0].parameters[1], 'Actor', 'the chase looks at an Actor');
-  assert.equal(actions[0].parameters[3], '600', 'the shipped chase distance');
-  assert.equal(actions[0].parameters[5], '53', 'the shipped chase height');
+  assert.equal(actions[0].parameters[3], '540', 'the shipped chase distance (Build 34 came in)');
+  assert.equal(actions[0].parameters[5], '50', 'the shipped chase height');
   assert.equal(actions[1].parameters[1], 'Actor', 'the overview looks at an Actor');
-  assert.equal(actions[1].parameters[3], '1050', 'the shipped overview distance');
-  assert.equal(actions[1].parameters[5], '78', 'the shipped overview height');
+  assert.equal(actions[1].parameters[3], '960', 'the shipped overview distance');
+  assert.equal(actions[1].parameters[5], '73', 'the shipped overview height');
   /* Build 25: frozen, the camera goes above the player's own ice and shows the
    * whole floor, which is what a frozen player asked for. */
   assert.equal(actions[2].type.value, 'ThirdPersonCamera::LookFromDistanceAtPosition3D',
     'the frozen view is a position, so the stick can move the look point');
   assert.equal(actions[2].parameters[1], 'SpectatorPanX', 'over the point the stick has panned to');
   assert.equal(actions[2].parameters[2], 'SpectatorPanY', 'on both axes');
-  assert.equal(actions[2].parameters[4], '1500', 'from far enough up to see the floor');
-  assert.equal(actions[2].parameters[6], '86', 'and steep enough to read as a plan');
+  assert.equal(actions[2].parameters[4], '1350', 'from far enough up to see the floor');
+  assert.equal(actions[2].parameters[6], '82', 'and steep enough to read as a plan');
   for (const event of follow.events.slice(0, 2)) {
     const conditions = event.conditions.map((condition) => condition.parameters?.[0]);
     assert.ok(conditions.includes('SpectatorActive'), 'only while spectating');

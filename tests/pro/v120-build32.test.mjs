@@ -246,7 +246,7 @@ test('the two new blocks are at the end of the sheet and the 1.0.0 order is inta
   assert.ok(settings >= 0 && opening >= 0, 'both blocks are on the sheet');
   assert.ok(settings > names.indexOf('v1.1.0 鬼の状態リセット'), 'after the v1.1.0 readers');
   assert.ok(opening > names.indexOf('v1.1.0 鬼の状態リセット'));
-  assert.ok(settings >= names.length - 3 && opening >= names.length - 3, 'at the very end');
+  assert.ok(settings >= names.length - 4 && opening >= names.length - 4, 'at the very end');
   assert.ok(names.indexOf('v1.1.0 オンライン対戦同期') < settings, 'the sync still writes before them');
 });
 
