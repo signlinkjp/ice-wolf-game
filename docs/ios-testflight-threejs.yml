@@ -147,10 +147,10 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 45
     env:
-      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      ASC_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID || secrets.ASC_API_KEY_ID }}
-      ASC_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID || secrets.ASC_API_ISSUER_ID }}
-      ASC_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY || secrets.ASC_API_KEY_P8 }}
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID || 'TGBNH8WJV6' }}
+      ASC_KEY_ID: ${{ secrets.ASC_ADMIN_AB_KEY_ID || secrets.APPSTORE_CONNECT_KEY_ID || secrets.ASC_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ADMIN_AB_ISSUER_ID || secrets.APPSTORE_CONNECT_ISSUER_ID || secrets.ASC_API_ISSUER_ID }}
+      ASC_PRIVATE_KEY: ${{ secrets.ASC_ADMIN_AB_KEY_P8_BASE64 || secrets.APPSTORE_CONNECT_PRIVATE_KEY || secrets.ASC_API_KEY_P8 }}
       UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_to_testflight || 'false' }}
     steps:
       - uses: actions/checkout@v4
