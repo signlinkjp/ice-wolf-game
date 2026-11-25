@@ -620,6 +620,15 @@ const school = await page.evaluate(async () => {
 });
 check('the shutter is physically down during the lockdown', school.duringShut.visible && school.duringShut.y < 1.9, JSON.stringify(school));
 check('standing in a closed doorway pushes the body out', school.pushed, JSON.stringify(school));
+await page.evaluate(() => {
+  const app = window.iceWolf;
+  const p = app.match.actors[0];
+  app.view.cameraPos.set(p.x, 11.8, p.z + 9.2);
+  app.view.camera.position.copy(app.view.cameraPos);
+  app.view.cameraLook.set(p.x, 1.2, p.z);
+});
+await wait(400);
+await shot('school-lockdown');
 const tallFade = await page.evaluate(() => {
   const app = window.iceWolf;
   app.chooseStage('park');
@@ -645,7 +654,6 @@ const tallFade = await page.evaluate(() => {
 });
 check('a tall prop between camera and player turns translucent', tallFade.faded > 0, JSON.stringify(tallFade));
 check('the camera also lifts near tall props', tallFade.lift > 0.3, JSON.stringify(tallFade));
-await shot('school-lockdown');
 
 console.log('\n== 9. frozen camera ==');
 await calmScene();
