@@ -1,5 +1,5 @@
 /**
- * ICE WOLF v1.2.0 (Build 36) — one place for every number that shapes a match.
+ * ICE WOLF v1.2.0 (Build 37) — one place for every number that shapes a match.
  *
  * The original GDevelop build (game.json) mixed rule numbers into an event
  * sheet. The Three.js build keeps every tuned value here so the rules, the AI,
@@ -13,28 +13,36 @@
 export const APP = {
   name: 'ICE WOLF',
   version: '1.2.0',
-  build: 36,
+  build: 37,
   productId: 'jp.signlink.IceWolf.pro',
   bundleId: 'jp.signlink.IceWolf',
 };
 
-/** Arena frame shared by all six stages (only the inner walls differ). */
+/**
+ * Arena frame shared by all six stages. The outer rink is the same; the raised
+ * deck (2F) is not — each stage declares its own rectangles in `stage.deck`
+ * (Build 37: east half, island, balcony, L, two bands, ring), and geometry.js
+ * turns those into the cliff, the railings, the upper outer walls and the two
+ * stairwells cut through them.
+ */
 export const ARENA = {
   minX: -24,
   maxX: 24,
   minZ: -18,
   maxZ: 18,
-  /** The raised deck (2F) covers x from deckX to maxX. */
-  deckX: 6,
   deckY: 5.5,
   wallH: 1.4,
   railH: 1.0,
   wallT: 0.8,
-  /** Two stairwells cut through the deck edge, as [zCenter, width]. */
-  stairs: [
-    { z: -11.5, w: 4.2 },
-    { z: 10, w: 4.2 },
-  ],
+  /** How far below the deck edge a stair flight starts. */
+  stairRun: 2.2,
+};
+
+/** The frozen-player camera: self-centred, and how far the stick may pan it. */
+export const FROZEN_CAM = {
+  panX: 18,
+  panZ: 16,
+  speed: 13,
 };
 
 /** Player / actor. */

@@ -1,9 +1,18 @@
 /**
  * Pure geometry for the two-storey ice arena.
  *
- * The arena is one footprint with a raised deck on its east half (2F). A player
- * belongs to floor 1 while west of the deck edge and floor 2 on the deck; the
- * two stairwells are the only way to cross (plus the warp pads).
+ * Build 37: the raised deck (2F) is no longer "everything east of x = 6". Every
+ * stage owns a list of deck rectangles (`stage.deck`), so the 2F can be the east
+ * half, a central island, a north balcony, an L, two bands or a ring. A point is
+ * on floor 2 when it stands inside one of those rectangles.
+ *
+ * From that one piece of data this module derives the frame every stage shares:
+ *   * the four outer walls on the ground floor,
+ *   * the upper-floor outer walls, but only where a deck actually reaches the
+ *     arena wall (so no wall floats over open ice),
+ *   * the deck face — a tall cliff seen from 1F, a railing seen from 2F — along
+ *     every deck edge that faces open air, cut at each stairwell,
+ *   * the two-floor navigation grid the AI walks.
  *
  * Everything here is DOM-free and Three.js-free so the unit tests can flood-fill
  * all six stages in Node.
@@ -49,60 +58,208 @@ export function rectsOverlap(a, b, pad = 0) {
   return ab.x0 < B.x1 && ab.x1 > B.x0 && ab.z0 < B.z1 && ab.z1 > B.z0;
 }
 
-/** Which floor a position is on, by the deck edge. */
-export function floorOf(x) {
-  return x >= ARENA.deckX ? 2 : 1;
+/* ------------------------------------------------------------------ */
+/* The deck (2F footprint)                                             */
+/* ------------------------------------------------------------------ */
+
+/** The deck rectangles a stage raises to 2F. */
+export function deckRects(stage) {
+  return stage.deck;
+}
+
+/** Is (x,z) inside the raised deck footprint? */
+export function insideDeck(stage, x, z) {
+  for (const r of stage.deck) {
+    const b = rectBounds(r);
+    if (x > b.x0 + EPS && x < b.x1 - EPS && z > b.z0 + EPS && z < b.z1 - EPS) return true;
+  }
+  return false;
+}
+
+/** Which floor a position stands on: 2F inside a deck, 1F everywhere else. */
+export function floorAt(stage, x, z) {
+  return insideDeck(stage, x, z) ? 2 : 1;
+}
+
+/** Which floor a SPOT claims, with its claim corrected by the deck. */
+export function snapFloor(stage, spot) {
+  return { ...spot, floor: floorAt(stage, spot.x, spot.z) };
 }
 
 export function deckFloorY(floor) {
   return floor === 2 ? ARENA.deckY : 0;
 }
 
+/** The bounding box of a stage's deck, and the middle of each floor. */
+export function deckBounds(stage) {
+  let x0 = Infinity;
+  let x1 = -Infinity;
+  let z0 = Infinity;
+  let z1 = -Infinity;
+  for (const r of stage.deck) {
+    const b = rectBounds(r);
+    x0 = Math.min(x0, b.x0);
+    x1 = Math.max(x1, b.x1);
+    z0 = Math.min(z0, b.z0);
+    z1 = Math.max(z1, b.z1);
+  }
+  return { x0, x1, z0, z1 };
+}
+
+/** A readable middle point for a floor (the camera uses these). */
+export function floorCenter(stage, floor) {
+  if (floor === 2) {
+    const b = deckBounds(stage);
+    return { x: (b.x0 + b.x1) / 2, z: (b.z0 + b.z1) / 2, y: ARENA.deckY };
+  }
+  // The ground floor is the arena minus the deck: use the open western part.
+  const b = deckBounds(stage);
+  const west = b.x0 - ARENA.minX;
+  const x = west > 8 ? (ARENA.minX + b.x0) / 2 : (ARENA.minX + ARENA.maxX) / 2;
+  return { x, z: 0, y: 0 };
+}
+
+/* ------------------------------------------------------------------ */
+/* The shared frame                                                    */
+/* ------------------------------------------------------------------ */
+
+function sampleRuns(from, to, step, test) {
+  const out = [];
+  const n = Math.max(1, Math.ceil(Math.abs(to - from) / step));
+  let start = null;
+  for (let i = 0; i <= n; i += 1) {
+    const u = from + ((to - from) * i) / n;
+    if (test(u)) {
+      if (start === null) start = u;
+    } else if (start !== null) {
+      out.push([start, u]);
+      start = null;
+    }
+  }
+  if (start !== null) out.push([start, to]);
+  return out.filter(([a, b]) => b - a >= 0.9);
+}
+
+/** A stairwell cuts the deck face: is this edge point inside one? */
+function inStairGap(stage, along, point, fixed) {
+  for (const s of stage.stairs) {
+    if (s.floor !== 1) continue;
+    const horizontal = Math.abs(s.edgeX - s.footX) > Math.abs(s.edgeZ - s.footZ);
+    if (horizontal && along === 'z') {
+      if (Math.abs(point - s.edgeZ) <= s.w / 2 && Math.abs(fixed - s.edgeX) < 1.4) return true;
+    }
+    if (!horizontal && along === 'x') {
+      if (Math.abs(point - s.edgeX) <= s.w / 2 && Math.abs(fixed - s.edgeZ) < 1.4) return true;
+    }
+  }
+  return false;
+}
+
 /**
- * The fixed frame: outer walls per floor, the deck cliff (1F) and its railing
- * (2F), with the two stairwells cut out.
+ * Every deck edge that faces open air, as runs. A run is where the deck ends and
+ * the ice continues on the same floor edge, which is what gets a railing (2F)
+ * and a cliff face (1F).
  */
-export function frameWalls() {
-  const f1 = [];
-  const f2 = [];
+function deckEdgeRuns(stage) {
+  const runs = [];
+  for (const r of stage.deck) {
+    const b = rectBounds(r);
+    const sides = [
+      { along: 'x', fixed: b.z0, nx: 0, nz: -1, min: b.x0, max: b.x1 },
+      { along: 'x', fixed: b.z1, nx: 0, nz: 1, min: b.x0, max: b.x1 },
+      { along: 'z', fixed: b.x0, nx: -1, nz: 0, min: b.z0, max: b.z1 },
+      { along: 'z', fixed: b.x1, nx: 1, nz: 0, min: b.z0, max: b.z1 },
+    ];
+    for (const side of sides) {
+      const exposed = (u) => {
+        if (inStairGap(stage, side.along, u, side.fixed)) return false;
+        const px = side.along === 'x' ? u : side.fixed;
+        const pz = side.along === 'x' ? side.fixed : u;
+        const ox = px + side.nx * 0.4;
+        const oz = pz + side.nz * 0.4;
+        // On the arena boundary the outer wall takes over from the railing.
+        if (ox <= ARENA.minX + 0.01 || ox >= ARENA.maxX - 0.01) return false;
+        if (oz <= ARENA.minZ + 0.01 || oz >= ARENA.maxZ - 0.01) return false;
+        return !insideDeck(stage, ox, oz);
+      };
+      for (const [from, to] of sampleRuns(side.min, side.max, 0.5, exposed)) {
+        runs.push({ ...side, from, to });
+      }
+    }
+  }
+  return runs;
+}
+
+/** Lengths of arena wall that a deck actually reaches, per side. */
+function outerTouches(stage) {
+  const sides = [
+    { id: 'north', along: 'x', fixed: ARENA.minZ, min: ARENA.minX, max: ARENA.maxX, test: (u) => insideDeck(stage, u, ARENA.minZ + 0.2) },
+    { id: 'south', along: 'x', fixed: ARENA.maxZ, min: ARENA.minX, max: ARENA.maxX, test: (u) => insideDeck(stage, u, ARENA.maxZ - 0.2) },
+    { id: 'west', along: 'z', fixed: ARENA.minX, min: ARENA.minZ, max: ARENA.maxZ, test: (u) => insideDeck(stage, ARENA.minX + 0.2, u) },
+    { id: 'east', along: 'z', fixed: ARENA.maxX, min: ARENA.minZ, max: ARENA.maxZ, test: (u) => insideDeck(stage, ARENA.maxX - 0.2, u) },
+  ];
+  const out = [];
+  for (const side of sides) {
+    for (const [from, to] of sampleRuns(side.min, side.max, 0.5, side.test)) {
+      out.push({ ...side, from, to });
+    }
+  }
+  return out;
+}
+
+const frameCache = new Map();
+
+export function frameWalls(stage) {
+  const key = stage.id || 'custom';
+  if (frameCache.has(key)) return frameCache.get(key);
   const t = ARENA.wallT;
-  const { minX, maxX, minZ, maxZ, deckX } = ARENA;
+  const { minX, maxX, minZ, maxZ } = ARENA;
   const midX = (minX + maxX) / 2;
   const midZ = (minZ + maxZ) / 2;
   const width = maxX - minX + t * 2;
   const depth = maxZ - minZ + t * 2;
 
-  for (const floor of [1, 2]) {
-    const list = floor === 1 ? f1 : f2;
-    list.push(rectOf(midX, minZ - t / 2, width, t, { kind: 'wall', floor }));
-    list.push(rectOf(midX, maxZ + t / 2, width, t, { kind: 'wall', floor }));
-  }
+  const f1 = [];
+  const f2 = [];
+  f1.push(rectOf(midX, minZ - t / 2, width, t, { kind: 'wall', floor: 1 }));
+  f1.push(rectOf(midX, maxZ + t / 2, width, t, { kind: 'wall', floor: 1 }));
   f1.push(rectOf(minX - t / 2, midZ, t, depth, { kind: 'wall', floor: 1 }));
-  f2.push(rectOf(maxX + t / 2, midZ, t, depth, { kind: 'wall', floor: 2 }));
+  f1.push(rectOf(maxX + t / 2, midZ, t, depth, { kind: 'wall', floor: 1 }));
 
-  // The deck face: a tall cliff for 1F, a railing for 2F, cut at the stairs.
-  const gaps = ARENA.stairs
-    .map((s) => [s.z - s.w / 2, s.z + s.w / 2])
-    .sort((a, b) => a[0] - b[0]);
-  const segments = [];
-  let cursor = minZ - t / 2;
-  for (const [g0, g1] of gaps) {
-    if (g0 > cursor) segments.push([cursor, g0]);
-    cursor = g1;
+  // 2F outer walls: only along wall the deck reaches, so nothing floats.
+  for (const touch of outerTouches(stage)) {
+    if (touch.along === 'x') {
+      const z = touch.fixed === minZ ? minZ - t / 2 : maxZ + t / 2;
+      f2.push(rectOf((touch.from + touch.to) / 2, z, touch.to - touch.from + t, t, { kind: 'wall', floor: 2 }));
+    } else {
+      const x = touch.fixed === minX ? minX - t / 2 : maxX + t / 2;
+      f2.push(rectOf(x, (touch.from + touch.to) / 2, t, touch.to - touch.from + t, { kind: 'wall', floor: 2 }));
+    }
   }
-  if (cursor < maxZ + t / 2) segments.push([cursor, maxZ + t / 2]);
-  for (const [z0, z1] of segments) {
-    f1.push(rectOf(deckX + t / 2, (z0 + z1) / 2, t, z1 - z0, { kind: 'cliff', floor: 1 }));
-    f2.push(rectOf(deckX + t / 2, (z0 + z1) / 2, t, z1 - z0, { kind: 'rail', floor: 2 }));
+
+  // The deck face: cliff below, railing on top.
+  for (const run of deckEdgeRuns(stage)) {
+    const len = run.to - run.from;
+    const mid = (run.from + run.to) / 2;
+    // Both the cliff and the railing straddle the deck edge, so a body on
+    // either floor keeps the same half-wall of clearance.
+    if (run.along === 'x') {
+      f1.push(rectOf(mid, run.fixed, len, t, { kind: 'cliff', floor: 1 }));
+      f2.push(rectOf(mid, run.fixed, len, t, { kind: 'rail', floor: 2 }));
+    } else {
+      f1.push(rectOf(run.fixed, mid, t, len, { kind: 'cliff', floor: 1 }));
+      f2.push(rectOf(run.fixed, mid, t, len, { kind: 'rail', floor: 2 }));
+    }
   }
-  return { f1, f2 };
+
+  const made = { f1, f2 };
+  frameCache.set(key, made);
+  return made;
 }
-
-const FRAME = frameWalls();
 
 export function wallsForFloor(stage, floor) {
   const inner = floor === 1 ? stage.walls.f1 : stage.walls.f2;
-  const frame = floor === 1 ? FRAME.f1 : FRAME.f2;
+  const frame = floor === 1 ? frameWalls(stage).f1 : frameWalls(stage).f2;
   return frame.concat(inner);
 }
 
@@ -125,6 +282,9 @@ export function blockedAt(stage, floor, x, z, radius = ACTOR.radius) {
 
 export function isWalkable(stage, floor, x, z, radius = ACTOR.radius) {
   if (x < ARENA.minX || x > ARENA.maxX || z < ARENA.minZ || z > ARENA.maxZ) return false;
+  // A body belongs to the surface it stands on.
+  if (floor === 2 && !insideDeck(stage, x, z)) return false;
+  if (floor === 1 && insideDeck(stage, x, z)) return false;
   return blockedAt(stage, floor, x, z, radius) === null;
 }
 
@@ -179,9 +339,8 @@ export function buildNav(stage, radius = ACTOR.radius) {
       for (let ix = 0; ix < cols; ix += 1) {
         const x = cx(ix);
         const z = cz(iz);
-        const onDeck = floor === 2 ? x >= ARENA.deckX : x < ARENA.deckX;
         const idx = (floor - 1) * perFloor + iz * cols + ix;
-        if (!onDeck || !isWalkable(stage, floor, x, z, radius)) blocked[idx] = 1;
+        if (!isWalkable(stage, floor, x, z, radius)) blocked[idx] = 1;
       }
     }
   }
@@ -322,18 +481,45 @@ export function lineClear(stage, floor, x0, z0, x1, z1, radius = ACTOR.radius) {
 export const NAV_CELL = CELL;
 
 /**
+ * A random open metre on a floor. Floor 2 draws from the deck rectangles, floor
+ * 1 from the ice around them, so a wandering CPU never picks a deck square it
+ * cannot stand on. Returns null when the floor has no room for the radius.
+ */
+export function randomPointOn(stage, floor, rng, radius = ACTOR.radius) {
+  for (let i = 0; i < 80; i += 1) {
+    let x;
+    let z;
+    if (floor === 2) {
+      const r = stage.deck[Math.floor(rng() * stage.deck.length)];
+      const b = rectBounds(r);
+      const inset = Math.max(1.2, radius + 0.6);
+      const w = Math.max(0.2, b.x1 - b.x0 - inset * 2);
+      const d = Math.max(0.2, b.z1 - b.z0 - inset * 2);
+      x = b.x0 + inset + rng() * w;
+      z = b.z0 + inset + rng() * d;
+    } else {
+      x = ARENA.minX + 2.4 + rng() * (ARENA.maxX - ARENA.minX - 4.8);
+      z = ARENA.minZ + 2.4 + rng() * (ARENA.maxZ - ARENA.minZ - 4.8);
+    }
+    if (isWalkable(stage, floor, x, z, radius)) return { x, z, floor };
+  }
+  return null;
+}
+
+/**
  * Nudge a spawn / switch candidate to the nearest open metre. Stages author
  * their inner walls freely; a generic spawn point therefore asks the geometry
  * where it can actually stand instead of trusting the coordinate.
  */
 export function openSpotFor(stage, spot, radius = ACTOR.radius, maxPush = 4) {
-  if (isWalkable(stage, spot.floor, spot.x, spot.z, radius)) return { ...spot };
+  const floor = spot.floor;
+  if (isWalkable(stage, floor, spot.x, spot.z, radius)) return { ...spot };
   for (let r = 0.5; r <= maxPush; r += 0.5) {
     for (let i = 0; i < 16; i += 1) {
       const a = (i / 16) * Math.PI * 2;
       const x = spot.x + Math.cos(a) * r;
       const z = spot.z + Math.sin(a) * r;
-      if (isWalkable(stage, spot.floor, x, z, radius)) return { ...spot, x, z };
+      if (isWalkable(stage, floor, x, z, radius)) return { ...spot, x, z };
     }
   }
   return { ...spot };

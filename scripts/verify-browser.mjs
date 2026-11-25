@@ -268,6 +268,9 @@ await page.evaluate(() => {
   const p = m.actors[0];
   const sw = m.switches.find((s) => s.correct && !s.active);
   p.x = sw.x; p.z = sw.z; p.floor = sw.floor; p.y = sw.floor === 2 ? 5.5 : 0;
+  // Stop the CPU brains for this one check: a wandering CPU stepping on the same
+  // switch used to make it flaky.
+  for (const a of m.actors) if (a.seat !== 0) a.isCPU = false;
   app.__switchId = sw.id;
 });
 await page.mouse.move(ab.x + ab.width / 2, ab.y + ab.height / 2);
@@ -320,6 +323,9 @@ await page.evaluate(() => {
   p.form = 'wolf';
   p.wolfCooldown = 0;
   app.phase = 'play';
+  // Slow software WebGL may not paint a frame inside the wait, so ask the HUD
+  // for its state directly instead of racing the frame loop.
+  app.updateHud();
 });
 await wait(400);
 const wolfBtnInfo = await page.evaluate(() => {
@@ -333,6 +339,124 @@ await page.waitForFunction(() => window.iceWolf.match.actors[0].wolfTimer > 0, n
 const wolfTimer = await page.evaluate(() => window.iceWolf.match.actors[0].wolfTimer);
 check('WOLF mode starts (5 s)', wolfTimer > 3, String(wolfTimer));
 await shot('wolf-mode');
+
+console.log('\n== 4b. frozen camera: self-centred, stick pans it ==');
+await calmScene();
+await wait(200);
+// Freeze the player on purpose and watch where the camera actually is.
+const frozenInfo = await page.evaluate(async () => {
+  const app = window.iceWolf;
+  const m = app.match;
+  const p = m.actors[0];
+  // Park the CPU on the deck and switch their brains off, so nobody runs over
+  // and rescues the player mid-test (that is what a real teammate would do).
+  for (const a of m.actors) {
+    if (a.seat === 0) continue;
+    a.role = 'human';
+    a.state = 'active';
+    a.isCPU = false;
+    a.floor = 2;
+    a.x = 21;
+    a.z = -12 + a.seat * 2;
+  }
+  p.state = 'frozen';
+  p.frozenType = 'human';
+  p.frozenX = p.x;
+  p.frozenZ = p.z;
+  p.frozenFloor = p.floor;
+  m.spectateSeat = null;
+  // Let the HUD run once so its automatic spectate choice (Build 36) would show.
+  await new Promise((r) => setTimeout(r, 700));
+  app.view.frozenPan.x = 0;
+  app.view.frozenPan.z = 0;
+  const focus = app.view.focusPoint(m);
+  return {
+    spectateSeat: m.spectateSeat,
+    focusX: Math.round(focus.x * 10) / 10,
+    focusZ: Math.round(focus.z * 10) / 10,
+    px: Math.round(p.frozenX * 10) / 10,
+    pz: Math.round(p.frozenZ * 10) / 10,
+    overhead: app.view.camera.position.y > 10,
+    specText: (document.getElementById('specText').textContent || '').trim(),
+  };
+});
+check('frozen: no automatic switch to another character', frozenInfo.spectateSeat === null, JSON.stringify(frozenInfo));
+check('frozen: camera stays on the player', Math.abs(frozenInfo.focusX - frozenInfo.px) < 0.5 && Math.abs(frozenInfo.focusZ - frozenInfo.pz) < 0.5, JSON.stringify(frozenInfo));
+check('frozen: bar shows the camera hint', frozenInfo.specText.length > 0, frozenInfo.specText);
+check('frozen: camera is the overhead view', frozenInfo.overhead);
+
+// Drag the stick: the character must not move, the camera focus must.
+const posBefore = await page.evaluate(() => {
+  const p = window.iceWolf.match.actors[0];
+  return { x: p.frozenX, z: p.frozenZ, pan: { ...window.iceWolf.view.frozenPan } };
+});
+await page.mouse.move(stick.x + stick.width / 2, stick.y + stick.height / 2);
+await page.mouse.down();
+await page.mouse.move(stick.x + stick.width / 2 + 46, stick.y + stick.height / 2, { steps: 6 });
+await wait(900);
+await page.mouse.up();
+await wait(200);
+const posAfter = await page.evaluate(() => {
+  const app = window.iceWolf;
+  const p = app.match.actors[0];
+  const focus = app.view.focusPoint(app.match);
+  return {
+    x: p.frozenX,
+    z: p.frozenZ,
+    pan: { ...app.view.frozenPan },
+    focusX: focus.x,
+    camX: app.view.camera.position.x,
+  };
+});
+check('frozen: the stick does not move the frozen body', Math.hypot(posAfter.x - posBefore.x, posAfter.z - posBefore.z) < 0.01, `${JSON.stringify(posBefore)} -> ${JSON.stringify(posAfter)}`);
+check('frozen: the stick pans the camera focus', Math.abs(posAfter.pan.x - posBefore.pan.x) > 1.5, `pan ${posBefore.pan.x} -> ${posAfter.pan.x}`);
+await shot('frozen-camera-panned');
+
+// CAM brings the focus home.
+await page.click('#camBtn');
+await wait(500);
+const recentred = await page.evaluate(() => {
+  const app = window.iceWolf;
+  const p = app.match.actors[0];
+  const focus = app.view.focusPoint(app.match);
+  return { pan: { ...app.view.frozenPan }, dx: Math.abs(focus.x - p.frozenX), dz: Math.abs(focus.z - p.frozenZ) };
+});
+check('frozen: CAM returns the camera to the player', recentred.dx < 0.4 && recentred.dz < 0.4, JSON.stringify(recentred));
+
+// The ‹ › buttons jump to a teammate.
+await page.click('#specNext');
+await wait(400);
+const jumped = await page.evaluate(() => ({ seat: window.iceWolf.match.spectateSeat, pan: { ...window.iceWolf.view.frozenPan } }));
+check('frozen: > jumps the camera to a teammate', jumped.seat !== null && (Math.abs(jumped.pan.x) + Math.abs(jumped.pan.z)) > 0.5, JSON.stringify(jumped));
+
+// Thawed: the camera comes back on its own.
+const thawed = await page.evaluate(() => {
+  const app = window.iceWolf;
+  const p = app.match.actors[0];
+  p.state = 'active';
+  p.frozenType = null;
+  app.match.spectateSeat = null;
+  // Two seconds of camera steps at a fixed dt: the same easing the loop runs,
+  // without depending on how fast SwiftShader paints.
+  for (let i = 0; i < 40; i += 1) app.view.updateCamera(app.match, 0.05, 'normal');
+  return { pan: { ...app.view.frozenPan }, seat: app.match.spectateSeat };
+});
+check('thawed: the camera eases back to the player', Math.abs(thawed.pan.x) < 1 && Math.abs(thawed.pan.z) < 1 && thawed.seat === null, JSON.stringify(thawed));
+
+console.log('\n== 4c. stage lighting rules ==');
+const lightRules = await page.evaluate(async () => {
+  const app = window.iceWolf;
+  const out = {};
+  for (const id of ['classic', 'park']) {
+    app.chooseStage(id);
+    await new Promise((r) => setTimeout(r, 120));
+    out[id] = { sun: app.view.sun.castShadow, map: app.view.renderer.shadowMap.enabled };
+  }
+  app.chooseStage('classic');
+  return out;
+});
+check('classic keeps cast shadows', lightRules.classic.sun === true && lightRules.classic.map === true, JSON.stringify(lightRules.classic));
+check('park turns cast shadows off', lightRules.park.sun === false && lightRules.park.map === false, JSON.stringify(lightRules.park));
 
 console.log('\n== 5. result screen ==');
 await page.evaluate(() => {

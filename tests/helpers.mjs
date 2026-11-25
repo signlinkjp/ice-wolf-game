@@ -6,7 +6,26 @@ import {
   findPath,
   blockedAt,
   wallsForFloor,
-  floorOf,
+  insideDeck,
+  floorAt,
+  deckBounds,
+  frameWalls,
+  randomPointOn,
 } from '../src/core/geometry.js';
 
-export { STAGES, stageById, ARENA, ACTOR, isWalkable, buildNav, findPath, blockedAt, wallsForFloor, floorOf };
+export {
+  STAGES,
+  stageById,
+  ARENA,
+  ACTOR,
+  isWalkable,
+  buildNav,
+  findPath,
+  blockedAt,
+  wallsForFloor,
+  insideDeck,
+  floorAt,
+  deckBounds,
+  frameWalls,
+  randomPointOn,
+};

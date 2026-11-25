@@ -29,16 +29,16 @@ async function sourceFiles(dir = 'src') {
 
 test('version, bundle id and product id are the shipping ones', () => {
   assert.equal(APP.version, '1.2.0');
-  assert.equal(APP.build, 36);
+  assert.equal(APP.build, 37);
   assert.equal(APP.bundleId, 'jp.signlink.IceWolf');
   assert.equal(APP.productId, 'jp.signlink.IceWolf.pro');
 });
 
-test('the iOS project carries 1.2.0 / 36 and the bundle id', async () => {
+test('the iOS project carries 1.2.0 / 37 and the bundle id', async () => {
   const pbx = await read('ios/App/App.xcodeproj/project.pbxproj');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)].map((m) => m[1]);
   const versions = [...pbx.matchAll(/MARKETING_VERSION = ([\d.]+);/g)].map((m) => m[1]);
-  assert.deepEqual(builds, ['36', '36']);
+  assert.deepEqual(builds, ['37', '37']);
   assert.deepEqual(versions, ['1.2.0', '1.2.0']);
   assert.equal((pbx.match(/PRODUCT_BUNDLE_IDENTIFIER = jp\.signlink\.IceWolf;/g) || []).length, 2);
   const cap = await read('capacitor.config.ts');
@@ -162,7 +162,7 @@ test('the built web layer is complete and self-contained', async () => {
   const main = await read('www/src/main.js');
   assert.ok(!/https?:\/\/[^'"\s]+\.(js|css)/.test(main), 'no remote script/style');
   const info = JSON.parse(await read('www/build-info.json'));
-  assert.equal(info.build, 36);
+  assert.equal(info.build, 37);
 });
 
 test('the workflow the owner pastes builds Three.js, not GDevelop', async () => {

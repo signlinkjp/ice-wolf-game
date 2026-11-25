@@ -333,16 +333,57 @@ test('the aquarium current pushes a standing player downstream', () => {
   assert.ok(human.x > before, 'pushed east on floor 1');
 });
 
+function stairDir(dir) {
+  return dir === 'E' ? [1, 0] : dir === 'W' ? [-1, 0] : dir === 'N' ? [0, -1] : [0, 1];
+}
+
 test('stairs move a player between floors with a short climb', () => {
+  const match = matchOf();
+  const stair = match.stage.stairs.find((s) => s.floor === 1);
+  const human = match.actors.find((a) => a.role === 'human');
+  const [dx, dz] = stairDir(stair.dir);
+  human.x = stair.x - dx * 0.4;
+  human.z = stair.z - dz * 0.4;
+  human.floor = 1;
+  // Push into the stairwell: that is what a player does, and what the trigger
+  // now asks for (Build 37).
+  for (let i = 0; i < 30 && human.floor === 1; i += 1) {
+    stepMatch(match, 1 / 60, { [human.seat]: { mx: dx, mz: dz } });
+  }
+  assert.equal(human.floor, 2);
+  assert.ok(human.climb > 0);
+});
+
+test('standing on a stairwell is not the same as climbing it', () => {
   const match = matchOf();
   const stair = match.stage.stairs.find((s) => s.floor === 1);
   const human = match.actors.find((a) => a.role === 'human');
   human.x = stair.x;
   human.z = stair.z;
   human.floor = 1;
-  stepMatch(match, 1 / 60, {});
-  assert.equal(human.floor, 2);
-  assert.ok(human.climb > 0);
+  // No input at all: a body resting by the stairs stays on the ice.
+  for (let i = 0; i < 30; i += 1) stepMatch(match, 1 / 60, { [human.seat]: { mx: 0, mz: 0 } });
+  assert.equal(human.floor, 1);
+});
+
+test('walking past a stairwell in a corridor does not carry you upstairs', () => {
+  // The school puts both stairwells in the only east-west corridor. Crossing
+  // the corridor used to lift everybody onto the deck (Build 37 fixes it).
+  const match = matchOf({}, 'school');
+  for (const stair of match.stage.stairs.filter((s) => s.floor === 1)) {
+    const human = match.actors.find((a) => a.role === 'human' && a.state === 'active');
+    human.floor = 1;
+    human.x = stair.edgeX;
+    human.z = stair.edgeZ + 2.0 * (stair.dir === 'N' ? 1 : -1);
+    const before = { x: human.x, z: human.z };
+    for (let i = 0; i < 90; i += 1) {
+      stepMatch(match, 1 / 60, { [human.seat]: { mx: 1, mz: 0 } });
+      human.floor = 1; // the corridor is floor 1; keep the probe honest
+      human.y = 0;
+    }
+    assert.ok(Math.abs(human.x - before.x) > 0.5, 'the probe actually walked');
+    assert.equal(human.floor, 1, `walked past ${stair.id} and ended up on the deck`);
+  }
 });
 
 test('nobody leaves the arena over a busy minute (AI plays all six stages)', () => {

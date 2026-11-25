@@ -29,6 +29,7 @@ import {
   isWalkable,
   openSpotFor,
   pointInRect,
+  randomPointOn,
   resolveMove,
 } from './geometry.js';
 
@@ -319,16 +320,16 @@ export function gravityCells(match) {
   if (!g || g.kind !== 'space') return [];
   const rng = mulberry32((match.seed ^ 0x9e3779b9) >>> 0);
   const out = [];
-  const floors = [1, 2];
   let guard = 0;
   while (out.length < g.cycle.cells && guard < 400) {
     guard += 1;
-    const floor = floors[rng() < 0.62 ? 0 : 1];
-    const x = floor === 1 ? -21 + rng() * 25 : 8 + rng() * 14;
-    const z = -15 + rng() * 30;
-    if (!isWalkable(match.stage, floor, x, z, 2.4)) continue;
-    if (out.some((c) => c.floor === floor && Math.hypot(c.x - x, c.z - z) < 4.4)) continue;
-    out.push({ floor, x, z, r: g.cycle.cellRadius });
+    // The deck shapes differ per stage, so ask the geometry where a cell fits
+    // instead of assuming the old "east half" rectangle.
+    const floor = rng() < 0.62 ? 1 : 2;
+    const spot = randomPointOn(match.stage, floor, rng, 2.4);
+    if (!spot) continue;
+    if (out.some((c) => c.floor === spot.floor && Math.hypot(c.x - spot.x, c.z - spot.z) < 4.4)) continue;
+    out.push({ floor: spot.floor, x: spot.x, z: spot.z, r: g.cycle.cellRadius });
   }
   match.__gravity = { seed: match.seed, cells: out };
   return out;
@@ -708,9 +709,25 @@ export function stepMatch(match, dt, inputs = {}, brain = null) {
 
 function stepStairs(match, actor) {
   if (actor.stairLock > 0) return;
-  const stairs = match.stage.stairs.filter((s) => s.floor === actor.floor);
-  for (const s of stairs) {
-    if (Math.hypot(actor.x - s.x, actor.z - s.z) > s.r) continue;
+  for (const s of match.stage.stairs) {
+    if (s.floor !== actor.floor) continue;
+    const dir = s.dir === 'E' ? [1, 0] : s.dir === 'W' ? [-1, 0] : s.dir === 'N' ? [0, -1] : [0, 1];
+    const offX = actor.x - s.edgeX;
+    const offZ = actor.z - s.edgeZ;
+    // + is toward the deck, so a 1F body stands at a negative offset.
+    const along = offX * dir[0] + offZ * dir[1];
+    const lateral = Math.abs(offX * -dir[1] + offZ * dir[0]);
+    if (lateral > s.w / 2 + 0.3) continue;
+    // The mouth of the stairwell: the last metre on the ice, or the landing
+    // strip on the deck. Crossing a corridor past a stairwell never matches,
+    // which is why the school's two flights do not grab people walking by.
+    if (actor.floor === 1) {
+      if (along < -1.35 || along > 0.3) continue;
+    } else if (along < -0.3 || along > 1.7) continue;
+    const toward = (actor.vx || 0) * dir[0] + (actor.vz || 0) * dir[1];
+    // You have to be heading up (1F) or stepping out over the edge (2F), not
+    // merely standing near the stairs.
+    if (actor.floor === 1 ? toward < 0.2 : toward > -0.2) continue;
     actor.floor = s.toFloor;
     actor.x = s.exitX;
     actor.z = s.exitZ;
@@ -761,13 +778,13 @@ function stepDoors(match, actor, gim) {
   }
 }
 
-/** Where the camera should look when the player is frozen. */
+/**
+ * Build 37: a frozen player is not switched to another character any more. The
+ * camera stays on them and the stick pans it (render/view.js), so there is no
+ * spectator seat to choose. Kept as a trivially true helper for the HUD.
+ */
 export function spectatorTarget(match) {
   const player = match.actors[0];
   if (player.state !== 'frozen') return null;
-  return (
-    match.actors.find((a) => a.seat !== 0 && a.state === 'active' && isWolfRole(a.role)) ||
-    match.actors.find((a) => a.seat !== 0 && a.state === 'active') ||
-    null
-  );
+  return player;
 }

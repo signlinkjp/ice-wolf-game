@@ -8,7 +8,7 @@
  * nobody is watching (or when it can reach a lone human).
  */
 import { ACTOR, WOLF } from '../config.js';
-import { buildNav, findPath, isWalkable } from './geometry.js';
+import { buildNav, findPath, isWalkable, randomPointOn } from './geometry.js';
 import {
   gimmickPhase,
   isWolfRole,
@@ -59,6 +59,20 @@ function steer(match, actor) {
   return { mx: dx / len, mz: dz / len };
 }
 
+function nearestStair(match, actor) {
+  let best = null;
+  let bestD = Infinity;
+  for (const s of match.stage.stairs) {
+    if (s.floor !== actor.floor) continue;
+    const d = Math.hypot(s.x - actor.x, s.z - actor.z);
+    if (d < bestD) {
+      bestD = d;
+      best = s;
+    }
+  }
+  return best;
+}
+
 function wanderPoint(match, actor) {
   const ai = aiOf(actor);
   if (ai.wander && Math.hypot(ai.wander.x - actor.x, ai.wander.z - actor.z) > 2) {
@@ -66,20 +80,26 @@ function wanderPoint(match, actor) {
   }
   const rng = match.rng;
   for (let i = 0; i < 24; i += 1) {
-    const floor = rng() < 0.5 ? 1 : 2;
-    const x = floor === 1 ? -21 + rng() * 24 : 8 + rng() * 14;
-    const z = -15 + rng() * 30;
-    if (!isWalkable(match.stage, floor, x, z, ACTOR.radius * 1.6)) continue;
-    if (floor !== actor.floor) {
-      // Pick the nearest stair landing on the other floor instead of a random
-      // point so the walk is plausible.
-      const stair = match.stage.stairs.find((s) => s.floor === actor.floor);
+    // Mostly stay on the floor you are on: a CPU that keeps changing storeys
+    // never finishes a job. Cross now and then so both floors stay alive.
+    const floor = actor.floor === 2 ? (rng() < 0.72 ? 2 : 1) : rng() < 0.62 ? 1 : 2;
+    // The deck is a different shape on every stage, so the aim point comes from
+    // the stage's own rectangles rather than a fixed "east half" box.
+    const spot = randomPointOn(match.stage, floor, rng, ACTOR.radius * 1.6);
+    if (!spot) continue;
+    const { x, z } = spot;
+    if (spot.floor !== actor.floor) {
+      // Walk to the nearest stairwell and out the other side: aim at the
+      // landing, so the approach is a push into the stairs (Build 37 only
+      // climbs when the body is heading up).
+      const stair = nearestStair(match, actor);
       if (!stair) continue;
-      setGoal(match, actor, { x: stair.x, z: stair.z, floor: actor.floor }, `wander-${Math.round(x)}-${Math.round(z)}`);
+      setGoal(match, actor, { x: stair.exitX, z: stair.exitZ, floor: stair.toFloor }, `stair-${stair.id}`);
+      ai.wander = null;
     } else {
       setGoal(match, actor, { x, z, floor }, `wander-${Math.round(x)}-${Math.round(z)}`);
     }
-    ai.wander = { x, z, floor };
+    ai.wander = { x, z, floor: spot.floor };
     return steer(match, actor);
   }
   return { mx: 0, mz: 0 };
@@ -110,6 +130,10 @@ export function brain(match, actor, dt, gim = null) {
   if (ai.path && match.elapsed - ai.pathAt > 0.9) {
     ai.path = findPath(navOf(match), actor, ai.goal);
     ai.pathAt = match.elapsed;
+    // The waypoint index belonged to the old path. Without this reset a CPU
+    // chased an index into a route it was no longer taking and ping-ponged in
+    // front of the school corridor (found in Build 37).
+    ai.wp = 0;
   }
   // Unstick: if the actor barely moved for a second, drop the goal.
   if (match.elapsed - ai.stuckAt > 1) {
@@ -159,11 +183,18 @@ export function brain(match, actor, dt, gim = null) {
         return steer(match, actor);
       }
     }
-    // 4. Otherwise work the switches.
-    const sw = nearestBy(actor, match.switches.filter((s) => !s.active && !s.triggered));
+    // 4. Otherwise work the switches — including the ones on the other floor,
+    // because the stairwells are there to be used.
+    const open = match.switches.filter((s) => !s.active && !s.triggered);
+    const sw = nearestBy(actor, open);
     if (sw) {
       if (distance(actor, sw) <= 1.4) return { mx: 0, mz: 0, useSwitch: true };
       setGoal(match, actor, sw, `switch-${sw.id}`);
+      return steer(match, actor);
+    }
+    if (open.length) {
+      const away = open.slice().sort((a, b) => distance(actor, a) - distance(actor, b))[0];
+      setGoal(match, actor, away, `switch-${away.id}`);
       return steer(match, actor);
     }
     return wanderPoint(match, actor);

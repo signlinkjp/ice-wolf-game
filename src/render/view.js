@@ -5,7 +5,8 @@
  *   match (third-person follow, or overhead while frozen).
  */
 import * as THREE from '../../vendor/three.module.js';
-import { ARENA } from '../config.js';
+import { ARENA, FROZEN_CAM } from '../config.js';
+import { floorCenter } from '../core/geometry.js';
 import { buildStage, decorateZones } from './stage3d.js';
 import { ActorView } from './actors3d.js';
 import { Effects } from './effects.js';
@@ -83,6 +84,8 @@ export class View {
     this.orbit = 0;
     this.opening = null;
     this.shake = 0;
+    // Build 37: the frozen player's camera focus offset, in metres.
+    this.frozenPan = { x: 0, z: 0 };
     this.resize();
     window.addEventListener('resize', () => this.resize());
   }
@@ -119,6 +122,12 @@ export class View {
     decorateZones(view, stage);
     this.stageView = view;
     const p = stage.palette;
+    // The amusement park turns cast shadows off: its ice is lit by strings of
+    // lights, and one long black-purple shadow across the purple rink read as a
+    // bug. Every other stage keeps the soft sun shadow.
+    const shadows = stage.shadows !== false;
+    this.sun.castShadow = shadows;
+    this.renderer.shadowMap.enabled = shadows;
     this.scene.background = skyTexture(p.sky, p.cap);
     this.scene.fog = new THREE.Fog(p.fog, p.fogNear, p.fogFar);
     this.hemi.color.set(p.hemiSky);
@@ -269,33 +278,59 @@ export class View {
   focusPoint(match) {
     if (this.lookAtOther && performance.now() < this.lookAtOther.until) {
       const f = this.lookAtOther.floor;
-      return { x: f === 2 ? 15 : -9, y: f === 2 ? ARENA.deckY : 0, z: 0, frozen: false };
+      const c = floorCenter(match.stage, f);
+      return { x: c.x, y: c.y, z: c.z, frozen: false };
     }
     const player = match.actors[0];
-    if (player.state === 'frozen' && match.spectateSeat !== undefined && match.spectateSeat !== null) {
-      const other = match.actors.find((a) => a.seat === match.spectateSeat);
-      if (other) return { x: other.x, y: (other.floor === 2 ? ARENA.deckY : 0), z: other.z, frozen: true };
-    }
     if (player.state === 'frozen') {
-      return { x: player.frozenX ?? player.x, y: player.frozenFloor === 2 ? ARENA.deckY : 0, z: player.frozenZ ?? player.z, frozen: true };
+      // Build 37: stay with the frozen player; the stick pans the focus.
+      const bx = (player.frozenX ?? player.x) + this.frozenPan.x;
+      const bz = (player.frozenZ ?? player.z) + this.frozenPan.z;
+      const by = player.frozenFloor === 2 ? ARENA.deckY : 0;
+      return { x: bx, y: by, z: bz, frozen: true };
     }
     return { x: player.x, y: player.y ?? (player.floor === 2 ? ARENA.deckY : 0), z: player.z, frozen: false };
   }
 
+  /** Move the frozen camera's focus (metres). Clamped to the arena. */
+  panFrozen(dx, dz) {
+    this.frozenPan.x = Math.max(-FROZEN_CAM.panX, Math.min(FROZEN_CAM.panX, this.frozenPan.x + dx));
+    this.frozenPan.z = Math.max(-FROZEN_CAM.panZ, Math.min(FROZEN_CAM.panZ, this.frozenPan.z + dz));
+  }
+
+  /** Point the frozen camera at a world position (used by the ‹ › buttons). */
+  setFrozenPan(x, z) {
+    this.frozenPan.x = Math.max(-FROZEN_CAM.panX, Math.min(FROZEN_CAM.panX, x));
+    this.frozenPan.z = Math.max(-FROZEN_CAM.panZ, Math.min(FROZEN_CAM.panZ, z));
+  }
+
+  /** CAM while frozen: glide back to the player. */
+  recenterFrozen() {
+    this.frozenPan.x = 0;
+    this.frozenPan.z = 0;
+  }
+
   updateCamera(match, dt, cameraMode = 'normal') {
     const f = this.focusPoint(match);
+    // Unfreeze: the pan eases home so the next chase starts centred.
+    if (!f.frozen) {
+      this.frozenPan.x *= Math.max(0, 1 - dt * 3.2);
+      this.frozenPan.z *= Math.max(0, 1 - dt * 3.2);
+      if (Math.abs(this.frozenPan.x) < 0.05) this.frozenPan.x = 0;
+      if (Math.abs(this.frozenPan.z) < 0.05) this.frozenPan.z = 0;
+    }
     const overhead = cameraMode === 'top' || f.frozen;
     const dist = overhead ? 19 : 11;
     const height = overhead ? 21 : 10.4;
     const wanted = new THREE.Vector3(f.x, f.y + height, f.z + dist * (overhead ? 0.45 : 1));
-    this.cameraPos.lerp(wanted, Math.min(1, dt * (f.frozen ? 2.2 : 5.5)));
+    this.cameraPos.lerp(wanted, Math.min(1, dt * (f.frozen ? 3.4 : 5.5)));
     this.camera.position.copy(this.cameraPos);
     if (this.shake > 0) {
       this.camera.position.x += (Math.random() - 0.5) * this.shake;
       this.camera.position.y += (Math.random() - 0.5) * this.shake;
       this.shake = Math.max(0, this.shake - dt * 3);
     }
-    this.cameraLook.lerp(new THREE.Vector3(f.x, f.y + 1.2, f.z), Math.min(1, dt * 6));
+    this.cameraLook.lerp(new THREE.Vector3(f.x, f.y + 1.2, f.z), Math.min(1, dt * (f.frozen ? 3.6 : 6)));
     this.camera.lookAt(this.cameraLook);
   }
 

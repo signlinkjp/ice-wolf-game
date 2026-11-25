@@ -5,7 +5,7 @@
  * Input, audio, online sync and the render loop meet here; the rules themselves
  * live in core/rules.js and never touch the DOM.
  */
-import { APP, ACTOR, DEFAULT_SETTINGS, MATCH, STORAGE, ONLINE } from './config.js';
+import { APP, ACTOR, DEFAULT_SETTINGS, FROZEN_CAM, MATCH, STORAGE, ONLINE } from './config.js';
 import { STAGE_BY_ID, STAGES, stageById } from './data/stages.js';
 import { createMatch, stepMatch, mulberry32, gimmickPhase, isWolfRole } from './core/rules.js';
 import { brain } from './core/ai.js';
@@ -492,9 +492,34 @@ class App {
   }
 
   toggleCamera() {
+    // While frozen the CAM button is the way home: back to the player.
+    if (this.match && this.match.actors[0].state === 'frozen') {
+      this.view.recenterFrozen();
+      this.match.spectateSeat = null;
+      audio.play('ui');
+      return;
+    }
     this.settings.camera = this.settings.camera === 'top' ? 'normal' : 'top';
     this.saveAll();
     audio.play('ui');
+  }
+
+  /**
+   * Build 37: the stick pans the frozen camera. Drawing a stick direction while
+   * frozen costs the character nothing (the rules never move a frozen body), so
+   * the same finger looks around the rink.
+   */
+  applyFrozenPan(dt) {
+    if (!this.match) return;
+    const p = this.match.actors[0];
+    if (p.state !== 'frozen') return;
+    const mx = this.move.x;
+    const my = this.move.y;
+    if (!mx && !my) return;
+    const speed = FROZEN_CAM.speed * (this.settings.camera === 'top' ? 1.2 : 1);
+    // Screen up is -z from the overhead camera.
+    this.view.panFrozen(mx * speed * dt, my * speed * dt);
+    if (this.match.spectateSeat !== null) this.match.spectateSeat = null;
   }
 
   lookOtherFloor() {
@@ -504,13 +529,21 @@ class App {
     audio.play('ui');
   }
 
+  /** While frozen: ‹ › jump the camera to the next teammate still on the ice. */
   spectateStep(dir) {
     if (!this.match) return;
-    if (this.match.actors[0].state !== 'frozen') return;
+    const player = this.match.actors[0];
+    if (player.state !== 'frozen') return;
     const candidates = this.match.actors.filter((a) => a.seat !== 0 && a.state === 'active');
     if (!candidates.length) return;
     this.spectateIndex = (this.spectateIndex + dir + candidates.length) % candidates.length;
-    this.match.spectateSeat = candidates[this.spectateIndex].seat;
+    const target = candidates[this.spectateIndex];
+    this.match.spectateSeat = target.seat;
+    this.view.setFrozenPan(
+      target.x - (player.frozenX ?? player.x),
+      target.z - (player.frozenZ ?? player.z),
+    );
+    audio.play('ui');
   }
 
   playerInput() {
@@ -611,6 +644,7 @@ class App {
         inputs[seatInfo.seat] = input ? { ...input } : { remote: true };
       }
     }
+    this.applyFrozenPan(effectiveDt);
     stepMatch(m, effectiveDt, inputs, brain);
     this.handleEvents();
 
@@ -636,6 +670,7 @@ class App {
   stepGuest(dt, now) {
     const m = this.match;
     const input = this.playerInput()[0] || {};
+    this.applyFrozenPan(dt);
     // Prediction: the local seat moves on the finger.
     const p = m.actors[0];
     if (p.state === 'active' && !p.out) {
@@ -681,10 +716,9 @@ class App {
     }
     this.ui.setActionProgress(ratio);
     this.ui.setAction('action.rescue');
-    if (!m.spectateSeat && p.state === 'frozen') {
-      const first = m.actors.find((a) => a.seat !== 0 && a.state === 'active');
-      if (first) m.spectateSeat = first.seat;
-    }
+    // Build 37: no automatic switch to another character. The camera stays on
+    // the frozen player and pans with the stick, so only a manual ‹ › target
+    // (or CAM to come home) sets a spectator seat.
     if (p.state !== 'frozen') m.spectateSeat = null;
     this.ui.updateHud(m);
   }

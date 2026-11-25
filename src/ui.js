@@ -791,11 +791,14 @@ export class UI {
     const canInfect = role === 'firstWolf' && !match.infectionUsed && player.wolfTimer > 0;
     this.el.infectBtn.classList.toggle('hidden', !canInfect);
 
-    // Spectate bar while frozen.
+    // Spectate bar while frozen: the camera is the player's own, panned with the
+    // stick, and ‹ › jump it to the next teammate still on the ice.
     if (player.state === 'frozen') {
       const target = match.actors.find((a) => a.seat === match.spectateSeat);
       this.el.spectate.classList.remove('hidden');
-      this.el.specText.textContent = t('hud.spectate', { name: target ? target.displayName : '—' });
+      this.el.specText.textContent = target
+        ? t('hud.spectate', { name: target.displayName })
+        : t('hud.camFrozen');
     } else {
       this.el.spectate.classList.add('hidden');
     }
@@ -805,7 +808,7 @@ export class UI {
 
   hintFor(match) {
     const p = match.actors[0];
-    if (p.state === 'frozen') return t('hud.freeze');
+    if (p.state === 'frozen') return t('hud.hintFrozen');
     if (p.role === 'human') {
       const nearFrozen = match.actors.some(
         (a) => a.state === 'frozen' && a.seat !== 0 && Math.hypot(a.x - p.x, a.z - p.z) < 2.6,
