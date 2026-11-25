@@ -1,274 +1,335 @@
-name: ICE WOLF iOS TestFlight
-
-# Builds the ICE WOLF iOS shell and (optionally) uploads it to TestFlight.
+# ============================================================
+# ICE WOLF — iOS TestFlight（Three.js 版 / Build 35）
 #
-# Two jobs, on purpose:
-#   1. html5-export (ubuntu)  — GDevelop 5.6.282 EXPORT_HTML5_EXTERNAL, the exact
-#      headless path this repository has used for every preview build. No Apple
-#      credentials are in this job, so a failing export never touches Apple.
-#   2. ios-testflight (macos) — Capacitor sync, archive, App Store distribution
-#      signing with the App Store Connect API key, IPA verification, upload.
+# ★ これは「貼り替え用」のワークフローです（トモアキさんの権限境界）。
+#   GitHub 連携の権限では .github/workflows/ を直接更新できないため、
+#   このファイルの中身をそのままコピーして
+#     .github/workflows/ios-testflight.yml
+#   を上書きしてください。貼り替えるまでは、既存の GDevelop 版
+#   ワークフローは game.json を探して止まります（古いビルドが
+#   TestFlight に出ることはありません）。
 #
-# Secrets (same names as signlinkjp/bridge-sign-chat and signlinkjp/eleven-game-fresh):
-#   ASC_ADMIN_AB_KEY_ID, ASC_ADMIN_AB_ISSUER_ID, ASC_ADMIN_AB_KEY_P8_BASE64
+# 何をするか:
+#   npm ci → npm test → npm run build（www/ 生成）
+#   → npx cap sync ios（www/ → ios/App/App/public）
+#   → Supabase の online config を index.html に注入
+#   → scripts/ios/verify-ios-project.py でシェル検証
+#   → xcodebuild archive / -exportArchive → altool で TestFlight
 #
-# First run: keep upload_to_testflight = false. It produces the signed IPA and its
-# SHA-256 without contacting App Store Connect for a write. Then re-run with
-# upload_to_testflight = true.
+# ビルド番号・表示バージョンは pbxproj から読みます（固定値を書きません）。
+# いまは MARKETING_VERSION = 1.2.0 / CURRENT_PROJECT_VERSION = 35。
+# 次のビルドは pbxproj の CURRENT_PROJECT_VERSION を上げるだけで、
+# このワークフローは書き換え不要です。
+#
+# 必要な Secrets（既存リポジトリと同じ値）:
+#   APPLE_TEAM_ID                   … TGBNH8WJV6
+#   APPSTORE_CONNECT_KEY_ID         … App Store Connect API キーの Key ID
+#   APPSTORE_CONNECT_ISSUER_ID      … Issuer ID
+#   APPSTORE_CONNECT_PRIVATE_KEY    … AuthKey_*.p8 の中身
+#   （ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_KEY_P8 でも可）
+#   任意: ICEWOLF_SUPABASE_URL / ICEWOLF_SUPABASE_ANON_KEY
+#         （未設定なら本番 games-realtime が使われます）
+#
+# ※ 1行目は必ず「# 」で始まる YAML コメントのままにしてください。
+# ============================================================
+name: ICE WOLF iOS TestFlight (Three.js)
 
 on:
   workflow_dispatch:
     inputs:
-      confirmation:
-        description: "I want to run the ICE WOLF iOS build"
-        type: boolean
+      confirm_bundle_id:
+        description: "確認のため bundle ID を入力: jp.signlink.IceWolf"
         required: true
-        default: false
+        type: string
+        default: "jp.signlink.IceWolf"
       upload_to_testflight:
-        description: "Upload the finished build to TestFlight (false = build only)"
+        description: "TestFlight へアップロードする（false = 署名済みIPAの作成まで）"
+        required: true
         type: boolean
-        required: true
-        default: false
-      build_number:
-        description: "CFBundleVersion (must be unused for this marketing version)"
-        type: string
-        required: true
-        default: "1"
-      marketing_version:
-        description: "CFBundleShortVersionString"
-        type: string
-        required: true
-        default: "0.6.11"
-      source_ref:
-        description: "Branch to build"
-        type: string
-        required: true
-        default: "feature/v065-production-round-start"
+        default: true
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
-  group: icewolf-ios-testflight
+  group: ice-wolf-ios-testflight
   cancel-in-progress: false
 
 env:
   BUNDLE_ID: jp.signlink.IceWolf
-  TEAM_ID: TGBNH8WJV6
-  XCODE_VERSION_DIR: /Applications/Xcode_26.6.app
-  GDEVELOP_ZIP_URL: https://github.com/4ian/GDevelop/releases/download/v5.6.282/GDevelop-5-5.6.282-linux.zip
-  GDEVELOP_SHA256: c1d23616562befbde242412913785dacb0bb15a79e8c101c1553dc729b1e0472
-  # Assets the game cannot run without; the export is rejected if any is missing.
-  EXPORT_ASSETS: floor_frostlab.png wall_frostlab.png ice_freeze.png pad_speed.png pad_warp.png menu_hero.png
+  PBXPROJ: ios/App/App.xcodeproj/project.pbxproj
 
 jobs:
-  html5-export:
-    name: GDevelop HTML5 export
-    if: ${{ github.repository == 'signlinkjp/ice-wolf-game' }}
+  preflight:
+    name: Web preflight（テスト・ビルド・シェル検証）
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    outputs:
-      sha: ${{ steps.source.outputs.sha }}
+    timeout-minutes: 20
     steps:
-      - name: Confirm the run was started on purpose
-        run: |
-          set -euo pipefail
-          [ "${{ inputs.confirmation }}" = "true" ] || { echo "STOP: confirmation was not ticked." >&2; exit 1; }
-          case "${{ inputs.build_number }}" in
-            ''|*[!0-9]*) echo "STOP: build_number must be a positive integer." >&2; exit 1 ;;
-          esac
-          echo "Building ${{ inputs.marketing_version }} (${{ inputs.build_number }}) from ${{ inputs.source_ref }}"
+      - uses: actions/checkout@v4
 
-      - name: Checkout the requested branch
-        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
-          persist-credentials: false
+          node-version: "22"
 
-      - name: Record the exact source commit
-        id: source
-        run: |
-          set -euo pipefail
-          sha="$(git rev-parse HEAD)"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "SOURCE_SHA=$sha" >> "$GITHUB_ENV"
-          echo "game.json sha256: $(sha256sum game.json | awk '{print $1}')"
-          echo "ICE WOLF source commit $sha" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Guard the project file
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json
-          with open('game.json', encoding='utf-8') as handle:
-              data = json.load(handle)
-          assert data['properties']['name'].strip() == 'ICE WOLF'
-          assert any(layout.get('name') == 'FROST LAB' for layout in data.get('layouts', []))
-          print('game.json parses and still describes ICE WOLF / FROST LAB')
-          PY
-
-      - name: Install GDevelop runtime dependencies
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libasound2t64 xvfb unzip curl
-
-      - name: Download and checksum GDevelop 5.6.282
-        run: |
-          set -euo pipefail
-          curl -L --fail --retry 3 -o /tmp/gdevelop.zip "$GDEVELOP_ZIP_URL"
-          echo "$GDEVELOP_SHA256  /tmp/gdevelop.zip" | sha256sum -c -
-          mkdir -p /tmp/gdevelop
-          unzip -q /tmp/gdevelop.zip -d /tmp/gdevelop
-          GDEVELOP_BIN="$(find /tmp/gdevelop -type f -name gdevelop -perm -111 | head -n 1)"
-          test -n "$GDEVELOP_BIN"
-          echo "GDEVELOP_BIN=$GDEVELOP_BIN" >> "$GITHUB_ENV"
-          echo "GDevelop 5.6.282 verified ($GDEVELOP_SHA256)"
-
-      - name: Export HTML5 (EXPORT_HTML5_EXTERNAL -> build/)
-        run: |
-          set -euo pipefail
-          rm -rf build
-          xvfb-run -a "$GDEVELOP_BIN" --no-sandbox --disable-update-check \
-            --run-command EXPORT_HTML5_EXTERNAL "$GITHUB_WORKSPACE/game.json"
-          test -f build/index.html
-          test -f build/code0.js
-          for asset in $EXPORT_ASSETS; do
-            if [ -f "build/assets/$asset" ] || [ -f "build/$asset" ]; then
-              echo "exported: $asset"
-            else
-              echo "MISSING FROM EXPORT: $asset" >&2
-              ls -la build | head -40 >&2
-              exit 1
-            fi
-          done
-
-      - name: Verify the export is a complete GDevelop bundle
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import pathlib
-          build = pathlib.Path('build')
-          index = (build / 'index.html').read_text(encoding='utf-8', errors='replace')
-          assert 'gd.js' in index, 'index.html does not load the GDevelop runtime'
-          assert 'code0.js' in index, 'index.html does not load the game bundle'
-          bundles = sorted(build.glob('code*.js'))
-          assert bundles, 'no code*.js bundle exported'
-          assert (build / 'libs').is_dir(), 'runtime libs/ folder missing'
-          print(f'export ok: {len(bundles)} code bundle(s), {sum(1 for _ in build.rglob("*") if _.is_file())} files')
-          PY
-          du -sh build
-          echo "HTML5 export size: $(du -sh build | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Hand the export to the iOS job
-        uses: actions/upload-artifact@v4
-        with:
-          name: icewolf-html5-build
-          path: build/
-          retention-days: 3
-          if-no-files-found: error
-
-  ios-testflight:
-    name: iOS archive, sign and TestFlight
-    needs: html5-export
-    runs-on: macos-26
-    timeout-minutes: 60
-    steps:
-      - name: Checkout the same branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Confirm the source commit matches the export job
-        run: |
-          set -euo pipefail
-          head="$(git rev-parse HEAD)"
-          exported="${{ needs.html5-export.outputs.sha }}"
-          [ "$head" = "$exported" ] || { echo "STOP: branch moved between the export job ($exported) and the iOS job ($head). Rerun." >&2; exit 1; }
-          echo "building source commit $head"
-
-      - name: Take the exported HTML5 build
-        uses: actions/download-artifact@v4
-        with:
-          name: icewolf-html5-build
-          path: build
-
-      - name: Select the audited Xcode
-        run: |
-          set -euo pipefail
-          if [ -d "$XCODE_VERSION_DIR" ]; then
-            sudo xcode-select -s "$XCODE_VERSION_DIR"
-          else
-            echo "note: $XCODE_VERSION_DIR is not on this image, using $(xcode-select -p)"
-          fi
-          xcodebuild -version
-
-      - name: Require the App Store Connect API key secrets
+      - name: Confirm run intent
+        if: github.event_name == 'workflow_dispatch'
         env:
-          KEY_ID: ${{ secrets.ASC_ADMIN_AB_KEY_ID }}
-          ISSUER_ID: ${{ secrets.ASC_ADMIN_AB_ISSUER_ID }}
-          KEY_P8: ${{ secrets.ASC_ADMIN_AB_KEY_P8_BASE64 }}
+          CONFIRM: ${{ inputs.confirm_bundle_id }}
         run: |
           set -euo pipefail
-          missing=""
-          if [ -z "$KEY_ID" ]; then missing="$missing ASC_ADMIN_AB_KEY_ID"; fi
-          if [ -z "$ISSUER_ID" ]; then missing="$missing ASC_ADMIN_AB_ISSUER_ID"; fi
-          if [ -z "$KEY_P8" ]; then missing="$missing ASC_ADMIN_AB_KEY_P8_BASE64"; fi
-          if [ -n "$missing" ]; then
-            echo "STOP: missing repository secret(s):$missing" >&2
-            echo "Add them in Settings > Secrets and variables > Actions (same names as the other signlinkjp repos)." >&2
+          test "$CONFIRM" = "$BUNDLE_ID"
+
+      - name: Read the version from the iOS project
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(grep -m1 -E 'CURRENT_PROJECT_VERSION = [0-9]+;' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([0-9]+);.*/\1/')
+          MARKETING_VERSION=$(grep -m1 -E 'MARKETING_VERSION = [0-9.]+;' "$PBXPROJ" | sed -E 's/.*MARKETING_VERSION = ([0-9.]+);.*/\1/')
+          test -n "$BUILD_NUMBER" || { echo "::error::pbxproj に CURRENT_PROJECT_VERSION がありません"; exit 1; }
+          test -n "$MARKETING_VERSION" || { echo "::error::pbxproj に MARKETING_VERSION がありません"; exit 1; }
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "MARKETING_VERSION=$MARKETING_VERSION" >> "$GITHUB_ENV"
+          echo "ビルド番号: $BUILD_NUMBER / 表示バージョン: $MARKETING_VERSION"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Unit tests (rules, stages, i18n, online)
+        run: npm test
+
+      - name: Build the web layer
+        run: npm run build
+
+      - name: Guard the built game
+        run: |
+          set -euo pipefail
+          test -f www/index.html
+          test -f www/src/main.js
+          test -f www/src/core/rules.js
+          test -f www/vendor/three.module.js
+          test -f www/assets/ice_freeze.png
+          grep -q 'src/main.js' www/index.html
+          grep -q "ice-wolf-room-" www/src/online.js
+          grep -q 'IceWolfStoreKit' www/src/iap.js
+          grep -q 'jp.signlink.IceWolf.pro' www/src/config.js
+          grep -q 'data-controls' www/styles.css
+          ! grep -q 'gdevelop' www/index.html
+          echo "web build OK (build $BUILD_NUMBER)"
+
+      - name: Verify the iOS shell
+        run: python3 scripts/ios/verify-ios-project.py --build-dir www
+
+      - name: Guard the iOS project contract
+        run: |
+          set -euo pipefail
+          test -f ios/App/App/Info.plist
+          test -f ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          test -f ios/App/App/StoreKitPlugin.swift
+          test -f ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme
+          grep -q 'PRODUCT_BUNDLE_IDENTIFIER = jp.signlink.IceWolf;' "$PBXPROJ"
+          grep -q "CURRENT_PROJECT_VERSION = $BUILD_NUMBER;" "$PBXPROJ"
+          grep -q 'webDir: "www"' capacitor.config.ts
+          python3 - <<'PY'
+          import os, plistlib, pathlib, re
+          plist = plistlib.loads(pathlib.Path('ios/App/App/Info.plist').read_bytes())
+          assert plist['CFBundleDisplayName'] == 'ICE WOLF', plist['CFBundleDisplayName']
+          pbx = pathlib.Path(os.environ['PBXPROJ']).read_text()
+          numbers = [int(n) for n in re.findall(r'CURRENT_PROJECT_VERSION = (\d+);', pbx)]
+          assert len(numbers) == 2, f'ビルド番号は2箇所（Debug/Release）: {numbers}'
+          assert len(set(numbers)) == 1, f'2箇所のビルド番号が違います: {numbers}'
+          assert numbers[0] == int(os.environ['BUILD_NUMBER']), 'pbxproj と解決したビルド番号が違います'
+          assert re.search(r'MARKETING_VERSION = 1\.2\.0;', pbx), 'MARKETING_VERSION が 1.2.0 でない'
+          print('iOS project contract OK (build %s)' % os.environ['BUILD_NUMBER'])
+          PY
+
+  testflight:
+    name: Xcode で署名 → IPA → TestFlight
+    needs: preflight
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID || secrets.ASC_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID || secrets.ASC_API_ISSUER_ID }}
+      ASC_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY || secrets.ASC_API_KEY_P8 }}
+      UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_to_testflight || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version from the iOS project
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(grep -m1 -E 'CURRENT_PROJECT_VERSION = [0-9]+;' "$PBXPROJ" | sed -E 's/.*CURRENT_PROJECT_VERSION = ([0-9]+);.*/\1/')
+          MARKETING_VERSION=$(grep -m1 -E 'MARKETING_VERSION = [0-9.]+;' "$PBXPROJ" | sed -E 's/.*MARKETING_VERSION = ([0-9.]+);.*/\1/')
+          test -n "$BUILD_NUMBER"
+          test -n "$MARKETING_VERSION"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "MARKETING_VERSION=$MARKETING_VERSION" >> "$GITHUB_ENV"
+          echo "ビルド番号: $BUILD_NUMBER / 表示バージョン: $MARKETING_VERSION"
+
+      - name: Verify Apple secret contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$TEAM_ID" || { echo "::error::APPLE_TEAM_ID が未設定です"; exit 1; }
+          test -n "$ASC_KEY_ID" || { echo "::error::APPSTORE_CONNECT_KEY_ID（または ASC_API_KEY_ID）が未設定です"; exit 1; }
+          test -n "$ASC_ISSUER_ID" || { echo "::error::APPSTORE_CONNECT_ISSUER_ID（または ASC_API_ISSUER_ID）が未設定です"; exit 1; }
+          test -n "$ASC_PRIVATE_KEY" || { echo "::error::APPSTORE_CONNECT_PRIVATE_KEY（または ASC_API_KEY_P8）が未設定です"; exit 1; }
+          echo "Secrets present."
+
+      - name: Xcode environment
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Write the App Store Connect key
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH_KEY_PATH="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          export AUTH_KEY_PATH
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          value = os.environ["ASC_PRIVATE_KEY"]
+          value = value.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n").strip()
+          if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+              value = value[1:-1].strip()
+          if "\\n" in value and "\n" not in value:
+              value = value.replace("\\n", "\n")
+          if "-----BEGIN" not in value:
+              try:
+                  decoded = base64.b64decode("".join(value.split()), validate=True).decode("utf-8")
+                  if "-----BEGIN" in decoded:
+                      value = decoded.strip()
+              except Exception:
+                  pass
+          Path(os.environ["AUTH_KEY_PATH"]).write_text(value + "\n", encoding="utf-8")
+          PY
+          chmod 600 "$AUTH_KEY_PATH"
+          if ! openssl pkey -in "$AUTH_KEY_PATH" -noout >/dev/null 2>&1; then
+            echo "::error::ASC_PRIVATE_KEY が正しい .p8（PEM秘密鍵）ではありません。AuthKey_*.p8 の中身を丸ごとコピーしてください。"
             exit 1
           fi
-          echo "App Store Connect API key secrets are present (values never printed)."
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          cp "$AUTH_KEY_PATH" "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "AUTH_KEY_PATH=$AUTH_KEY_PATH" >> "$GITHUB_ENV"
 
-      - name: Sync, archive, sign and verify the IPA
-        env:
-          APPLE_KEY_ID: ${{ secrets.ASC_ADMIN_AB_KEY_ID }}
-          APPLE_ISSUER_ID: ${{ secrets.ASC_ADMIN_AB_ISSUER_ID }}
-          APPLE_P8_BASE64: ${{ secrets.ASC_ADMIN_AB_KEY_P8_BASE64 }}
+      - name: Build the web layer and sync Capacitor
+        shell: bash
         run: |
           set -euo pipefail
-          extra=""
-          if [ "${{ inputs.upload_to_testflight }}" = "true" ]; then
-            extra="--upload"
-            export ICEWOLF_UPLOAD_CONFIRM=1
-          fi
-          bash scripts/ios/build-and-upload-testflight.sh \
-            --skip-export \
-            --build-number "${{ inputs.build_number }}" \
-            --marketing-version "${{ inputs.marketing_version }}" \
-            --artifacts-dir "$RUNNER_TEMP/icewolf-ios" \
-            $extra
+          npm ci --no-audit --no-fund
+          npm run build
+          npx cap sync ios
+          test -f ios/App/App/public/index.html
+          test -f ios/App/App/public/src/main.js
+          test -f ios/App/App/public/vendor/three.module.js
+          test -f ios/App/App/public/assets/ice_freeze.png
+          echo "Capacitor sync OK"
 
-      - name: Keep the signed IPA and its provenance
+      - name: Inject the online project
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ios/inject-online-config.py --file ios/App/App/public/index.html
+          python3 scripts/ios/verify-ios-project.py \
+            --build-dir www \
+            --public-dir ios/App/App/public \
+            --require-online-config
+
+      - name: Archive (Xcode cloud signing)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/release
+          set -o pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath "$PWD/build/release/ICEWOLF.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            MARKETING_VERSION="$MARKETING_VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            clean archive | tee build/release/archive.log
+
+      - name: Export App Store Connect IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>$TEAM_ID</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+          set -o pipefail
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$PWD/build/release/ICEWOLF.xcarchive" \
+            -exportPath "$PWD/build/release/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            | tee build/release/export.log
+          IPA_PATH=$(find "$PWD/build/release/export" -maxdepth 1 -name "*.ipa" -print -quit)
+          test -n "$IPA_PATH"
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+          shasum -a 256 "$IPA_PATH" | tee build/release/IPA_SHA256.txt
+
+      - name: Validate the IPA with App Store Connect
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun altool --validate-app -f "$IPA_PATH" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" \
+            --output-format json | tee build/release/altool-validate.json
+
+      - name: Upload to TestFlight
+        if: ${{ env.UPLOAD == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun altool --upload-app -f "$IPA_PATH" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" \
+            --output-format json | tee build/release/altool-upload.json
+
+      - name: Keep the build evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: icewolf-ios-${{ inputs.marketing_version }}-${{ inputs.build_number }}
+          name: icewolf-threejs-testflight-evidence
           path: |
-            ${{ runner.temp }}/icewolf-ios/**/*.ipa
-            ${{ runner.temp }}/icewolf-ios/manifest.json
-            ${{ runner.temp }}/icewolf-ios/build.log
-          retention-days: 7
+            build/release/*.log
+            build/release/*.json
+            build/release/IPA_SHA256.txt
           if-no-files-found: warn
-
-      - name: Summary
-        if: always()
-        run: |
-          set -euo pipefail
-          {
-            echo "### ICE WOLF iOS"
-            echo ""
-            echo "- version: ${{ inputs.marketing_version }} (${{ inputs.build_number }})"
-            echo "- bundle id: ${{ env.BUNDLE_ID }}"
-            echo "- source: ${{ inputs.source_ref }} @ $(git rev-parse --short HEAD)"
-            if [ "${{ inputs.upload_to_testflight }}" = "true" ]; then
-              echo "- TestFlight: uploaded (Apple needs 5-30 minutes to process it)"
-            else
-              echo "- TestFlight: not uploaded (build-only run; download the IPA artifact if needed)"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          retention-days: 30
