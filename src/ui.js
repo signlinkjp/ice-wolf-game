@@ -37,6 +37,7 @@ export class UI {
       countdown: $('countdown'),
       countdownText: $('countdownText'),
       toast: $('toast'),
+      cpuLog: $('cpuLog'),
       hint: $('hintBar'),
       stick: $('stick'),
       stickKnob: $('stickKnob'),
@@ -434,7 +435,7 @@ export class UI {
   openHowSheet() {
     this.openSheet('how', 'how.title', () => {
       const body = this.el.sheetBody;
-      for (let i = 1; i <= 8; i += 1) body.append(this.hintline(t(`how.p${i}`)));
+      for (let i = 1; i <= 9; i += 1) body.append(this.hintline(t(`how.p${i}`)));
       body.append(this.hintline(t('how.controls')));
     });
   }
@@ -787,7 +788,7 @@ export class UI {
       this.el.wolfCool.style.setProperty('--cool', `${Math.round(cooling * 100)}%`);
       this.el.wolfLabel.textContent = t(role === 'werewolf' && player.form === 'human' ? 'action.transform' : 'action.wolf');
     }
-    const canInfect = isWolf && !match.infectionUsed && player.wolfTimer > 0;
+    const canInfect = role === 'firstWolf' && !match.infectionUsed && player.wolfTimer > 0;
     this.el.infectBtn.classList.toggle('hidden', !canInfect);
 
     // Spectate bar while frozen.
@@ -815,7 +816,7 @@ export class UI {
       return t('hud.hintEscape');
     }
     if (p.wolfTimer > 0) {
-      return !match.infectionUsed && p.role !== 'werewolf' ? t('hud.hintInfect') : t('hud.hintWolf');
+      return p.role === 'firstWolf' && !match.infectionUsed ? t('hud.hintInfect') : t('hud.hintWolf');
     }
     return p.role === 'werewolf' ? t('hud.hintTransform') : t('hud.hintWolf');
   }
@@ -833,6 +834,31 @@ export class UI {
     this.toastTimer = setTimeout(() => {
       el.classList.remove('show');
     }, 2100);
+  }
+
+  /**
+   * The upper-left feed for everyone else: a CPU or another player froze,
+   * rescued, worked a switch or went into Wolf Mode. Kept to three short lines
+   * that fade on their own so the centre of the screen stays for the player's
+   * own results.
+   */
+  cpuLog(text, kind = '') {
+    const box = this.el.cpuLog;
+    if (!box) return;
+    const line = document.createElement('div');
+    line.className = `cpu-line${kind ? ` ${kind}` : ''}`;
+    line.textContent = text;
+    box.append(line);
+    while (box.children.length > 3) box.firstElementChild.remove();
+    requestAnimationFrame(() => line.classList.add('show'));
+    setTimeout(() => {
+      line.classList.add('out');
+      setTimeout(() => line.remove(), 320);
+    }, 2800);
+  }
+
+  clearCpuLog() {
+    if (this.el.cpuLog) this.el.cpuLog.textContent = '';
   }
 
   winner(text, sub) {

@@ -57,7 +57,8 @@ for (const file of modules) check(file);
 const version = {
   name: pkg.name,
   version: pkg.version,
-  build: 35,
+  // Read APP.build from the one place that owns it, so a bump never drifts.
+  build: Number((await readFile(path.join(ROOT, 'src/config.js'), 'utf8')).match(/build:\s*(\d+)/)?.[1] || 0),
   productId: 'jp.signlink.IceWolf.pro',
   builtAt: new Date().toISOString(),
   modules: modules.length,
@@ -65,4 +66,4 @@ const version = {
 await writeFile(path.join(WWW, 'build-info.json'), `${JSON.stringify(version, null, 2)}\n`);
 
 const total = (await listFiles(WWW)).length;
-console.log(`built www/ — ${total} files, ${modules.length} modules, v${pkg.version} (Build 35)`);
+console.log(`built www/ — ${total} files, ${modules.length} modules, v${pkg.version} (Build ${version.build})`);

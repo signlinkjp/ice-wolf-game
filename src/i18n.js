@@ -62,18 +62,18 @@ const T = {
   /* ---------------- how to play ---------------- */
   'how.title': ['遊び方', 'HOW TO PLAY', '玩法说明', '玩法說明', '게임 방법', 'CÓMO JUGAR', 'COMMENT JOUER', 'ANLEITUNG', 'COMO JOGAR', 'COME GIOCARE', 'कैसे खेलें', 'CARA BERMAIN'],
   'how.p1': [
-    '氷の上で遊ぶ人狼ゲーム。見た目は全員同じ。最初の鬼は1人だけ。',
-    'A werewolf game on ice. Everyone looks the same, and there is exactly one first wolf.',
-    '冰上人狼游戏。所有人外表相同，最初的鬼只有1人。',
-    '冰上人狼遊戲。所有人外表相同，最初的鬼只有1人。',
-    '얼음 위 늑대인간 게임. 모두 똑같이 생겼고, 첫 늑대는 한 명뿐입니다.',
-    'Un juego de hombres lobo sobre hielo. Todos se ven igual y solo hay un primer lobo.',
-    'Un jeu de loup-garou sur la glace. Tout le monde se ressemble, et il n’y a qu’un premier loup.',
-    'Ein Werwolf-Spiel auf Eis. Alle sehen gleich aus, und es gibt genau einen ersten Wolf.',
-    'Um jogo de lobisomem no gelo. Todos parecem iguais e há exatamente um primeiro lobo.',
-    'Un gioco di lupi mannari sul ghiaccio. Tutti sembrano uguali e c’è un solo primo lupo.',
-    'बर्फ पर वेयरवुल्फ खेल। सब एक जैसे दिखते हैं, और पहला भेड़िया एक ही होता है।',
-    'Game werewolf di atas es. Semua terlihat sama, dan hanya ada satu serigala pertama.',
+    '氷の上で遊ぶ人狼ゲーム。見た目は全員同じ。最初の鬼は「マスター鬼」1人だけで、試合中ずっと鬼のまま。',
+    'A werewolf game on ice. Everyone looks alike. There is one first wolf — the master wolf — and it stays a wolf all match.',
+    '冰上人狼游戏。所有人外表相同。最初的鬼只有「首领鬼」1人，整场都是鬼。',
+    '冰上人狼遊戲。所有人外表相同。最初的鬼只有「首領鬼」1人，整場都是鬼。',
+    '얼음 위 늑대인간 게임. 모두 똑같이 생겼고, 첫 늑대는 "마스터 늑대" 한 명뿐이며 경기 내내 늑대입니다.',
+    'Un juego de hombres lobo sobre hielo. Todos se ven igual. Solo hay un primer lobo —el lobo maestro— y sigue siéndolo toda la partida.',
+    'Un jeu de loup-garou sur la glace. Tout le monde se ressemble. Un seul premier loup — le loup maître — et il le reste toute la partie.',
+    'Ein Werwolf-Spiel auf Eis. Alle sehen gleich aus. Es gibt nur einen ersten Wolf – den Meisterwolf – und er bleibt es die ganze Partie.',
+    'Um jogo de lobisomem no gelo. Todos parecem iguais. Há um único primeiro lobo — o lobo mestre — e ele continua lobo a partida inteira.',
+    'Un gioco di lupi mannari sul ghiaccio. Tutti sembrano uguali. C’è un solo primo lupo — il lupo maestro — e resta lupo per tutta la partita.',
+    'बर्फ पर वेयरवुल्फ खेल। सब एक जैसे दिखते हैं। पहला भेड़िया एक ही है — मास्टर भेड़िया — और पूरे मैच भेड़िया रहता है।',
+    'Game werewolf di atas es. Semua tampak sama. Hanya ada satu serigala pertama — serigala master — dan ia tetap serigala sepanjang pertandingan.',
   ],
   'how.p2': [
     '人狼：5秒の人狼モード中に触れた人間を凍らせる。見た目は赤い角とマント。',
@@ -90,18 +90,18 @@ const T = {
     'Serigala: selama 5 detik Mode Serigala, setiap manusia yang tersentuh membeku. Tanduk dan jubah merah menandainya.',
   ],
   'how.p3': [
-    '人狼鬼（2人目の鬼）：人間⇔鬼に変身できる。人間の姿なら凍らせないし、救助対象にもならない。',
-    'Werewolf (the second wolf): can switch between human and wolf form. In human form it freezes nobody and is nobody’s rescue target.',
-    '人狼鬼（第二个鬼）：可以在人和鬼之间变身。人形时不会冻结别人，也不会成为救助对象。',
-    '人狼鬼（第二個鬼）：可以在人和鬼之間變身。人形時不會凍結別人，也不會成為救助對象。',
-    '늑대인간(두 번째 늑대): 인간과 늑대 형태를 오갈 수 있습니다. 인간 형태에서는 얼리지도, 구출 대상도 아닙니다.',
-    'Hombre lobo (el segundo lobo): cambia entre forma humana y de lobo. En forma humana no congela a nadie ni es objetivo de rescate.',
-    'Loup-garou (le deuxième loup) : alterne forme humaine et forme de loup. En humain, il ne gèle personne et n’est pas sauvé.',
-    'Werwolf (der zweite Wolf): wechselt zwischen Menschen- und Wolfsform. Als Mensch friert er niemanden ein und ist kein Rettungsziel.',
-    'Lobisomem (o segundo lobo): alterna entre forma humana e de lobo. Humano, não congela ninguém nem pode ser resgatado.',
-    'Lupo mannaro (il secondo lupo): passa tra forma umana e di lupo. Da umano non congela nessuno e non va salvato.',
-    'वेयरवुल्फ (दूसरा भेड़िया): इंसान और भेड़िया रूप बदल सकता है। इंसान रूप में न किसी को जमाता है, न बचाया जाता है।',
-    'Manusia serigala (serigala kedua): bisa berganti bentuk manusia dan serigala. Dalam bentuk manusia tidak membekukan siapa pun dan bukan target penyelamatan.',
+    '人狼鬼（2人目の鬼）：人間⇔鬼に変身できる。人間の姿なら凍らせないし、救助対象にもならない。指名はできない。',
+    'Werewolf (the second wolf): switches between human and wolf form. In human form it freezes nobody and is nobody’s rescue target. It cannot name bait ice.',
+    '人狼鬼（第二个鬼）：可以在人和鬼之间变身。人形时不会冻结别人，也不会成为救助对象。不能指名。',
+    '人狼鬼（第二個鬼）：可以在人和鬼之間變身。人形時不會凍結別人，也不會成為救助對象。不能指名。',
+    '늑대인간(두 번째 늑대): 인간과 늑대 형태를 오갈 수 있습니다. 인간 형태에서는 얼리지도, 구출 대상도 아니며 지목도 못 합니다.',
+    'Hombre lobo (el segundo lobo): cambia entre forma humana y de lobo. En forma humana no congela a nadie, no es objetivo de rescate y no puede marcar hielo.',
+    'Loup-garou (le deuxième loup) : alterne forme humaine et de loup. En humain, il ne gèle personne, n’est pas sauvé et ne peut pas marquer de glace.',
+    'Werwolf (der zweite Wolf): wechselt zwischen Menschen- und Wolfsform. Als Mensch friert er niemanden ein, ist kein Rettungsziel und kann kein Eis markieren.',
+    'Lobisomem (o segundo lobo): alterna entre forma humana e de lobo. Humano, não congela ninguém, não pode ser resgatado nem marcar gelo.',
+    'Lupo mannaro (il secondo lupo): passa tra forma umana e di lupo. Da umano non congela nessuno, non va salvato e non può marcare il ghiaccio.',
+    'वेयरवुल्फ (दूसरा भेड़िया): इंसान और भेड़िया रूप बदल सकता है। इंसान रूप में न किसी को जमाता है, न बचाया जाता है, न चुन सकता है।',
+    'Manusia serigala (serigala kedua): bisa berganti bentuk manusia dan serigala. Dalam bentuk manusia tidak membekukan siapa pun, bukan target penyelamatan, dan tidak bisa menandai es.',
   ],
   'how.p4': [
     '人間：凍った仲間を救助し、スイッチでゲートを開けて脱出するか、時間まで生き残る。',
@@ -160,18 +160,32 @@ const T = {
     'Manusia yang menekan sakelar jebakan menjadi manusia serigala. Menyelamatkan es jebakan juga mengubah penyelamatnya.',
   ],
   'how.p8': [
-    '鬼は最大3人。2人鬼で始まる試合は罠なし。10人まで、スイッチ3/5/7/10個・正解3/5個。',
-    'At most three wolves. A match that opens with two has no trap. Up to 10 players, 3/5/7/10 switches with 3 or 5 correct.',
-    '鬼最多3人。双鬼开局的比赛没有陷阱。最多10人，开关3/5/7/10个、正确3/5个。',
-    '鬼最多3人。雙鬼開局的比賽沒有陷阱。最多10人，開關3/5/7/10個、正確3/5個。',
-    '늑대는 최대 3명. 두 명으로 시작하면 함정이 없습니다. 최대 10명, 스위치 3/5/7/10개·정답 3/5개.',
-    'Como máximo tres lobos. Con dos al empezar no hay trampa. Hasta 10 jugadores, 3/5/7/10 interruptores y 3 o 5 correctos.',
-    'Trois loups au maximum. À deux au départ, pas de piège. Jusqu’à 10 joueurs, 3/5/7/10 interrupteurs, 3 ou 5 corrects.',
-    'Höchstens drei Wölfe. Startet eine Partie mit zweien, gibt es keine Falle. Bis 10 Spieler, 3/5/7/10 Schalter, 3 oder 5 richtig.',
-    'No máximo três lobos. Com dois no início não há armadilha. Até 10 jogadores, 3/5/7/10 interruptores e 3 ou 5 corretos.',
-    'Al massimo tre lupi. Con due all’inizio niente trappola. Fino a 10 giocatori, 3/5/7/10 interruttori e 3 o 5 giusti.',
-    'अधिकतम तीन भेड़िये। दो से शुरू मैच में जाल नहीं। 10 खिलाड़ी तक, स्विच 3/5/7/10 और सही 3/5।',
-    'Paling banyak tiga serigala. Mulai dengan dua berarti tanpa jebakan. Hingga 10 pemain, sakelar 3/5/7/10 dengan 3 atau 5 benar.',
+    '鬼は最大3人。3人目は罠（罠スイッチ／罠の氷の救助）でしか生まれない。2人鬼で始まる試合は罠なし。10人まで、スイッチ3/5/7/10個・正解3/5個。',
+    'At most three wolves. The third is born only from a trap (the trap switch or rescuing trap ice). A match that opens with two has no trap. Up to 10 players, 3/5/7/10 switches with 3 or 5 correct.',
+    '鬼最多3人。第三个鬼只能由陷阱产生（陷阱开关／救助陷阱冰块）。双鬼开局的比赛没有陷阱。最多10人，开关3/5/7/10个、正确3/5个。',
+    '鬼最多3人。第三個鬼只能由陷阱產生（陷阱開關／救助陷阱冰塊）。雙鬼開局的比賽沒有陷阱。最多10人，開關3/5/7/10個、正確3/5個。',
+    '늑대는 최대 3명. 세 번째 늑대는 함정(함정 스위치/함정 얼음 구출)으로만 생깁니다. 두 명으로 시작하면 함정이 없습니다. 최대 10명, 스위치 3/5/7/10개·정답 3/5개.',
+    'Como máximo tres lobos. El tercero solo nace de una trampa (interruptor trampa o rescatar hielo trampa). Con dos al empezar no hay trampa. Hasta 10 jugadores, 3/5/7/10 interruptores y 3 o 5 correctos.',
+    'Trois loups au maximum. Le troisième ne naît que d’un piège (interrupteur piège ou glace piégée secourue). À deux au départ, pas de piège. Jusqu’à 10 joueurs, 3/5/7/10 interrupteurs, 3 ou 5 corrects.',
+    'Höchstens drei Wölfe. Der dritte entsteht nur durch eine Falle (Fallenschalter oder Falleneis retten). Startet eine Partie mit zweien, gibt es keine Falle. Bis 10 Spieler, 3/5/7/10 Schalter, 3 oder 5 richtig.',
+    'No máximo três lobos. O terceiro só nasce de uma armadilha (interruptor-armadilha ou resgatar gelo-armadilha). Com dois no início não há armadilha. Até 10 jogadores, 3/5/7/10 interruptores e 3 ou 5 corretos.',
+    'Al massimo tre lupi. Il terzo nasce solo da una trappola (interruttore trappola o ghiaccio trappola salvato). Con due all’inizio niente trappola. Fino a 10 giocatori, 3/5/7/10 interruttori e 3 o 5 giusti.',
+    'अधिकतम तीन भेड़िये। तीसरा सिर्फ़ जाल से जन्म लेता है (जाल स्विच या जाल की बर्फ बचाना)। दो से शुरू मैच में जाल नहीं। 10 खिलाड़ी तक, स्विच 3/5/7/10 और सही 3/5।',
+    'Paling banyak tiga serigala. Yang ketiga hanya lahir dari jebakan (sakelar jebakan atau menyelamatkan es jebakan). Mulai dengan dua berarti tanpa jebakan. Hingga 10 pemain, sakelar 3/5/7/10 dengan 3 atau 5 benar.',
+  ],
+  'how.p9': [
+    '最初の鬼＝マスター鬼だけが、凍らせた人間を1人だけ「人狼鬼の罠氷」に指名できる（1試合1回）。指名された氷を救助すると、助けた人が人狼鬼になる。',
+    'Only the first wolf — the master wolf — may name one frozen human as trap ice (once per match). Whoever rescues that ice becomes a werewolf.',
+    '只有最初的鬼＝首领鬼，能把1名被冻结的人类指定为「人狼鬼的陷阱冰」（每场1次）。救助这块冰的人会变成人狼鬼。',
+    '只有最初的鬼＝首領鬼，能把1名被凍結的人類指定為「人狼鬼的陷阱冰」（每場1次）。救助這塊冰的人會變成人狼鬼。',
+    '첫 늑대=마스터 늑대만 얼어붙은 인간 한 명을 "늑대인간의 함정 얼음"으로 지목할 수 있습니다(경기당 1회). 그 얼음을 구한 사람이 늑대인간이 됩니다.',
+    'Solo el primer lobo —el lobo maestro— puede marcar un humano congelado como hielo trampa (una vez por partida). Quien rescate ese hielo se vuelve hombre lobo.',
+    'Seul le premier loup — le loup maître — peut marquer un humain gelé comme glace piégée (une fois par partie). Celui qui secourt cette glace devient loup-garou.',
+    'Nur der erste Wolf – der Meisterwolf – darf einen eingefrorenen Menschen als Falleneis markieren (einmal pro Partie). Wer dieses Eis rettet, wird Werwolf.',
+    'Só o primeiro lobo — o lobo mestre — pode marcar um humano congelado como gelo-armadilha (uma vez por partida). Quem resgatar esse gelo vira lobisomem.',
+    'Solo il primo lupo — il lupo maestro — può marcare un umano congelato come ghiaccio trappola (una volta a partita). Chi salva quel ghiaccio diventa lupo mannaro.',
+    'सिर्फ़ पहला भेड़िया — मास्टर भेड़िया — एक जमे इंसान को "वेयरवुल्फ का जाल बर्फ" चुन सकता है (प्रति मैच 1 बार)। वह बर्फ बचाने वाला वेयरवुल्फ बनता है।',
+    'Hanya serigala pertama — serigala master — yang boleh menandai satu manusia beku sebagai es jebakan (sekali per pertandingan). Siapa yang menyelamatkan es itu menjadi manusia serigala.',
   ],
   'how.controls': [
     '操作：画面のスティック、または画面どこでもドラッグで移動。ボタンは移動に吸われません。',
@@ -307,7 +321,7 @@ const T = {
   /* ---------------- HUD ---------------- */
   'hud.role': ['役割', 'ROLE', '身份', '身份', '역할', 'PAPEL', 'RÔLE', 'ROLLE', 'PAPEL', 'RUOLO', 'भूमिका', 'PERAN'],
   'role.human.label': ['人間', 'HUMAN', '人类', '人類', '인간', 'HUMANO', 'HUMAIN', 'MENSCH', 'HUMANO', 'UMANO', 'इंसान', 'MANUSIA'],
-  'role.wolf.label': ['人狼', 'WOLF', '人狼', '人狼', '늑대', 'LOBO', 'LOUP', 'WOLF', 'LOBO', 'LUPO', 'भेड़िया', 'SERIGALA'],
+  'role.wolf.label': ['マスター鬼', 'MASTER WOLF', '首领鬼', '首領鬼', '마스터 늑대', 'LOBO MAESTRO', 'LOUP MAÎTRE', 'MEISTERWOLF', 'LOBO MESTRE', 'LUPO MAESTRO', 'मास्टर भेड़िया', 'SERIGALA MASTER'],
   'role.werewolf.label': ['人狼鬼', 'WEREWOLF', '人狼鬼', '人狼鬼', '늑대인간', 'HOMBRE LOBO', 'LOUP-GAROU', 'WERWOLF', 'LOBISOMEM', 'LUPO MANNARO', 'वेयरवुल्फ', 'MANUSIA SERIGALA'],
   'hud.alive': ['生存', 'ALIVE', '存活', '存活', '생존', 'VIVOS', 'VIVANTS', 'LEBEND', 'VIVOS', 'VIVI', 'ज़िंदा', 'HIDUP'],
   'hud.frozen': ['凍結', 'FROZEN', '冻结', '凍結', '얼음', 'CONGELADOS', 'GELÉS', 'EINGEFROREN', 'CONGELADOS', 'CONGELATI', 'जमे', 'BEKU'],
@@ -325,7 +339,36 @@ const T = {
   'hud.thawed': ['解凍された！', 'Thawed!', '解冻了！', '解凍了！', '해동되었습니다!', '¡Descongelado!', 'Dégelé !', 'Aufgetaut!', 'Descongelado!', 'Scongelato!', 'पिघल गए!', 'Mencair!'],
   'hud.wolfOn': ['人狼モード！', 'WOLF MODE!', '人狼模式！', '人狼模式！', '늑대 모드!', '¡MODO LOBO!', 'MODE LOUP !', 'WOLF-MODUS!', 'MODO LOBO!', 'MODALITÀ LUPO!', 'वुल्फ मोड!', 'MODE SERIGALA!'],
   'hud.wolfOff': ['人狼モード終了', 'Wolf Mode over', '人狼模式结束', '人狼模式結束', '늑대 모드 종료', 'Fin del Modo Lobo', 'Fin du Mode Loup', 'Wolf-Modus vorbei', 'Fim do Modo Lobo', 'Fine Modalità Lupo', 'वुल्फ मोड खत्म', 'Mode Serigala selesai'],
-  'hud.infect': ['人狼役に指名した', 'Marked as wolf-role ice', '已指定为人狼角色', '已指定為人狼角色', '늑대 역할로 지목', 'Marcado como hielo de lobo', 'Glace de rôle loup', 'Als Wolfsrolle markiert', 'Marcado como gelo de lobo', 'Ghiaccio ruolo lupo', 'भेड़िया भूमिका चुनी', 'Ditandai es serigala'],
+  'hud.infect': ['人狼鬼に指名した', 'Named as a werewolf', '已指定为人狼鬼', '已指定為人狼鬼', '늑대인간으로 지목', 'Marcado como hombre lobo', 'Glace marquée loup-garou', 'Als Werwolf markiert', 'Marcado como lobisomem', 'Marcato come lupo mannaro', 'वेयरवुल्फ चुना', 'Ditandai manusia serigala'],
+  'hud.frozeOther': ['凍らせた！', 'FROZEN!', '冻结成功！', '凍結成功！', '얼렸다!', '¡Congelado!', 'Gelé !', 'Eingefroren!', 'Congelado!', 'Congelato!', 'जमा दिया!', 'Membekukan!'],
+  'hud.freezeBy': [
+    '{name} に凍らされた！仲間の救助を待て',
+    '{name} froze you! Wait for a rescue',
+    '被{name}冻结了！等待同伴救助',
+    '被{name}凍結了！等待同伴救助',
+    '{name}에게 얼었습니다! 동료의 구조를 기다리세요',
+    '¡{name} te congeló! Espera un rescate',
+    '{name} vous a gelé ! Attendez un sauvetage',
+    '{name} hat dich eingefroren! Warte auf Rettung',
+    '{name} congelou você! Espere um resgate',
+    '{name} ti ha congelato! Attendi un salvataggio',
+    '{name} ने जमा दिया! बचाव की प्रतीक्षा करें',
+    '{name} membekukanmu! Tunggu pertolongan',
+  ],
+  'hud.trapIce': [
+    '罠の氷だった！あなたは人狼鬼になった',
+    'That was trap ice! You are a werewolf now',
+    '是陷阱冰块！你变成了人狼鬼',
+    '是陷阱冰塊！你變成了人狼鬼',
+    '함정 얼음이었다! 늑대인간이 되었습니다',
+    '¡Era hielo trampa! Ahora eres hombre lobo',
+    'C’était de la glace piégée ! Vous êtes loup-garou',
+    'Das war Falleneis! Du bist jetzt Werwolf',
+    'Era gelo-armadilha! Agora você é lobisomem',
+    'Era ghiaccio trappola! Ora sei un lupo mannaro',
+    'वह जाल की बर्फ थी! अब तुम वेयरवुल्फ हो',
+    'Itu es jebakan! Kau kini manusia serigala',
+  ],
   'hud.trapSprang': ['罠！救助した人が人狼鬼に', 'Trap! The rescuer became a werewolf', '陷阱！救助者变成了人狼鬼', '陷阱！救助者變成了人狼鬼', '함정! 구한 사람이 늑대인간이 되었습니다', '¡Trampa! El rescatador es hombre lobo', 'Piège ! Le sauveteur est loup-garou', 'Falle! Der Retter ist Werwolf', 'Armadilha! O resgatador virou lobisomem', 'Trappola! Chi salva è lupo mannaro', 'जाल! बचाने वाला वेयरवुल्फ बना', 'Jebakan! Penyelamat jadi manusia serigala'],
   'hud.spectate': ['観戦中: {name}', 'Watching: {name}', '观战中：{name}', '觀戰中：{name}', '관전 중: {name}', 'Mirando: {name}', 'Observation : {name}', 'Zuschauen: {name}', 'Assistindo: {name}', 'Osservi: {name}', 'देख रहे: {name}', 'Menonton: {name}'],
   'hud.hintMove': ['スティックで移動。ボタンは指を取られません。', 'Move with the stick. Buttons never steal your finger.', '用摇杆移动。按钮不会抢走手指。', '用搖桿移動。按鈕不會搶走手指。', '스틱으로 이동. 버튼이 손가락을 가져가지 않습니다.', 'Muévete con el stick. Los botones no roban el dedo.', 'Déplacez-vous au stick. Les boutons ne volent pas le doigt.', 'Mit dem Stick bewegen. Buttons stehlen keinen Finger.', 'Mova com o stick. Os botões não roubam o dedo.', 'Muoviti con lo stick. I pulsanti non rubano il dito.', 'स्टिक से चलें। बटन उँगली नहीं लेते।', 'Bergerak dengan stik. Tombol tidak mencuri jari.'],
@@ -334,16 +377,169 @@ const T = {
   'hud.hintGate': ['開いたゲートへ急げ！触れれば人間の勝利', 'Run for the open gate! Touch it to win', '冲向开启的大门！碰到即胜利', '衝向開啟的大門！碰到即勝利', '열린 게이트로! 닿으면 승리', '¡Corre a la puerta abierta!', 'Courez à la porte ouverte !', 'Zum offenen Tor!', 'Corra para o portão aberto!', 'Corri al cancello aperto!', 'खुले गेट की ओर!', 'Lari ke gerbang terbuka!'],
   'hud.hintWolf': ['人狼モードで人間に触れて凍らせろ', 'Wolf Mode: touch humans to freeze them', '人狼模式：触碰人类冻结他', '人狼模式：觸碰人類凍結他', '늑대 모드: 인간을 얼리세요', 'Modo Lobo: congela a los humanos', 'Mode Loup : gelez les humains', 'Wolf-Modus: Menschen einfrieren', 'Modo Lobo: congele os humanos', 'Modalità Lupo: congela gli umani', 'वुल्फ मोड: इंसानों को जमाओ', 'Mode Serigala: bekukan manusia'],
   'hud.hintTransform': ['「変身」で人狼鬼になれる。人間に戻ればバレない', 'TRANSFORM to become the wolf; turn human to hide', '“变身”成为人狼鬼，变回人就看不出来', '「變身」成為人狼鬼，變回人就看不出來', '변신으로 늑대가 되고, 인간으로 숨으세요', 'TRANSFORMA y vuelve a humano para esconderte', 'TRANSFORMEZ-vous, puis redevenez humain pour vous cacher', 'VERWANDELN, dann als Mensch verstecken', 'TRANSFORME e volte a humano para se esconder', 'TRASFORMA e torna umano per nasconderti', 'बदलो, फिर इंसान बनकर छिपो', 'UBERLAH, lalu kembali manusia untuk bersembunyi'],
-  'hud.hintInfect': ['凍った人間を「人狼役」にできる（1試合1回）', 'Mark one frozen human as wolf-role ice (once per match)', '可把冻结的人类指定为人狼角色（每场1次）', '可把凍結的人類指定為人狼角色（每場1次）', '얼어붙은 인간을 늑대 역할로(경기당 1회)', 'Marca un congelado como rol de lobo (1 vez)', 'Marquez un gelé comme rôle de loup (1 fois)', 'Einen Eingefrorenen als Wolfsrolle markieren (1×)', 'Marque um congelado como papel de lobo (1×)', 'Segna un congelato come ruolo lupo (1 volta)', 'एक जमे इंसान को भेड़िया भूमिका बनाओ (1 बार)', 'Tandai satu yang beku sebagai es serigala (1×)'],
-  'hud.hintEscape': ['時間切れまで生き残れば人間の勝利', 'Survive until the clock ends and humans win', '坚持到时间结束人类获胜', '堅持到時間結束人類獲勝', '시간이 끝날 때까지 살아남으면 인간 승리', 'Si sobrevives al reloj, ganan los humanos', 'Survivez jusqu’à la fin : les humains gagnent', 'Überlebt bis zum Ende: Menschen gewinnen', 'Sobreviva até o fim: humanos vencem', 'Sopravvivi fino alla fine: vincono gli umani', 'समय तक ज़िंदा रहो: इंसान जीतेंगे', 'Bertahan sampai waktu habis: manusia menang'],
-  'hud.noTarget': ['近くに救助できる相手がいません', 'Nobody to rescue here', '附近没有可救助的人', '附近沒有可救助的人', '가까이에 구할 사람이 없습니다', 'No hay nadie que rescatar', 'Personne à secourir', 'Niemand zum Retten hier', 'Ninguém para resgatar', 'Nessuno da salvare', 'यहाँ बचाने वाला कोई नहीं', 'Tidak ada yang bisa diselamatkan'],
+  'hud.hintInfect': ['凍った人間を「人狼鬼」に指名できる（1試合1回・マスター鬼のみ）', 'Name one frozen human as a werewolf (once per match, master wolf only)', '可把1名被冻结的人类指定为人狼鬼（每场1次・仅首领鬼）', '可把1名被凍結的人類指定為人狼鬼（每場1次・僅首領鬼）', '얼어붙은 인간 한 명을 늑대인간으로 지목 (경기당 1회·마스터 늑대만)', 'Marca un congelado como hombre lobo (1 vez por partida, solo el lobo maestro)', 'Marquez un gelé comme loup-garou (1 fois par partie, loup maître seulement)', 'Einen Eingefrorenen als Werwolf markieren (1× pro Partie, nur Meisterwolf)', 'Marque um congelado como lobisomem (1× por partida, só o lobo mestre)', 'Segna un congelato come lupo mannaro (1 volta a partita, solo lupo maestro)', 'एक जमे इंसान को वेयरवुल्फ चुनो (प्रति मैच 1 बार, सिर्फ़ मास्टर भेड़िया)', 'Tandai satu yang beku sebagai manusia serigala (1× per pertandingan, hanya serigala master)'],
+  'hud.hintEscape': ['時間切れまで生き残れば人間の勝利', 'Survive until the clock ends and humans win', '坚持到时间结束人类获胜', '堅持到時間結束人類獲勝', '시간이 끝날 때까지 살아남으면 인간 승리', 'Si sobrevives al reloj, ganan los humanos', 'Survivez jusqu’à la fin : les humains gagnent', 'Überlebt bis zum Ende: Menschen gewinnen', 'Sobreviva até o fim: humanos vencem', 'Sopravvivi fino alla fine: vincono gli umani', 'समय तक ज़िंदा रहो: इंसान जीतेंगे', 'Bertahan sampai waktu habis: manusia menang'],  'hud.noTarget': ['近くに救助できる相手がいません', 'Nobody to rescue here', '附近没有可救助的人', '附近沒有可救助的人', '가까이에 구할 사람이 없습니다', 'No hay nadie que rescatar', 'Personne à secourir', 'Niemand zum Retten hier', 'Ninguém para resgatar', 'Nessuno da salvare', 'यहाँ बचाने वाला कोई नहीं', 'Tidak ada yang bisa diselamatkan'],
   'hud.blocked': ['まだ人狼モードは使えません', 'Wolf Mode is not ready', '人狼模式还不能用', '人狼模式還不能用', '늑대 모드를 아직 쓸 수 없습니다', 'El Modo Lobo no está listo', 'Mode Loup indisponible', 'Wolf-Modus noch nicht bereit', 'Modo Lobo indisponível', 'Modalità Lupo non pronta', 'वुल्फ मोड अभी तैयार नहीं', 'Mode Serigala belum siap'],
+
+  /* ---------------- CPU / other players log ---------------- */
+  'log.freeze': [
+    '{by} が {name} を凍らせた',
+    '{by} froze {name}',
+    '{by}冻结了{name}',
+    '{by}凍結了{name}',
+    '{by}가 {name}를 얼림',
+    '{by} congeló a {name}',
+    '{by} a gelé {name}',
+    '{by} fror {name} ein',
+    '{by} congelou {name}',
+    '{by} ha congelato {name}',
+    '{by} ने {name} को जमाया',
+    '{by} membekukan {name}',
+  ],
+  'log.rescue': [
+    '{by} が {name} を救助',
+    '{by} rescued {name}',
+    '{by}救助了{name}',
+    '{by}救助了{name}',
+    '{by}가 {name}를 구출',
+    '{by} rescató a {name}',
+    '{by} a secouru {name}',
+    '{by} rettete {name}',
+    '{by} resgatou {name}',
+    '{by} ha salvato {name}',
+    '{by} ने {name} को बचाया',
+    '{by} menyelamatkan {name}',
+  ],
+  'log.trap': [
+    '{name} が罠の氷を救助 → 人狼鬼',
+    '{name} rescued trap ice → werewolf',
+    '{name}救助了陷阱冰块 → 人狼鬼',
+    '{name}救助了陷阱冰塊 → 人狼鬼',
+    '{name}가 함정 얼음을 구출 → 늑대인간',
+    '{name} rescató hielo trampa → hombre lobo',
+    '{name} a secouru la glace piégée → loup-garou',
+    '{name} rettete Falleneis → Werwolf',
+    '{name} resgatou gelo-armadilha → lobisomem',
+    '{name} ha salvato ghiaccio trappola → lupo mannaro',
+    '{name} ने जाल की बर्फ बचाई → वेयरवुल्फ',
+    '{name} menyelamatkan es jebakan → manusia serigala',
+  ],
+  'log.switchOn': [
+    '{name}: スイッチ起動（{n}/{t}）',
+    '{name}: switch on ({n}/{t})',
+    '{name}：开关启动（{n}/{t}）',
+    '{name}：開關啟動（{n}/{t}）',
+    '{name}: 스위치 작동 ({n}/{t})',
+    '{name}: interruptor activo ({n}/{t})',
+    '{name} : interrupteur activé ({n}/{t})',
+    '{name}: Schalter an ({n}/{t})',
+    '{name}: interruptor ligado ({n}/{t})',
+    '{name}: interruttore attivo ({n}/{t})',
+    '{name}: स्विच चालू ({n}/{t})',
+    '{name}: sakelar aktif ({n}/{t})',
+  ],
+  'log.switchMiss': [
+    '{name}: ハズレのスイッチ',
+    '{name}: dummy switch',
+    '{name}：假开关',
+    '{name}：假開關',
+    '{name}: 빗나간 스위치',
+    '{name}: interruptor falso',
+    '{name} : interrupteur faux',
+    '{name}: Blindschalter',
+    '{name}: interruptor falso',
+    '{name}: interruttore falso',
+    '{name}: नकली स्विच',
+    '{name}: sakelar palsu',
+  ],
+  'log.switchTrap': [
+    '{name}: 罠スイッチ → 人狼鬼',
+    '{name}: trap switch → werewolf',
+    '{name}：陷阱开关 → 人狼鬼',
+    '{name}：陷阱開關 → 人狼鬼',
+    '{name}: 함정 스위치 → 늑대인간',
+    '{name}: interruptor trampa → hombre lobo',
+    '{name} : interrupteur piège → loup-garou',
+    '{name}: Fallenschalter → Werwolf',
+    '{name}: interruptor-armadilha → lobisomem',
+    '{name}: interruttore trappola → lupo mannaro',
+    '{name}: जाल स्विच → वेयरवुल्फ',
+    '{name}: sakelar jebakan → manusia serigala',
+  ],
+  'log.wolfOn': [
+    '{name}: 人狼モード',
+    '{name}: Wolf Mode',
+    '{name}：人狼模式',
+    '{name}：人狼模式',
+    '{name}: 늑대 모드',
+    '{name}: Modo Lobo',
+    '{name} : Mode Loup',
+    '{name}: Wolf-Modus',
+    '{name}: Modo Lobo',
+    '{name}: Modalità Lupo',
+    '{name}: वुल्फ मोड',
+    '{name}: Mode Serigala',
+  ],
+  'log.wolfOff': [
+    '{name}: 人狼モード終了',
+    '{name}: Wolf Mode over',
+    '{name}：人狼模式结束',
+    '{name}：人狼模式結束',
+    '{name}: 늑대 모드 종료',
+    '{name}: fin del Modo Lobo',
+    '{name} : fin du Mode Loup',
+    '{name}: Wolf-Modus vorbei',
+    '{name}: fim do Modo Lobo',
+    '{name}: fine Modalità Lupo',
+    '{name}: वुल्फ मोड खत्म',
+    '{name}: Mode Serigala selesai',
+  ],
+  'log.infect': [
+    '{name}: 凍った人間を指名',
+    '{name}: named a frozen human',
+    '{name}：指定了被冻结的人类',
+    '{name}：指定了被凍結的人類',
+    '{name}: 얼어붙은 인간을 지목',
+    '{name}: marcó un congelado',
+    '{name} : a marqué un gelé',
+    '{name}: markierte einen Eingefrorenen',
+    '{name}: marcou um congelado',
+    '{name}: ha marcato un congelato',
+    '{name}: जमे इंसान को चुना',
+    '{name}: menandai manusia beku',
+  ],
 
   /* ---------------- brief / result ---------------- */
   'brief.title': ['役割発表', 'YOUR ROLE', '身份公布', '身份公布', '역할 공개', 'TU PAPEL', 'VOTRE RÔLE', 'DEINE ROLLE', 'SEU PAPEL', 'IL TUO RUOLO', 'तुम्हारी भूमिका', 'PERANMU'],
   'brief.human': ['あなたは人間。仲間を助け、ゲートを開けて逃げろ。', 'You are human. Rescue your team and open a gate.', '你是人类。救助同伴，开门逃出。', '你是人類。救助同伴，開門逃出。', '당신은 인간. 동료를 구하고 게이트를 여세요.', 'Eres humano. Rescata y abre una puerta.', 'Vous êtes humain. Secourez et ouvrez une porte.', 'Du bist Mensch. Rette und öffne ein Tor.', 'Você é humano. Resgate e abra um portão.', 'Sei umano. Salva e apri un cancello.', 'तुम इंसान हो। बचाओ और गेट खोलो।', 'Kau manusia. Selamatkan dan buka gerbang.'],
-  'brief.wolf': ['あなたは最初の鬼。1試合ずっと鬼のまま。全員凍らせろ。', 'You are the first wolf — a wolf all match. Freeze them all.', '你是最初的鬼，整场都是鬼。冻结所有人。', '你是最初的鬼，整場都是鬼。凍結所有人。', '당신은 첫 늑대. 경기 내내 늑대입니다. 모두 얼리세요.', 'Eres el primer lobo y lo serás toda la partida.', 'Vous êtes le premier loup, pour toute la partie.', 'Du bist der erste Wolf – die ganze Partie.', 'Você é o primeiro lobo a partida inteira.', 'Sei il primo lupo per tutta la partita.', 'तुम पहले भेड़िये हो, पूरे मैच।', 'Kau serigala pertama sepanjang pertandingan.'],
-  'brief.werewolf': ['あなたは人狼鬼。人間に戻ればバレない。変身して凍らせろ。', 'You are the werewolf. Turn human to hide, transform to freeze.', '你是人狼鬼。变回人类就不会被发现。', '你是人狼鬼。變回人類就不會被發現。', '당신은 늑대인간. 인간으로 숨고 변신해 얼리세요.', 'Eres hombre lobo. Ocúltate y transforma.', 'Vous êtes loup-garou. Cachez-vous, transformez-vous.', 'Du bist Werwolf. Verstecke dich, verwandle dich.', 'Você é lobisomem. Esconda-se e transforme.', 'Sei lupo mannaro. Nasconditi e trasformati.', 'तुम वेयरवुल्फ हो। छिपो, बदलो।', 'Kau manusia serigala. Sembunyi, lalu berubah.'],
+  'brief.wolf': [
+    'あなたは最初の鬼＝マスター鬼。1試合ずっと鬼のまま。凍らせた人間を1人だけ人狼鬼に指名できる。全員凍らせろ。',
+    'You are the first wolf — the master wolf — a wolf all match. You may name one frozen human as a werewolf. Freeze them all.',
+    '你是最初的鬼＝首领鬼，整场都是鬼。可以把1名被冻结的人类指定为人狼鬼。冻结所有人。',
+    '你是最初的鬼＝首領鬼，整場都是鬼。可以把1名被凍結的人類指定為人狼鬼。凍結所有人。',
+    '당신은 첫 늑대=마스터 늑대. 경기 내내 늑대입니다. 얼어붙은 인간 한 명을 늑대인간으로 지목할 수 있습니다. 모두 얼리세요.',
+    'Eres el primer lobo —el lobo maestro— y lo serás toda la partida. Puedes marcar un humano congelado como hombre lobo. Congélalos a todos.',
+    'Vous êtes le premier loup — le loup maître — pour toute la partie. Vous pouvez marquer un humain gelé comme loup-garou. Congelez-les tous.',
+    'Du bist der erste Wolf – der Meisterwolf – die ganze Partie. Du darfst einen eingefrorenen Menschen als Werwolf markieren. Friere alle ein.',
+    'Você é o primeiro lobo — o lobo mestre — a partida inteira. Pode marcar um humano congelado como lobisomem. Congele todos.',
+    'Sei il primo lupo — il lupo maestro — per tutta la partita. Puoi marcare un umano congelato come lupo mannaro. Congela tutti.',
+    'तुम पहले भेड़िये — मास्टर भेड़िया — हो, पूरे मैच। एक जमे इंसान को वेयरवुल्फ चुन सकते हो। सबको जमाओ।',
+    'Kau serigala pertama — serigala master — sepanjang pertandingan. Kau bisa menandai satu manusia beku sebagai manusia serigala. Bekukan semua.',
+  ],
+  'brief.werewolf': [
+    'あなたは人狼鬼（2人目）。人間に戻ればバレない。変身して凍らせろ。指名はできない。',
+    'You are the werewolf (the second wolf). Hide as a human, transform to freeze. You cannot name bait ice.',
+    '你是人狼鬼（第二个鬼）。变回人类就不会被发现。变身冻结别人。不能指名。',
+    '你是人狼鬼（第二個鬼）。變回人類就不會被發現。變身凍結別人。不能指名。',
+    '당신은 늑대인간(두 번째 늑대). 인간으로 숨고 변신해 얼리세요. 지목은 못 합니다.',
+    'Eres el hombre lobo (el segundo lobo). Ocúltate y transforma para congelar. No puedes marcar hielo.',
+    'Vous êtes le loup-garou (le deuxième loup). Cachez-vous, transformez-vous pour geler. Pas de marquage.',
+    'Du bist der Werwolf (der zweite Wolf). Verstecke dich, verwandle dich zum Einfrieren. Kein Markieren.',
+    'Você é o lobisomem (o segundo lobo). Esconda-se e transforme para congelar. Não pode marcar gelo.',
+    'Sei il lupo mannaro (il secondo lupo). Nasconditi e trasformati per congelare. Non puoi marcare.',
+    'तुम वेयरवुल्फ (दूसरा भेड़िया) हो। इंसान बनकर छिपो, बदलकर जमाओ। चुन नहीं सकते।',
+    'Kau manusia serigala (serigala kedua). Sembunyi sebagai manusia, berubah untuk membekukan. Tidak bisa menandai.',
+  ],
   'brief.ready': ['はじめる', 'START', '开始', '開始', '시작', 'EMPEZAR', 'COMMENCER', 'LOS', 'COMEÇAR', 'INIZIA', 'शुरू', 'MULAI'],
   'brief.countdown': ['{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}', '{n}'],
   'brief.go': ['スタート！', 'GO!', '开始！', '開始！', '출발!', '¡YA!', 'PARTEZ !', 'LOS!', 'JÁ!', 'VIA!', 'चलो!', 'MULAI!'],
@@ -401,22 +597,50 @@ const T = {
 
 const cache = new Map();
 
+/** Map one BCP-47 tag to one of our twelve. */
+function languageFor(tag) {
+  const value = String(tag || '');
+  if (/^ja/i.test(value)) return 'ja';
+  if (/^zh-(tw|hk|hant)/i.test(value)) return 'zh-Hant';
+  if (/^zh/i.test(value)) return 'zh-Hans';
+  if (/^ko/i.test(value)) return 'ko';
+  if (/^es/i.test(value)) return 'es';
+  if (/^fr/i.test(value)) return 'fr';
+  if (/^de/i.test(value)) return 'de';
+  if (/^pt/i.test(value)) return 'pt';
+  if (/^it/i.test(value)) return 'it';
+  if (/^hi/i.test(value)) return 'hi';
+  if (/^id/i.test(value)) return 'id';
+  if (/^en/i.test(value)) return 'en';
+  return null;
+}
+
+/** True when the device clock is set to Japan. */
+function inJapan() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Tokyo';
+  } catch {
+    return false;
+  }
+}
+
 function detect() {
   try {
     const saved = localStorage.getItem(STORAGE.language);
     if (saved && LANG_ORDER.includes(saved)) return saved;
-    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';
-    if (/^ja/i.test(nav)) return 'ja';
-    if (/^zh-(tw|hk|hant)/i.test(nav)) return 'zh-Hant';
-    if (/^zh/i.test(nav)) return 'zh-Hans';
-    if (/^ko/i.test(nav)) return 'ko';
-    if (/^es/i.test(nav)) return 'es';
-    if (/^fr/i.test(nav)) return 'fr';
-    if (/^de/i.test(nav)) return 'de';
-    if (/^pt/i.test(nav)) return 'pt';
-    if (/^it/i.test(nav)) return 'it';
-    if (/^hi/i.test(nav)) return 'hi';
-    if (/^id/i.test(nav)) return 'id';
+    const tags = navigator.languages && navigator.languages.length
+      ? [...navigator.languages]
+      : [navigator.language].filter(Boolean);
+    for (const tag of tags) {
+      const lang = languageFor(tag);
+      if (lang && lang !== 'en') return lang;
+    }
+    // A WKWebView without CFBundleLocalizations reports "en-US" on every
+    // phone — a Japanese one included. A device whose clock is in Japan but
+    // which claims only English is that case, so start in Japanese. A choice
+    // saved from the settings sheet always wins (checked above), and the new
+    // CFBundleLocalizations in Info.plist stops the false "en" at the source.
+    if (inJapan()) return 'ja';
     return 'en';
   } catch {
     return 'en';

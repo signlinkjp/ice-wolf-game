@@ -179,6 +179,25 @@ test('trap ice: rescuing it turns the rescuer into the third wolf', () => {
   assert.equal(match.actors.filter((a) => isWolfRole(a.role)).length, 2);
 });
 
+test('only the first wolf can name the bait ice', () => {
+  const match = matchOf({ players: 8, wolves: 2 });
+  const first = seat(match, 'firstWolf');
+  const were = seat(match, 'werewolf');
+  const victim = match.actors.find((a) => a.role === 'human');
+  freezeHuman(match, first, victim);
+  for (const wolf of [first, were]) {
+    wolf.x = victim.x + 1;
+    wolf.z = victim.z;
+    wolf.floor = victim.floor;
+  }
+  assert.equal(infectFrozen(match, were, victim), false, 'the second wolf cannot name');
+  assert.equal(match.infectionUsed, false);
+  assert.equal(victim.frozenType, 'human');
+  assert.equal(infectFrozen(match, first, victim), true, 'the master wolf can');
+  assert.equal(victim.frozenType, 'wolfCandidate');
+  assert.equal(infectFrozen(match, first, victim), false, 'once per match');
+});
+
 test('the trap never makes a fourth wolf', () => {
   const match = matchOf({ players: 10, wolves: 2 });
   const victim = match.actors.find((a) => a.role === 'human');

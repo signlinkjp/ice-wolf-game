@@ -1,10 +1,10 @@
-# ICE WOLF — Three.js edition (v1.2.0 / Build 35)
+# ICE WOLF — Three.js edition (v1.2.0 / Build 36)
 
 氷の上で遊ぶ人狼ゲーム。見た目は全員同じ。
 人狼は5秒の「人狼モード」で触れた人間を凍らせ、人間は凍った仲間を救助し、
 スイッチでゲートを開けて脱出するか、時間まで生き残れば勝ちです。
 
-このリポジトリは **v1.2.0 (Build 35) で GDevelop から Three.js に作り直したもの** です。
+このリポジトリは **v1.2.0 (Build 35) で GDevelop から Three.js に作り直し、Build 36 で音声・日本語起動・通知分離とステージの視認性を直したもの** です。
 ゲーム本体は `src/` の素の ES モジュール + `vendor/three.module.js`（r160）。
 ビルドはファイルを `www/` に集めるだけで、バンドラも外部 CDN も使いません。
 iOS シェル（`ios/`）・Bundle ID `jp.signlink.IceWolf`・課金 `jp.signlink.IceWolf.pro`・
@@ -57,13 +57,13 @@ npm run ios:build    # 署名して IPA（--upload で TestFlight）
 - **オンライン**：合言葉6文字のルーム、ホスト権威（入力10Hz・スナップショット5Hz）、
   8種のスタンプは相手の言語で表示、ホスト退出時の引き継ぎ。
 
-## 検証（Build 35 で実行済み）
+## 検証（Build 36 で実行済み）
 
 | 検証 | 結果 |
 | --- | --- |
-| `npm test` | **103 pass / 0 fail** |
+| `npm test` | **106 pass / 0 fail** |
 | `npm run build` | `www/`（16モジュール・63ファイル） |
-| `python3 scripts/ios/verify-ios-project.py --build-dir www` | **ALL CHECKS PASSED**（1.2.0 / 35） |
+| `python3 scripts/ios/verify-ios-project.py --build-dir www` | **ALL CHECKS PASSED**（1.2.0 / 36・12言語の CFBundleLocalizations を含む） |
 | `npm run test:e2e`（実際の `www/` を Chromium で起動） | **72/72 checks** |
 | 6ステージの到達性（ユニット） | 全スイッチ・ゲート・階段・ワープへ歩いて到達可能 |
 
@@ -78,7 +78,7 @@ npm run ios:build    # 署名して IPA（--upload で TestFlight）
 Three.js 版は **`docs/ios-testflight-threejs.yml`** をそのままコピーして
 `.github/workflows/ios-testflight.yml` を上書きしてください。
 
-手順の詳細は `docs/v120-build35-threejs.md`、オンラインの設定は `docs/v110-online-setup.md`。
+手順の詳細は `docs/v120-build35-threejs.md`、Build 36 の変更点は `docs/v120-build36-changes.md`、オンラインの設定は `docs/v110-online-setup.md`。
 
 ## 旧版（GDevelop）
 

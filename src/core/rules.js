@@ -2,9 +2,12 @@
  * Match rules: roles, the wolf, rescue, switches, gates and the six stage
  * gimmicks. No DOM, no Three.js — the unit tests play whole matches with it.
  *
- * The v1.2.0 rule set, as agreed for Build 35:
- *   * the first wolf is a wolf for the whole match (it only ever hides as a
- *     human-looking character; it cannot turn human),
+ * The v1.2.0 rule set, as agreed for Build 35, tightened in Build 36:
+ *   * the first wolf is the master wolf: a wolf for the whole match (it only
+ *     ever hides as a human-looking character; it cannot turn human), and the
+ *     only wolf who may name a frozen human as trap ice,
+ *   * so the third wolf is born from a trap only (trap ice rescue or the trap
+ *     switch), never by naming,
  *   * the werewolf-wolf (the second wolf, and anyone turned by the trap) can
  *     switch between human and wolf form,
  *   * a werewolf in human form is not a rescue target,
@@ -398,6 +401,10 @@ export function freezeHuman(match, wolf, victim) {
 
 export function infectFrozen(match, wolf, actor) {
   if (match.infectionUsed) return false;
+  // Only the first wolf — the master wolf, who never turns human — can name a
+  // frozen human. The second wolf (and anyone the trap already turned) cannot:
+  // the trap is the only way the third wolf ever appears.
+  if (wolf.role !== 'firstWolf') return false;
   if (!isWolfRole(wolf.role)) return false;
   if (!actor || actor.state !== 'frozen' || actor.role !== 'human') return false;
   if (actor.frozenType === 'wolfCandidate') return false;

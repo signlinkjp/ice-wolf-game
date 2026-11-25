@@ -172,7 +172,9 @@ export function brain(match, actor, dt, gim = null) {
   // ---- wolves ----
   const humans = livingHumans(match);
   const frozen = match.actors.filter((a) => a.state === 'frozen' && a.role === 'human');
-  if (!match.infectionUsed && frozen.length) {
+  // Only the master wolf (firstWolf) may name the bait ice; the second wolf
+  // and the trap-born third wolf keep hunting.
+  if (actor.role === 'firstWolf' && !match.infectionUsed && frozen.length) {
     const near = nearestBy(actor, frozen, WOLF.infectRange);
     if (near && actor.wolfTimer > 0) return { mx: 0, mz: 0, infect: near.seat };
   }

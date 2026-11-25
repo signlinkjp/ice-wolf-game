@@ -36,7 +36,7 @@ CAP_CONFIG = REPO_ROOT / "capacitor.config.ts"
 DEFAULT_BUNDLE_ID = "jp.signlink.IceWolf"
 DEFAULT_TEAM_ID = "TGBNH8WJV6"
 DEFAULT_MARKETING_VERSION = "1.2.0"
-DEFAULT_BUILD_NUMBER = "35"
+DEFAULT_BUILD_NUMBER = "36"
 PRODUCT_ID = "jp.signlink.IceWolf.pro"
 
 failures: list[str] = []
@@ -106,6 +106,17 @@ def check_info_plist() -> None:
         info.get("CFBundleDisplayName") == "ICE WOLF",
         "CFBundleDisplayName is ICE WOLF",
         str(info.get("CFBundleDisplayName")),
+    )
+    # Build 36: without these, WKWebView reports "en-US" on a Japanese phone and
+    # the game opens in English.
+    expected_localizations = [
+        "ja", "en", "zh-Hans", "zh-Hant", "ko", "es",
+        "fr", "de", "pt", "it", "hi", "id",
+    ]
+    check(
+        info.get("CFBundleLocalizations") == expected_localizations,
+        "CFBundleLocalizations declares the twelve game languages",
+        str(info.get("CFBundleLocalizations")),
     )
     check(
         info.get("CFBundleIdentifier") == "$(PRODUCT_BUNDLE_IDENTIFIER)",

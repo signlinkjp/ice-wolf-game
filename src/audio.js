@@ -36,19 +36,52 @@ export class Audio {
     this.musicGain = this.ctx.createGain();
     this.musicGain.gain.value = 0.16;
     this.musicGain.connect(this.master);
+    // Never suspend on hide: an iOS WKWebView can refuse to resume a context it
+    // suspended itself, which is exactly how Build 35 went silent after a trip
+    // to another app. Only resume on the way back in.
     document.addEventListener('visibilitychange', () => {
-      if (!this.ctx) return;
-      if (document.hidden) this.ctx.suspend().catch(() => {});
-      else if (this.unlocked) this.ctx.resume().catch(() => {});
+      if (!document.hidden && this.unlocked) this.resume();
+    });
+    window.addEventListener('pageshow', () => {
+      if (this.unlocked) this.resume();
     });
     return this.ctx;
+  }
+
+  /** Ask the context to run again; safe to call as often as we like. */
+  resume() {
+    const ctx = this.ctx;
+    if (!ctx) return false;
+    if (ctx.state === 'running') return true;
+    try {
+      const pending = ctx.resume();
+      if (pending && pending.catch) pending.catch(() => {});
+    } catch {
+      /* the next gesture gets another chance */
+    }
+    return false;
   }
 
   unlock() {
     const ctx = this.ensure();
     if (!ctx) return;
+    const first = !this.unlocked;
     this.unlocked = true;
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    this.resume();
+    // Every tap calls this, so once the session is open there is nothing to do
+    // (a context that is interrupted or suspended gets the buffer again).
+    if (!first && ctx.state === 'running') return;
+    // iOS WKWebView keeps an audio session muted until a buffer actually plays,
+    // even when resume() resolves. A single silent sample is the smallest thing
+    // that opens it; it is inaudible and costs one buffer.
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch {
+      /* older WebKit: resume() is all we have */
+    }
   }
 
   setSound(on) {
@@ -64,6 +97,7 @@ export class Audio {
   tone(freq, dur = 0.12, type = 'sine', gain = 0.3, slide = 0) {
     const ctx = this.ensure();
     if (!ctx || !this.soundOn) return;
+    if (ctx.state !== 'running') this.resume();
     const t = ctx.currentTime;
     const osc = ctx.createOscillator();
     const env = ctx.createGain();
@@ -81,6 +115,7 @@ export class Audio {
   noise(dur = 0.2, gain = 0.2, lowpass = 1200) {
     const ctx = this.ensure();
     if (!ctx || !this.soundOn) return;
+    if (ctx.state !== 'running') this.resume();
     const t = ctx.currentTime;
     const len = Math.floor(ctx.sampleRate * dur);
     const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -182,6 +217,7 @@ export class Audio {
   music(step, freq) {
     const ctx = this.ensure();
     if (!ctx) return;
+    if (ctx.state !== 'running') this.resume();
     const t = ctx.currentTime;
     const osc = ctx.createOscillator();
     const env = ctx.createGain();

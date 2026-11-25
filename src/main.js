@@ -151,6 +151,7 @@ class App {
     this.view.showMenu(this.stage.id);
     this.bindInput();
     this.bindLifecycle();
+    this.armAudioUnlock();
     requestAnimationFrame((now) => this.frame(now));
     this.boot();
   }
@@ -309,6 +310,7 @@ class App {
     this.resultTimer = 0;
     this.lastCount = null;
     this.ui.hideAll();
+    this.ui.clearCpuLog();
     this.ui.showHud();
     this.ui.showBrief(this.match.actors[0].role);
     this.ui.updateHud(this.match, { hint: t('brief.ready') });
@@ -349,6 +351,7 @@ class App {
     this.match = null;
     this.ui.closeSheet();
     this.ui.hideAll();
+    this.ui.clearCpuLog();
     this.ui.showMenu();
     this.view.endOpening();
     this.view.lookAtOther = null;
@@ -443,6 +446,18 @@ class App {
     });
   }
 
+  /**
+   * The first finger or key anywhere — the home screen included — opens the
+   * WebAudio session. Passive on purpose: it never touches the gesture, so a
+   * tap still belongs to whatever button it landed on.
+   */
+  armAudioUnlock() {
+    const unlock = () => audio.unlock();
+    for (const type of ['pointerdown', 'touchstart', 'keydown']) {
+      window.addEventListener(type, unlock, { passive: true });
+    }
+  }
+
   setHold(key, on) {
     this.hold[key] = on;
     if (on) audio.unlock();
@@ -464,6 +479,7 @@ class App {
   tapInfect() {
     if (this.phase !== 'play' || !this.match) return;
     const p = this.match.actors[0];
+    if (p.role !== 'firstWolf') return;
     const target = this.match.actors
       .filter((a) => a.state === 'frozen' && a.role === 'human')
       .filter((a) => a.floor === p.floor)
@@ -675,7 +691,10 @@ class App {
 
   handleEvents() {
     const m = this.match;
-    const player = m.actors[0];
+    const nameOf = (seat) => {
+      const actor = m.actors.find((a) => a.seat === seat);
+      return actor ? (actor.displayName || actor.name) : '?';
+    };
     for (const ev of m.events.splice(0)) {
       switch (ev.type) {
         case 'freeze': {
@@ -686,50 +705,68 @@ class App {
             this.view.shakeCamera(0.18);
           }
           if (ev.seat === 0) {
-            this.ui.toast(t('hud.freeze'), 'bad');
+            this.ui.toast(t('hud.freezeBy', { name: nameOf(ev.by) }), 'bad');
             this.vibrate(120);
+          } else if (ev.by === 0) {
+            this.ui.toast(t('hud.frozeOther'), 'good');
+          } else {
+            this.ui.cpuLog(t('log.freeze', { by: nameOf(ev.by), name: nameOf(ev.seat) }), 'bad');
           }
           break;
         }
         case 'rescue':
           audio.play('rescue');
-          this.ui.toast(t('hud.rescued'), 'good');
+          if (ev.by === 0) this.ui.toast(t('hud.rescued'), 'good');
+          else if (ev.seat === 0) this.ui.toast(t('hud.thawed'), 'good');
+          else this.ui.cpuLog(t('log.rescue', { by: nameOf(ev.by), name: nameOf(ev.seat) }), 'good');
           break;
         case 'trap':
           audio.play('trap');
-          this.ui.toast(t('hud.trapSprang'), 'bad');
           this.view.shakeCamera(0.5);
+          if (ev.seat === 0) this.ui.toast(t('hud.trapIce'), 'bad');
+          else this.ui.cpuLog(t('log.trap', { name: nameOf(ev.seat) }), 'bad');
           break;
         case 'switchOn':
           audio.play('switch');
-          this.ui.toast(t('hud.switchOn', { n: ev.on, t: ev.total }), 'good');
+          if (ev.seat === 0) this.ui.toast(t('hud.switchOn', { n: ev.on, t: ev.total }), 'good');
+          else this.ui.cpuLog(t('log.switchOn', { name: nameOf(ev.seat), n: ev.on, t: ev.total }), 'good');
           break;
         case 'switchMiss':
           audio.play('miss');
-          this.ui.toast(t('hud.switchMiss'), 'warn');
+          if (ev.seat === 0) this.ui.toast(t('hud.switchMiss'), 'warn');
+          else this.ui.cpuLog(t('log.switchMiss', { name: nameOf(ev.seat) }), 'warn');
           break;
         case 'trapSwitch':
           audio.play('trap');
-          this.ui.toast(t('hud.switchTrap'), 'bad');
+          if (ev.seat === 0) this.ui.toast(t('hud.switchTrap'), 'bad');
+          else this.ui.cpuLog(t('log.switchTrap', { name: nameOf(ev.seat) }), 'bad');
           break;
         case 'gateOpen': {
           audio.play('gate');
           const gate = m.gates.find((g) => g.id === ev.gate);
           if (gate) this.view.effects.gate({ x: gate.x, y: gate.floor === 2 ? 5.5 : 0, z: gate.z });
+          // No actor owns this one: a gate opening is news for everybody, so it
+          // keeps the centre of the screen.
           this.ui.toast(t('hud.gateOpened', { f: ev.floor }), 'good');
           break;
         }
         case 'wolf-on':
           audio.play('wolf');
-          if (ev.seat === 0) this.ui.toast(t('hud.wolfOn'), 'warn');
-          this.vibrate(40);
+          if (ev.seat === 0) {
+            this.ui.toast(t('hud.wolfOn'), 'warn');
+            this.vibrate(40);
+          } else {
+            this.ui.cpuLog(t('log.wolfOn', { name: nameOf(ev.seat) }), 'warn');
+          }
           break;
         case 'wolf-off':
           if (ev.seat === 0) this.ui.toast(t('hud.wolfOff'));
+          else this.ui.cpuLog(t('log.wolfOff', { name: nameOf(ev.seat) }));
           break;
         case 'infect':
           audio.play('switch');
-          this.ui.toast(t('hud.infect'), 'warn');
+          if (ev.by === 0) this.ui.toast(t('hud.infect'), 'warn');
+          else this.ui.cpuLog(t('log.infect', { name: nameOf(ev.by) }), 'warn');
           break;
         case 'stairs':
           audio.play('stairs');
@@ -975,6 +1012,10 @@ class OnlineSession {
           audio.play('stamp');
         }
         break;
+      case 'event':
+        if (this.role !== 'guest' || !this.app.match) return;
+        if (payload.ev) this.app.match.events.push(payload.ev);
+        break;
       case 'end':
         if (this.role === 'guest') {
           this.app.ui.toast(t('online.hostLost'), 'bad');
@@ -1002,7 +1043,10 @@ class OnlineSession {
   }
 
   broadcastEvent(ev) {
-    // Stamps and results are the only events guests need verbatim.
+    // Guests do not run the rules, so the host relays each event for their
+    // notices (centre for their own seat, upper-left for everyone else's).
+    if (this.role !== 'host') return;
+    this.transport?.broadcast('event', { ev });
   }
 
   broadcastEnd(match) {

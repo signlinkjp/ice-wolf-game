@@ -29,16 +29,16 @@ async function sourceFiles(dir = 'src') {
 
 test('version, bundle id and product id are the shipping ones', () => {
   assert.equal(APP.version, '1.2.0');
-  assert.equal(APP.build, 35);
+  assert.equal(APP.build, 36);
   assert.equal(APP.bundleId, 'jp.signlink.IceWolf');
   assert.equal(APP.productId, 'jp.signlink.IceWolf.pro');
 });
 
-test('the iOS project carries 1.2.0 / 35 and the bundle id', async () => {
+test('the iOS project carries 1.2.0 / 36 and the bundle id', async () => {
   const pbx = await read('ios/App/App.xcodeproj/project.pbxproj');
   const builds = [...pbx.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)].map((m) => m[1]);
   const versions = [...pbx.matchAll(/MARKETING_VERSION = ([\d.]+);/g)].map((m) => m[1]);
-  assert.deepEqual(builds, ['35', '35']);
+  assert.deepEqual(builds, ['36', '36']);
   assert.deepEqual(versions, ['1.2.0', '1.2.0']);
   assert.equal((pbx.match(/PRODUCT_BUNDLE_IDENTIFIER = jp\.signlink\.IceWolf;/g) || []).length, 2);
   const cap = await read('capacitor.config.ts');
@@ -60,8 +60,13 @@ test('movement is bound to the ice, never to the buttons', async () => {
   // The two movement surfaces.
   assert.ok(main.includes("document.getElementById('touchLayer')"));
   assert.ok(main.includes("document.getElementById('stick')"));
-  // No global pointer handler that could swallow a button press.
-  assert.ok(!/window\.addEventListener\(\s*['"]pointer/.test(main));
+  // The only global pointer listener allowed is the passive audio unlock; a
+  // handler that stops or redirects a gesture would swallow button presses.
+  const globals = [...main.matchAll(/window\.addEventListener\(\s*['"](pointer\w*|touchstart)['"][\s\S]{0,160}?\);/g)].map((m) => m[0]);
+  for (const call of globals) {
+    assert.ok(/unlock/i.test(call), `unexpected global gesture handler: ${call}`);
+    assert.ok(/passive:\s*true/.test(call), `the audio unlock must be passive: ${call}`);
+  }
   const css = await read('styles.css');
   assert.ok(/#hud\s*\{[^}]*pointer-events:\s*none/.test(css), 'HUD containers pass taps through');
   assert.ok(/\.hud-top-actions\s*\{[^}]*pointer-events:\s*auto/.test(css), 'HUD buttons take taps');
@@ -72,6 +77,28 @@ test('the light theme is the default (no dark full-screen backgrounds)', async (
   assert.ok(/#menu\s*\{[^}]*rgba\(244,\s*253,\s*255/.test(css), 'home uses the ice-white veil');
   assert.ok(/\.sheet-card\s*\{[^}]*#ffffff/.test(css), 'sheets are white cards');
   assert.ok(!/background:\s*#06111f/.test(css), 'the old near-black body background is gone');
+});
+
+test('iOS declares the twelve localizations so a Japanese phone starts in Japanese', async () => {
+  const plist = await read('ios/App/App/Info.plist');
+  assert.ok(plist.includes('<key>CFBundleLocalizations</key>'), 'CFBundleLocalizations is present');
+  for (const code of ['ja', 'en', 'zh-Hans', 'zh-Hant', 'ko', 'es', 'fr', 'de', 'pt', 'it', 'hi', 'id']) {
+    assert.ok(plist.includes(`<string>${code}</string>`), code);
+  }
+});
+
+test('the HUD keeps player results in the centre and everyone else upper-left', async () => {
+  const html = await read('index.html');
+  assert.ok(html.includes('id="toast"'), 'centre toast');
+  assert.ok(html.includes('id="cpuLog"'), 'upper-left CPU log');
+  const css = await read('styles.css');
+  assert.ok(/\.cpu-log\s*\{[^}]*top:/.test(css), 'the CPU log sits below the HUD cards');
+  assert.ok(/\.cpu-line\.show/.test(css), 'CPU lines fade in and out on their own');
+  const main = await read('src/main.js');
+  for (const key of ['log.freeze', 'log.rescue', 'log.switchOn', 'log.wolfOn']) {
+    assert.ok(main.includes(`t('${key}'`), key);
+  }
+  assert.ok(main.includes("this.ui.cpuLog("), 'CPU events go to the log, not the toast');
 });
 
 test('every literal t() key used by the code exists in twelve languages', async () => {
@@ -135,7 +162,7 @@ test('the built web layer is complete and self-contained', async () => {
   const main = await read('www/src/main.js');
   assert.ok(!/https?:\/\/[^'"\s]+\.(js|css)/.test(main), 'no remote script/style');
   const info = JSON.parse(await read('www/build-info.json'));
-  assert.equal(info.build, 35);
+  assert.equal(info.build, 36);
 });
 
 test('the workflow the owner pastes builds Three.js, not GDevelop', async () => {

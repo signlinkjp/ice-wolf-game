@@ -9,10 +9,33 @@
 import * as THREE from '../../vendor/three.module.js';
 import { ARENA } from '../config.js';
 import { wallsForFloor } from '../core/geometry.js';
-import { standard, texture, surface, glow } from './materials.js';
+import { standard, texture, surface, glow, labelTexture } from './materials.js';
 
 const WALL_H = ARENA.wallH;
 const RAIL_H = ARENA.railH;
+
+/**
+ * Colours the player has to be able to name from across the rink, whatever
+ * stage is behind them (Build 36). The ice is white-blue everywhere, so the
+ * interactive furniture gets its own warm / magenta / green language instead of
+ * borrowing the stage accent.
+ */
+const MARK = {
+  gold: '#ffb020',
+  goldBright: '#ffd15a',
+  amberSoft: '#ffc247',
+  bronze: '#3b2a14',
+  bronzeDark: '#2b2115',
+  wood: '#bd7d42',
+  woodDark: '#5b3418',
+  emerald: '#2effa0',
+  emeraldDark: '#0a7a52',
+  red: '#ff5a3c',
+  redDeep: '#c02a12',
+  magenta: '#ff3fd0',
+  violet: '#b45cff',
+  ink: '#1d2733',
+};
 
 /** Lift a palette colour past 1 so a dark texture still reads bright. */
 function brighten(hex, k) {
@@ -155,23 +178,72 @@ function makeWalls(stage) {
 
 function makeStairs(stage) {
   const group = new THREE.Group();
-  const stepMat = standard({ color: stage.palette.accent, roughness: 0.55 });
-  const dark = standard({ color: stage.palette.accent2, roughness: 0.6 });
+  // Warm wood against blue ice: the flight reads as a way up, not a wall.
+  const tread = standard({ color: MARK.wood, roughness: 0.72 });
+  const edge = new THREE.MeshBasicMaterial({ color: MARK.goldBright });
+  const railMat = standard({ color: '#eda94f', roughness: 0.45, metalness: 0.3 });
+  const marker = glow(MARK.amberSoft, 0.45);
+  const arrow = glow(MARK.amberSoft, 0.92);
+
   for (const stair of ARENA.stairs) {
-    const steps = 11;
+    const steps = 12;
+    // The flight sits against the deck face (x = 6) and ends at the deck top,
+    // so the whole staircase is visible from the ice instead of climbing into
+    // the deck block.
+    const x0 = 3.8;
+    const y0 = 0.15;
+    const run = 2.2;
+    const rise = ARENA.deckY - y0 - 0.15;
     for (let i = 0; i < steps; i += 1) {
       const t = i / (steps - 1);
-      const step = box(0.55, 0.24, stair.w - 0.6, i % 2 ? stepMat : dark);
-      step.position.set(6.3 - 2.0 + t * 3.6, 0.15 + t * (ARENA.deckY - 0.4), stair.z);
+      const x = x0 + t * run;
+      const y = y0 + t * rise;
+      const step = box(0.34, 0.26, stair.w - 0.5, tread);
+      step.position.set(x, y, stair.z);
       group.add(step);
+      // A bright lip on every tread edge: the steps stay countable at distance.
+      const lip = box(0.09, 0.1, stair.w - 0.45, edge);
+      lip.position.set(x - 0.16, y + 0.09, stair.z);
+      group.add(lip);
     }
-    // Railings either side.
+    const angle = Math.atan2(rise, run);
+    const diag = Math.hypot(run, rise);
+    const midY = y0 + rise / 2;
+    // Two warm bollards with lit caps at the foot: from any angle they mark the
+    // entrance, where a rail lying across the treads only added clutter.
     for (const side of [-1, 1]) {
-      const rail = box(4.0, 0.16, 0.16, stepMat);
-      rail.position.set(7.0, 2.95, stair.z + side * (stair.w / 2 - 0.35));
-      rail.rotation.z = -0.98;
-      group.add(rail);
+      const zPost = stair.z + side * (stair.w / 2 - 0.1);
+      const pole = box(0.12, 1.05, 0.12, railMat);
+      pole.position.set(x0 - 0.15, 0.62, zPost);
+      group.add(pole);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), glow(MARK.amberSoft, 0.95));
+      cap.position.set(x0 - 0.15, 1.22, zPost);
+      group.add(cap);
     }
+    // A thin edge board on each side gives the flight a solid silhouette.
+    for (const side of [-1, 1]) {
+      const board = box(diag, 0.14, 0.1, railMat);
+      board.position.set(x0 + run / 2, midY - 0.12, stair.z + side * (stair.w / 2 - 0.06));
+      board.rotation.z = -angle;
+      group.add(board);
+    }
+    // The foot of the stairs: two warm arrows on the ice and a glowing ring at
+    // the spot that actually takes a 1F player up (x = 5.0, radius 1.5).
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.35, 26), marker);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(3.5, 0.03, stair.z);
+    group.add(ring);
+    for (const [ax, size] of [[2.2, 0.34], [2.9, 0.42]]) {
+      const chevron = new THREE.Mesh(new THREE.ConeGeometry(size, size * 1.7, 3), arrow);
+      chevron.rotation.z = -Math.PI / 2;
+      chevron.position.set(ax, 0.16, stair.z);
+      group.add(chevron);
+    }
+    // And the landing on the deck where the 2F player walks down (x = 7.6).
+    const landing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.22, 26), marker);
+    landing.rotation.x = -Math.PI / 2;
+    landing.position.set(7.6, ARENA.deckY + 0.03, stair.z);
+    group.add(landing);
   }
   return group;
 }
@@ -180,6 +252,7 @@ function makePads(stage) {
   const group = new THREE.Group();
   const discs = [];
   const spin = [];
+  const warpRings = [];
 
   const ringFor = (color, radius = 1.25) => {
     const ring = new THREE.Mesh(
@@ -218,26 +291,75 @@ function makePads(stage) {
   }
 
   for (const warp of stage.warps) {
-    const y = (warp.floor === 2 ? ARENA.deckY : 0) + 0.035;
+    const y = (warp.floor === 2 ? ARENA.deckY : 0) + 0.04;
     const g = new THREE.Group();
-    const ring = ringFor('#b78bff');
-    const ring2 = ringFor('#6f4bd8', 0.92);
-    const core = new THREE.Mesh(
-      new THREE.CircleGeometry(0.55, 20),
-      new THREE.MeshBasicMaterial({ color: '#b78bff', transparent: true, opacity: 0.28, depthWrite: false }),
+    // Magenta and violet only: nothing else on any stage uses them, so a warp
+    // can never be mistaken for ice or for a speed pad.
+    const outer = new THREE.Mesh(
+      new THREE.RingGeometry(1.05, 1.3, 40),
+      new THREE.MeshBasicMaterial({ color: MARK.magenta, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }),
     );
+    const inner = new THREE.Mesh(
+      new THREE.RingGeometry(0.6, 0.8, 32),
+      new THREE.MeshBasicMaterial({ color: MARK.violet, transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    const core = new THREE.Mesh(
+      new THREE.CircleGeometry(0.58, 28),
+      new THREE.MeshBasicMaterial({ color: '#7b2bff', transparent: true, opacity: 0.5, depthWrite: false }),
+    );
+    outer.rotation.x = -Math.PI / 2;
+    inner.rotation.x = -Math.PI / 2;
     core.rotation.x = -Math.PI / 2;
-    g.add(ring, ring2, core);
+    outer.position.y = 0.01;
+    inner.position.y = 0.03;
+    core.position.y = 0.02;
+    const column = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 1.2, 2.9, 20, 1, true),
+      new THREE.MeshBasicMaterial({ color: MARK.magenta, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    column.position.y = 1.45;
+    const aura = new THREE.Mesh(
+      new THREE.RingGeometry(1.5, 1.9, 36),
+      new THREE.MeshBasicMaterial({ color: MARK.violet, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    aura.rotation.x = -Math.PI / 2;
+    aura.position.y = 0.005;
+    const sparks = [];
+    for (let i = 0; i < 8; i += 1) {
+      const spark = new THREE.Mesh(
+        new THREE.SphereGeometry(0.085, 6, 5),
+        new THREE.MeshBasicMaterial({ color: '#ffb3f0', transparent: true, opacity: 0.9, depthWrite: false }),
+      );
+      const angle = (i / 8) * Math.PI * 2;
+      spark.position.set(Math.cos(angle) * 0.8, 0.2, Math.sin(angle) * 0.8);
+      g.add(spark);
+      sparks.push({ mesh: spark, angle, phase: i / 8 });
+    }
+    g.add(outer, inner, core, column, aura);
     g.position.set(warp.x, y, warp.z);
     group.add(g);
     discs.push(g);
-    spin.push({ mesh: ring, speed: 0.6 });
-    spin.push({ mesh: ring2, speed: -0.9 });
+    spin.push({ mesh: outer, speed: 0.9 });
+    spin.push({ mesh: inner, speed: -1.5 });
+    warpRings.push({ group: g, outer, inner, column, sparks });
   }
 
   const update = (dt) => {
     for (const s of spin) s.mesh.rotation.z += dt * s.speed;
     for (const d of discs) d.position.y += 0;
+    const now = performance.now() / 1000;
+    for (const w of warpRings) {
+      // Rings breathe, and sparks climb the column so a warp reads as active.
+      const pulse = 1 + Math.sin(now * 3 + w.group.position.x) * 0.07;
+      w.outer.scale.setScalar(pulse);
+      w.inner.scale.setScalar(1.14 - (pulse - 1));
+      for (const s of w.sparks) {
+        const p = (now * 0.55 + s.phase) % 1;
+        const r = 0.8 - p * 0.28;
+        s.mesh.position.set(Math.cos(s.angle + now * 0.8) * r, 0.15 + p * 2.5, Math.sin(s.angle + now * 0.8) * r);
+        s.mesh.material.opacity = 0.95 * (1 - p);
+      }
+    }
   };
   return { group, update };
 }
@@ -245,54 +367,111 @@ function makePads(stage) {
 function makeSwitch(stage, spot) {
   const group = new THREE.Group();
   const baseY = spot.floor === 2 ? ARENA.deckY : 0;
-  const pillar = box(0.5, 0.9, 0.5, standard({ color: '#243447', roughness: 0.6 }));
-  pillar.position.y = 0.45;
+  // A dark bronze plinth and a gold ring lift the switch off the white ice.
+  const plinth = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.02, 1.12, 0.18, 22),
+    standard({ color: MARK.bronzeDark, roughness: 0.42, metalness: 0.55 }),
+  );
+  plinth.position.y = 0.09;
+  const goldRing = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.08, 8, 32), glow(MARK.gold, 0.92));
+  goldRing.rotation.x = -Math.PI / 2;
+  goldRing.position.y = 0.2;
+  const floorRing = new THREE.Mesh(new THREE.RingGeometry(1.18, 1.52, 34), glow(MARK.gold, 0.34));
+  floorRing.rotation.x = -Math.PI / 2;
+  floorRing.position.y = 0.02;
+  // Thick pillar with a warm rim, not a thin cyan stick.
+  const pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.42, 1.05, 14),
+    standard({ color: MARK.bronze, roughness: 0.4, metalness: 0.6 }),
+  );
+  pillar.position.y = 0.72;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.055, 8, 20), glow(MARK.goldBright, 0.85));
+  rim.rotation.x = -Math.PI / 2;
+  rim.position.y = 0.3;
+  const collar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.46, 0.46, 0.16, 16),
+    standard({ color: '#8a5c12', metalness: 0.5, roughness: 0.4 }),
+  );
+  collar.position.y = 1.26;
+  // The big amber lamp and its halo: findable across the rink.
   const core = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.34, 0.4, 0.42, 12),
-    standard({ color: '#9fe8ff', emissive: '#1b6f8a', emissiveIntensity: 0.7, roughness: 0.3 }),
+    new THREE.CylinderGeometry(0.36, 0.42, 0.36, 16),
+    standard({ color: MARK.goldBright, emissive: '#ff9500', emissiveIntensity: 1.5, roughness: 0.25 }),
   );
-  core.position.y = 1.06;
-  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.06, 8, 24), glow(stage.palette.accent, 0.55));
+  core.position.y = 1.52;
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.08, 8, 28), glow(MARK.gold, 0.85));
   halo.rotation.x = -Math.PI / 2;
-  halo.position.y = 1.3;
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.6, 10, 1, true), glow(stage.palette.accent, 0.16));
-  beam.position.y = 2.2;
-  const gem = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.2, 0),
-    new THREE.MeshBasicMaterial({ color: '#dff7ff', transparent: true, opacity: 0.95 }),
+  halo.position.y = 1.76;
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.52, 2.7, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color: MARK.gold, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }),
   );
-  gem.position.y = 1.9;
-  group.add(pillar, core, halo, beam, gem);
+  beam.position.y = 2.55;
+  const gem = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.24, 0),
+    new THREE.MeshBasicMaterial({ color: '#fff2c8', transparent: true, opacity: 0.97 }),
+  );
+  gem.position.y = 2.12;
+  group.add(plinth, goldRing, floorRing, pillar, rim, collar, core, halo, beam, gem);
   group.position.set(spot.x, baseY, spot.z);
-  return { group, core, halo, beam, gem };
+  return { group, core, halo, beam, gem, floorRing, goldRing, spot };
 }
 
 function makeGate(stage, gate) {
   const group = new THREE.Group();
   const y = gate.floor === 2 ? ARENA.deckY : 0;
-  const frameMat = standard({ color: stage.palette.accent2, roughness: 0.4, metalness: 0.35 });
+  const exitClosed = labelTexture('EXIT', '#ffffff', 'rgba(206,44,22,0.96)');
+  const exitOpen = labelTexture('EXIT', '#06301f', 'rgba(70,255,166,0.96)');
+  const frameMat = standard({ color: MARK.ink, roughness: 0.35, metalness: 0.6 });
+  const trimMat = new THREE.MeshBasicMaterial({ color: MARK.goldBright });
   const doorMat = new THREE.MeshStandardMaterial({
-    color: '#4b5b6e',
+    color: MARK.red,
+    emissive: '#ff2f10',
+    emissiveIntensity: 0.85,
     roughness: 0.5,
-    metalness: 0.4,
+    metalness: 0.2,
     transparent: true,
     opacity: 0.95,
   });
-  const side = 2.2;
-  const left = box(0.35, 3.0, 0.5, frameMat);
-  left.position.set(-side / 2, 1.5, 0);
+  const side = 2.4;
+  const left = box(0.5, 3.4, 0.85, frameMat);
+  left.position.set(-side / 2, 1.7, 0);
   const right = left.clone();
   right.position.x = side / 2;
-  const top = box(side + 0.35, 0.42, 0.6, frameMat);
-  top.position.y = 3.05;
-  const door = box(side - 0.2, 2.6, 0.18, doorMat);
-  door.position.y = 1.35;
-  const light = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), glow('#ff5a5a', 0.9));
-  light.position.y = 3.4;
-  group.add(left, right, top, door, light);
+  const top = box(side + 0.5, 0.55, 0.95, frameMat);
+  top.position.y = 3.45;
+  for (const sx of [-1, 1]) {
+    const strip = box(0.12, 3.15, 0.9, trimMat);
+    strip.position.set(sx * (side / 2 - 0.18), 1.75, 0.02);
+    group.add(strip);
+  }
+  const door = box(side - 0.5, 3.0, 0.2, doorMat);
+  door.position.y = 1.55;
+  // The EXIT plate, on both faces, so the way out is named from either side.
+  const signMat = new THREE.MeshBasicMaterial({ map: labelTexture('EXIT', '#ffffff', 'rgba(206,44,22,0.96)'), transparent: true });
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 0.8), signMat);
+  sign.position.set(0, 3.45, 0.52);
+  const signBack = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 0.8), signMat.clone());
+  signBack.position.set(0, 3.45, -0.52);
+  signBack.rotation.y = Math.PI;
+  // A light bar along the lintel: the state of the gate reads from any angle,
+  // even when the EXIT plate itself is edge-on.
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(side + 0.4, 0.16, 1.0), glow(MARK.red, 1));
+  lintel.position.set(0, 3.76, 0);
+  const lamps = [];
+  for (const sx of [-1, 1]) {
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), glow(MARK.red, 1));
+    lamp.position.set(sx * (side / 2), 3.0, 0.5);
+    lamps.push(lamp);
+    group.add(lamp);
+  }
+  const floorRing = new THREE.Mesh(new THREE.RingGeometry(1.85, 2.3, 34), glow(MARK.red, 0.4));
+  floorRing.rotation.x = -Math.PI / 2;
+  floorRing.position.y = 0.03;
+  group.add(left, right, top, door, sign, signBack, floorRing, lintel);
   group.position.set(gate.x, y, gate.z);
   group.rotation.y = gate.facing === 'west' ? Math.PI / 2 : gate.facing === 'north' ? 0 : -Math.PI / 2;
-  return { group, door, light };
+  return { group, door, light: lamps[0], lamps, sign, signBack, floorRing, lintel, doorMat, doorBaseY: 1.55, exitClosed, exitOpen };
 }
 
 /* ------------------------------------------------------------------ */
@@ -605,32 +784,64 @@ export function buildStage(stage) {
       if (p.userData.fire) p.userData.fire.scale.y = 0.9 + Math.sin(performance.now() / 120) * 0.12;
     }
     if (match) {
-      for (let i = 0; i < switchMeshes.length; i += 1) {
-        const sw = match.switches[i];
-        const m = switchMeshes[i];
+      // Only the switches this match actually placed are drawn: the other
+      // candidate spots stay empty, so nobody walks to a switch that is not in
+      // play (Build 35 showed all thirteen, which hid the real ones).
+      const bySpot = new Map();
+      for (const sw of match.switches) bySpot.set(`${sw.x.toFixed(2)}|${sw.z.toFixed(2)}`, sw);
+      const now = performance.now();
+      for (const m of switchMeshes) {
+        const sw = bySpot.get(`${m.spot.x.toFixed(2)}|${m.spot.z.toFixed(2)}`);
+        m.group.visible = Boolean(sw);
         if (!sw) continue;
         const on = sw.active;
-        m.core.material.color.set(on ? '#8dff9e' : '#9fe8ff');
-        m.core.material.emissiveIntensity = on ? 1.6 : 0.6;
-        m.halo.material.color.set(sw.correct && on ? '#7dffa0' : stage.palette.accent);
-        m.halo.material.opacity = on ? 0.95 : 0.4 + Math.sin(performance.now() / 500 + i) * 0.12;
-        m.beam.material.opacity = on ? 0.34 : 0.1;
+        const dead = sw.triggered;
+        m.core.material.color.set(on ? MARK.emerald : dead ? '#8a8f99' : MARK.goldBright);
+        m.core.material.emissive.set(on ? '#00d47a' : dead ? '#4a4f58' : '#ff9500');
+        m.core.material.emissiveIntensity = on ? 1.9 : dead ? 0.15 : 1.5;
+        m.halo.material.color.set(on ? MARK.emerald : dead ? '#9aa0aa' : MARK.gold);
+        m.halo.material.opacity = on ? 0.95 : dead ? 0.12 : 0.55 + Math.sin(now / 420 + m.spot.x) * 0.2;
+        m.goldRing.material.color.set(on ? MARK.emerald : dead ? '#8a8f99' : MARK.gold);
+        m.floorRing.material.color.set(on ? MARK.emerald : dead ? '#8a8f99' : MARK.gold);
+        m.floorRing.material.opacity = on ? 0.6 : dead ? 0.08 : 0.26 + Math.sin(now / 500 + m.spot.z) * 0.1;
+        m.beam.material.color.set(on ? MARK.emerald : dead ? '#8a8f99' : MARK.gold);
+        m.beam.material.opacity = on ? 0.4 : dead ? 0.02 : 0.16;
         m.group.scale.y = 1 + (sw.glow || 0) * 0.06;
         if (m.gem) {
-          m.gem.position.y = 1.9 + Math.sin(performance.now() / 600 + i) * 0.08;
+          m.gem.position.y = 2.12 + Math.sin(now / 600 + m.spot.z) * 0.08;
           m.gem.rotation.y += dt * 1.6;
-          m.gem.material.color.set(on ? '#9dffb4' : sw.trap ? '#ffb3a0' : '#dff7ff');
+          m.gem.material.color.set(on ? '#c6ffdd' : dead ? '#c2c6cc' : '#fff2c8');
         }
       }
       for (let i = 0; i < gateMeshes.length; i += 1) {
         const gate = match.gates[i];
         const m = gateMeshes[i];
         if (!gate) continue;
-        m.light.material.color.set(gate.open ? '#7dffa0' : '#ff5a5a');
-        m.light.scale.setScalar(gate.open ? 1.5 + Math.sin(performance.now() / 300) * 0.3 : 1);
-        const target = gate.open ? -2.6 : 0;
-        m.door.position.y += (1.35 + target - m.door.position.y) * Math.min(1, dt * 4);
-        m.door.material.opacity = gate.open ? 0.35 : 0.95;
+        const open = gate.open;
+        for (const lamp of m.lamps) {
+          lamp.material.color.set(open ? MARK.emerald : MARK.red);
+          lamp.scale.setScalar(open ? 1.35 : 0.9 + Math.sin(now / 300 + i) * 0.12);
+        }
+        m.doorMat.color.set(open ? MARK.emeraldDark : MARK.red);
+        m.doorMat.emissive.set(open ? '#12ff9a' : '#ff2f10');
+        m.doorMat.emissiveIntensity = open ? 1.4 : 0.85;
+        m.doorMat.opacity = open ? 0.22 : 0.95;
+        m.floorRing.material.color.set(open ? MARK.emerald : MARK.red);
+        m.floorRing.material.opacity = open ? 0.5 + Math.sin(now / 260) * 0.2 : 0.3;
+        m.sign.material.color.set('#ffffff');
+        m.signBack.material.color.set('#ffffff');
+        const map = open ? m.exitOpen : m.exitClosed;
+        if (m.sign.material.map !== map) {
+          m.sign.material.map = map;
+          m.sign.material.needsUpdate = true;
+          m.signBack.material.map = map;
+          m.signBack.material.needsUpdate = true;
+        }
+        m.lintel.material.color.set(open ? MARK.emerald : MARK.red);
+        m.lintel.material.opacity = open ? 0.95 : 0.75 + Math.sin(now / 280) * 0.2;
+        // The barrier sinks into the sill when the gate opens.
+        const target = open ? 0 : m.doorBaseY;
+        m.door.position.y += (target - m.door.position.y) * Math.min(1, dt * 4);
       }
     }
     if (gim) {

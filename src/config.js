@@ -1,5 +1,5 @@
 /**
- * ICE WOLF v1.2.0 (Build 35) — one place for every number that shapes a match.
+ * ICE WOLF v1.2.0 (Build 36) — one place for every number that shapes a match.
  *
  * The original GDevelop build (game.json) mixed rule numbers into an event
  * sheet. The Three.js build keeps every tuned value here so the rules, the AI,
@@ -13,7 +13,7 @@
 export const APP = {
   name: 'ICE WOLF',
   version: '1.2.0',
-  build: 35,
+  build: 36,
   productId: 'jp.signlink.IceWolf.pro',
   bundleId: 'jp.signlink.IceWolf',
 };
