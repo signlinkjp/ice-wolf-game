@@ -691,7 +691,13 @@ function deviceTags() {
  */
 function deviceIsJapanese() {
   const tags = deviceTags();
-  return tags.some((tag) => languageFor(tag) === 'ja') || inJapan();
+  if (tags.some((tag) => languageFor(tag) === 'ja')) return true;
+  // Only inside the iOS shell do we distrust an all-English report: a WKWebView
+  // with no matching localisation says "en-US" on every phone. A browser in
+  // Tokyo, on the other hand, may well belong to an English speaker.
+  const shell = typeof window !== 'undefined'
+    && (Boolean(window.Capacitor) || Boolean(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge));
+  return shell && inJapan();
 }
 
 /**
